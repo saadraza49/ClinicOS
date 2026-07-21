@@ -258,7 +258,6 @@ export default function Home() {
                 description={service.description}
                 icon={service.icon}
                 slug={service.slug}
-                index={index}
               />
             ))}
           </div>
