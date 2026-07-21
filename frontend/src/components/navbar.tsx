@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MapPin, ChevronDown, Globe, Menu, X, Calendar, User } from "lucide-react";
@@ -30,6 +30,23 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener for language dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    if (isLangOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isLangOpen]);
+
   const languages = [
     { code: "EN", label: "English", flag: "🇺🇸" },
     { code: "ES", label: "Español", flag: "🇪🇸" },
@@ -53,7 +70,7 @@ export default function Navbar() {
       <div className={`max-w-[1400px] mx-auto backdrop-blur-md rounded-full flex items-center justify-between border border-white/10 transition-all duration-300 ease-in-out ${
         isScrolled ? "py-2 px-4 shadow-md bg-white/70" : "py-2.5 px-6 shadow-sm bg-white/95"
       }`}>
-        <div className="flex items-center gap-4 lg:gap-5">
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 pl-1 group">
             <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-tr from-[#2c336b] to-[#4c549b] shadow-md transition-all duration-300 ${isScrolled ? "w-7.5 h-7.5" : "w-8.5 h-8.5"
@@ -66,8 +83,9 @@ export default function Navbar() {
                 <circle cx="12" cy="20" r="3" fill="currentColor" />
               </svg>
             </div>
-            <span className={`font-extrabold text-[#2c336b] tracking-tight hover:opacity-90 transition-all duration-300 ${isScrolled ? "text-lg" : "text-xl"
-              }`}>WeCare</span>
+            <span className={`font-extrabold text-[#2c336b] tracking-tight hover:opacity-90 transition-all duration-300 ${
+              isScrolled ? "text-sm sm:text-base lg:text-lg" : "text-base sm:text-lg lg:text-xl"
+            }`}>WeCare</span>
           </Link>
 
           <div className="hidden md:block w-px h-5 bg-gray-200"></div>
@@ -78,7 +96,7 @@ export default function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             className={`hidden md:flex items-center gap-1.5 rounded-full bg-[#f3faff] text-[#2c336b] border border-[#2c336b]/10 hover:border-[#2c336b]/30 hover:bg-[#2c336b]/10 transition-all duration-300 shadow-sm group ${
-              isScrolled ? "px-3.5 py-1.5 text-xs" : "px-4 py-2 text-xs"
+              isScrolled ? "px-3 py-1 text-[11px]" : "px-3.5 py-1.5 text-[11px] lg:text-[11px] xl:px-4 xl:py-2 xl:text-xs"
             }`}
           >
             <MapPin className="w-3.5 h-3.5 text-[#2c336b] group-hover:translate-y-[-2px] transition-transform duration-300" />
@@ -94,7 +112,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative px-3 py-1.5 text-[12px] font-semibold transition-colors duration-300 rounded-full z-10 ${
+                className={`relative px-2 xl:px-3 py-1.5 text-[11px] xl:text-[12px] font-semibold transition-colors duration-300 rounded-full z-10 ${
                   isActive 
                     ? "text-[#2c336b]" 
                     : "text-gray-600 hover:text-[#2c336b] hover:bg-[#2c336b]/4"
@@ -114,47 +132,51 @@ export default function Navbar() {
         </nav>
 
         {/* Right Section Actions */}
-        <div className="flex items-center gap-3 pr-1">
+        <div className="flex items-center gap-2 sm:gap-3 pr-1">
           {/* Language Selector Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={langDropdownRef}>
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className={`flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-[#2c336b] bg-gray-100/80 hover:bg-gray-200/50 rounded-full transition-all cursor-pointer ${isScrolled ? "px-3 py-1.5" : "px-3.5 py-2"
-                }`}
+              className={`flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-xs font-bold text-gray-700 hover:text-[#2c336b] bg-gray-100/80 hover:bg-gray-200/50 rounded-full transition-all cursor-pointer ${
+                isScrolled ? "px-1.5 py-0.5 sm:px-3 sm:py-1.5" : "px-2 py-1 sm:px-3.5 sm:py-2"
+              }`}
             >
-              <Globe className="w-3.5 h-3.5 text-[#2c336b]" />
+              <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#2c336b]" />
               <span>{selectedLang.code}</span>
-              <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform duration-300 ${isLangOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform duration-300 hidden sm:block ${isLangOpen ? "rotate-180" : ""}`} />
             </button>
 
             <AnimatePresence>
               {isLangOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50"
+                  exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-200/80 py-1 z-50"
                 >
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setSelectedLang(lang);
-                        setIsLangOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-xs font-semibold flex items-center justify-between hover:bg-gray-50 transition cursor-pointer ${selectedLang.code === lang.code ? "text-[#2c336b] bg-gray-50" : "text-gray-600"
+                  {languages.map((lang) => {
+                    const isSelected = selectedLang.code === lang.code;
+                    return (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setSelectedLang(lang);
+                          setIsLangOpen(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center transition cursor-pointer rounded-lg ${
+                          isSelected 
+                            ? "text-[#2c336b] bg-[#2c336b]/5 font-bold" 
+                            : "text-gray-600 hover:bg-gray-50 hover:text-[#2c336b]"
                         }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>{lang.flag}</span>
-                        <span>{lang.label}</span>
-                      </span>
-                      {selectedLang.code === lang.code && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#2c336b]"></span>
-                      )}
-                    </button>
-                  ))}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{lang.flag}</span>
+                          <span>{lang.label}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -164,7 +186,7 @@ export default function Navbar() {
           <Link
             href="/login"
             className={`hidden lg:flex items-center gap-1.5 rounded-full border border-[#2c336b]/20 text-[#2c336b] hover:bg-[#2c336b]/5 font-bold transition-all duration-300 ${
-              isScrolled ? "px-3.5 py-1.5 text-xs" : "px-4 py-2 text-xs"
+              isScrolled ? "px-3 py-1 text-[11px]" : "px-3 py-1.5 text-[11px] xl:px-4 xl:py-2 xl:text-xs"
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -174,18 +196,19 @@ export default function Navbar() {
           {/* Login / Register Button (Mobile/Tablet Icon) */}
           <Link
             href="/login"
-            className={`lg:hidden flex items-center justify-center rounded-full bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${isScrolled ? "w-8 h-8" : "w-9 h-9"
-              }`}
+            className={`flex lg:hidden items-center justify-center rounded-full bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${
+              isScrolled ? "w-6.5 h-6.5 sm:w-7.5 sm:h-7.5" : "w-7.5 h-7.5 sm:w-8.5 sm:h-8.5"
+            }`}
             aria-label="Login / Register"
           >
-            <User className="w-4 h-4 text-[#2c336b]" />
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2c336b]" />
           </Link>
 
           {/* Book Appointment CTA Button */}
           <Link
             href="/book-appointment"
             className={`hidden md:flex items-center gap-1.5 rounded-full bg-[#2c336b] text-white hover:bg-[#3d468e] font-bold shadow-md transition-all duration-300 group ${
-              isScrolled ? "px-4 py-1.5 text-xs" : "px-5 py-2 text-xs"
+              isScrolled ? "px-3.5 py-1 text-[11px]" : "px-4 py-1.5 text-[11px] xl:px-5 xl:py-2 xl:text-xs"
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
@@ -195,10 +218,10 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-full text-gray-700 hover:text-[#2c336b] hover:bg-gray-100 transition-colors cursor-pointer"
+            className="lg:hidden p-1.5 sm:p-2 rounded-full text-gray-700 hover:text-[#2c336b] hover:bg-gray-100 transition-colors cursor-pointer"
             aria-label="Toggle Menu"
           >
-            {isMobileMenuOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
+            {isMobileMenuOpen ? <X className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" /> : <Menu className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />}
           </button>
         </div>
       </div>
@@ -211,10 +234,10 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden overflow-hidden w-full mt-2 bg-white/95 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-xl"
+            className="lg:hidden overflow-y-auto max-h-[calc(100vh-100px)] w-full mt-2 bg-white/95 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-xl"
           >
-            <div className="p-6 flex flex-col gap-4">
-              <nav className="flex flex-col gap-2">
+            <div className="p-4 sm:p-5 flex flex-col gap-3">
+              <nav className="flex flex-col gap-1 sm:gap-1.5">
                 {navLinks.map((link) => {
                   const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href));
                   return (
@@ -222,7 +245,7 @@ export default function Navbar() {
                       key={link.href}
                       href={link.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`px-4 py-2.5 rounded-2xl text-[13px] font-semibold transition-all ${isActive
+                      className={`px-4 py-1.5 sm:py-2 rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all ${isActive
                         ? "bg-[#f3faff] text-[#2c336b] pl-6"
                         : "text-gray-600 hover:bg-gray-50 hover:text-[#2c336b]"
                         }`}
@@ -233,15 +256,15 @@ export default function Navbar() {
                 })}
               </nav>
 
-              <hr className="border-gray-100 my-2" />
+              <hr className="border-gray-100 my-1 sm:my-1.5" />
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 <Link
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-bold text-sm"
+                  className="flex md:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-bold text-xs"
                 >
-                  <User className="w-4 h-4 text-[#2c336b]" />
+                  <User className="w-3.5 h-3.5 text-[#2c336b]" />
                   Login / Register
                 </Link>
 
@@ -250,18 +273,18 @@ export default function Navbar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-semibold text-sm"
+                  className="flex md:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-semibold text-xs"
                 >
-                  <MapPin className="w-4 h-4 text-[#2c336b]" />
+                  <MapPin className="w-3.5 h-3.5 text-[#2c336b]" />
                   Our Location
                 </a>
 
                 <Link
                   href="/book-appointment"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-[#2c336b] text-white hover:bg-[#3d468e] transition-all font-bold text-sm shadow-md"
+                  className="flex md:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-[#2c336b] text-white hover:bg-[#3d468e] transition-all font-bold text-xs shadow-md"
                 >
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3.5 h-3.5" />
                   Book Appointment
                 </Link>
               </div>
