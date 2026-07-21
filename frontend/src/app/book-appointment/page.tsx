@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { services } from "@/data/services";
 import { doctors } from "@/data/doctors";
 import Button from "@/components/button";
+import Image from "next/image";
 
 const timeSlots = [
   { value: "09:00", label: "09:00 AM", disabled: false },
@@ -137,7 +138,7 @@ function BookingForm() {
                   setService(e.target.value);
                   if (errors.service) setErrors((prev) => ({ ...prev, service: "" }));
                 }}
-                className={`w-full appearance-none bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
+                className={`w-full appearance-none bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all ${
                   errors.service ? "border-error focus:ring-error" : "border-outline-variant"
                 }`}
               >
@@ -168,7 +169,7 @@ function BookingForm() {
                 name="doctor"
                 value={doctor}
                 onChange={(e) => setDoctor(e.target.value)}
-                className="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
               >
                 <option value="any">Any Available Doctor</option>
                 {doctors.map((d) => (
@@ -204,7 +205,7 @@ function BookingForm() {
               setDate(e.target.value);
               if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
             }}
-            className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
+            className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all ${
               errors.date ? "border-error focus:ring-error" : "border-outline-variant"
             }`}
           />
@@ -216,7 +217,7 @@ function BookingForm() {
           <label className="text-label-sm text-on-surface-variant">
             Available Time Slots <span className="text-error">*</span>
           </label>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {timeSlots.map((slot) => (
               <div key={slot.value} className="relative">
                 <input
@@ -229,16 +230,16 @@ function BookingForm() {
                     setSelectedTime(slot.value);
                     if (errors.time) setErrors((prev) => ({ ...prev, time: "" }));
                   }}
-                  className="sr-only"
+                  className="sr-only peer"
                 />
                 {slot.disabled ? (
-                  <span className="flex items-center justify-center w-full py-2.5 px-3 border border-outline-variant/30 bg-surface-container-low text-outline-variant/50 rounded-full text-center text-label-sm cursor-not-allowed select-none">
+                  <span className="flex items-center justify-center w-full py-2.5 px-2 text-xs border border-outline-variant/30 bg-surface-container-low text-outline-variant/50 rounded-full text-center cursor-not-allowed select-none">
                     {slot.label}
                   </span>
                 ) : (
                   <label
                     htmlFor={`time-${slot.value}`}
-                    className={`flex items-center justify-center w-full py-2.5 px-3 border rounded-full text-center text-label-sm font-semibold cursor-pointer transition-all ${
+                    className={`flex items-center justify-center w-full py-2.5 px-2 text-xs border rounded-full text-center font-semibold cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 ${
                       selectedTime === slot.value
                         ? "bg-primary text-on-primary border-primary shadow-sm scale-102"
                         : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low hover:border-primary"
@@ -273,7 +274,7 @@ function BookingForm() {
                 setName(e.target.value);
                 if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
               }}
-              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 ${
+              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                 errors.name ? "border-error focus:ring-error" : "border-outline-variant"
               }`}
               type="text"
@@ -294,7 +295,7 @@ function BookingForm() {
                 setEmail(e.target.value);
                 if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
               }}
-              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 ${
+              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                 errors.email ? "border-error focus:ring-error" : "border-outline-variant"
               }`}
               type="email"
@@ -315,7 +316,7 @@ function BookingForm() {
                 setPhone(e.target.value);
                 if (errors.phone) setErrors((prev) => ({ ...prev, phone: "" }));
               }}
-              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 ${
+              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                 errors.phone ? "border-error focus:ring-error" : "border-outline-variant"
               }`}
               type="tel"
@@ -334,7 +335,7 @@ function BookingForm() {
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 resize-none"
+              className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 resize-none"
             />
           </div>
         </div>
@@ -440,10 +441,12 @@ export default function BookAppointmentPage() {
 
             {/* Decorative warm image */}
             <div className="mt-8 relative rounded-2xl overflow-hidden h-64 shadow-ambient">
-              <img
-                className="object-cover w-full h-full absolute inset-0"
-                alt="Friendly female doctor smiling warmly"
+              <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe8jqyDNc_WTmc1-3eDm8D9Owb-BHPnVTPr-XOoChSp_iyrPcwOMpA3aBike1-SLSwbEdsHyzyr_2-Dwkgkz9IuaGbPY5vjhR-436-qUuh7P3zt3DimyUIhLIKPV23Doy2BxJXaTyvZxhzAekONgKNri6KCocYPcrX73kBaQQX_oONuFuyk0ZZbi_BngVl6wA8BlsRibnyXEmcOEM8y6Ma5LYWxuck4c7EC6JLymKqLPxHKmse530lVE9l3M7b3HKWIbLMOJAYBbYQ"
+                alt="Friendly female doctor smiling warmly"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
             </div>
@@ -456,7 +459,7 @@ export default function BookAppointmentPage() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-7"
           >
-            <div className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-ambient border border-outline-variant/10">
+            <div className="bg-surface-container-lowest rounded-3xl p-4 sm:p-6 md:p-8 shadow-ambient border border-outline-variant/10">
               <Suspense
                 fallback={
                   <div className="py-20 flex flex-col items-center justify-center">

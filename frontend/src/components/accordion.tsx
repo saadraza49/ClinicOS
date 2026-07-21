@@ -19,8 +19,8 @@ export default function Accordion({ title, content, variant = "line" }: Accordio
 
   const buttonStyles =
     variant === "card"
-      ? "w-full flex justify-between items-center text-left px-6 py-5 focus:outline-none focus:bg-surface-container-low/30 transition-colors group cursor-pointer"
-      : "w-full flex justify-between items-center text-left py-2 font-headline-sm text-headline-sm text-on-background focus:outline-none group cursor-pointer";
+      ? "w-full flex justify-between items-center text-left px-6 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl focus:bg-surface-container-low/30 transition-colors group cursor-pointer"
+      : "w-full flex justify-between items-center text-left py-2 font-headline-sm text-headline-sm text-on-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md group cursor-pointer";
 
   const titleStyles =
     variant === "card"

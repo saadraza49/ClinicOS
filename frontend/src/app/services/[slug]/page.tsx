@@ -6,6 +6,7 @@ import { services } from "@/data/services";
 import ServiceCard from "@/components/service-card";
 import Button from "@/components/button";
 import CTABanner from "@/components/cta-banner";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 interface ServiceDetailPageProps {
@@ -102,10 +103,13 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
             >
               {/* Service Hero Image */}
               <div className="w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-8 relative">
-                <img
+                <Image
                   src={service.image}
-                  alt={service.name}
-                  className="object-cover w-full h-full"
+                  alt={`Hero image for ${service.name}`}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="object-cover"
                 />
               </div>
 
@@ -168,7 +172,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="lg:sticky lg:top-28 bg-surface-container-lowest rounded-3xl p-6 shadow-ambient border border-outline-variant/10 flex flex-col gap-6"
+              className="lg:sticky lg:top-24 bg-surface-container-lowest rounded-3xl p-6 shadow-ambient border border-outline-variant/10 flex flex-col gap-6"
             >
               <div className="flex justify-between items-end border-b border-outline-variant/10 pb-4">
                 <div>

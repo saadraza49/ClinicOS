@@ -29,9 +29,8 @@ export default function PricingTierCard({
 }: PricingTierCardProps) {
   return (
     <div
-      className={`bg-surface-container-lowest rounded-3xl p-8 shadow-ambient hover:shadow-interactive hover:-translate-y-1 transition-all duration-300 flex flex-col relative border h-full ${
-        isPopular ? "border-2 border-primary scale-102 z-10" : "border-outline-variant/20"
-      }`}
+      className={`bg-surface-container-lowest rounded-3xl p-8 shadow-ambient hover:shadow-interactive hover:-translate-y-1 transition-all duration-300 flex flex-col relative border h-full ${isPopular ? "border-2 border-primary scale-102 z-10" : "border-outline-variant/20"
+        }`}
     >
       {isPopular && (
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary text-on-secondary px-4 py-1 rounded-full text-label-sm font-semibold tracking-wider whitespace-nowrap shadow-sm select-none">
@@ -60,14 +59,12 @@ export default function PricingTierCard({
         {features.map((feature, idx) => (
           <li
             key={idx}
-            className={`flex items-start gap-3 text-body-md ${
-              feature.included ? "text-on-surface" : "text-on-surface-variant/40"
-            }`}
+            className={`flex items-start gap-3 text-body-md ${feature.included ? "text-on-surface" : "text-on-surface-variant/40"
+              }`}
           >
             <span
-              className={`material-symbols-outlined text-sm mt-1 select-none ${
-                feature.included ? "text-primary" : "text-on-surface-variant/30"
-              }`}
+              className={`material-symbols-outlined text-sm mt-1 select-none ${feature.included ? "text-primary" : "text-on-surface-variant/30"
+                }`}
               style={{ fontVariationSettings: feature.included ? "'FILL' 1" : "'FILL' 0" }}
             >
               {feature.included ? "check_circle" : "cancel"}

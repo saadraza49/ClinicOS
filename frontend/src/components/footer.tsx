@@ -20,14 +20,14 @@ export default function Footer() {
           </p>
           <div className="flex gap-4">
             <a
-              className="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors shadow-ambient"
+              className="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors shadow-ambient focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               href="#"
               aria-label="Share"
             >
               <span className="material-symbols-outlined text-sm">share</span>
             </a>
             <a
-              className="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors shadow-ambient"
+              className="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors shadow-ambient focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               href="mailto:support@luminahealth.com"
               aria-label="Email support"
             >
@@ -41,22 +41,22 @@ export default function Footer() {
           <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">Quick Links</h4>
           <ul className="space-y-3">
             <li>
-              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm" href="/services">
+              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/services">
                 Our Services
               </Link>
             </li>
             <li>
-              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm" href="/doctors">
+              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/doctors">
                 Meet the Team
               </Link>
             </li>
             <li>
-              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm" href="/privacy-policy">
+              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/privacy-policy">
                 Privacy Policy
               </Link>
             </li>
             <li>
-              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm" href="/terms-and-conditions">
+              <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/terms-and-conditions">
                 Terms of Service
               </Link>
             </li>

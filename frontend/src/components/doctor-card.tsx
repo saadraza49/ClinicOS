@@ -20,10 +20,12 @@ export default function DoctorCard({
     <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-ambient border border-transparent hover:-translate-y-1 hover:shadow-ambient-hover hover:border-secondary-container transition-all duration-300 flex flex-col items-center group">
       {/* Avatar Container */}
       <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-surface ring-2 ring-primary/10 group-hover:ring-secondary/30 transition-all relative">
-        <img
+        <Image
           src={image}
-          alt={name}
-          className="w-full h-full object-cover"
+          alt={`Portrait of ${name}`}
+          fill
+          sizes="128px"
+          className="object-cover"
         />
       </div>
 

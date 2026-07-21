@@ -59,7 +59,8 @@ export default function Chatbot() {
               />
               <button
                 disabled
-                className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center cursor-not-allowed opacity-60"
+                aria-label="Send message"
+                className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center cursor-not-allowed opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <span className="material-symbols-outlined text-md">send</span>
               </button>
@@ -82,8 +83,8 @@ export default function Chatbot() {
         {/* Floating Chat Action Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          aria-label="Chat Support"
-          className="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-300 active:scale-95 relative cursor-pointer"
+          aria-label={isOpen ? "Close chat support" : "Open chat support"}
+          className="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-300 active:scale-95 relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <span className="material-symbols-outlined text-3xl">
             {isOpen ? "close" : "chat_bubble"}

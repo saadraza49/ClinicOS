@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { blogPosts } from "@/data/blog";
 import BlogCard from "@/components/blog-card";
 import FilterPills from "@/components/filter-pills";
@@ -99,10 +100,13 @@ export default function BlogListingPage() {
           >
             {/* Featured Image */}
             <div className="md:w-1/2 relative h-64 md:h-auto overflow-hidden">
-              <img
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
+              <Image
+                className="object-cover transition-transform duration-700 group-hover:scale-103"
                 alt={featuredPost.title}
                 src={featuredPost.featuredImage}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute top-4 left-4 bg-surface-container-lowest/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-primary font-bold text-xs shadow-sm flex items-center gap-1 border border-outline-variant/10 select-none">
                 <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -127,10 +131,12 @@ export default function BlogListingPage() {
               {/* Author & Read Link */}
               <div className="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/10">
                 <div className="flex items-center gap-3">
-                  <img
-                    className="w-10 h-10 rounded-full object-cover border border-outline-variant/20"
+                  <Image
+                    className="rounded-full object-cover border border-outline-variant/20"
                     alt={featuredPost.author}
                     src={featuredPost.authorPhoto}
+                    width={40}
+                    height={40}
                   />
                   <div>
                     <p className="text-label-md font-bold text-on-surface">

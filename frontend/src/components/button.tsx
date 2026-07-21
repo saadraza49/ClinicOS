@@ -12,7 +12,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "font-label-md text-label-md px-8 py-3.5 rounded-full transition-all duration-300 font-medium active:scale-95 shadow-sm hover:shadow-md outline-none flex items-center justify-center gap-2 cursor-pointer";
+    "font-label-md text-label-md px-8 py-3.5 rounded-full transition-all duration-300 font-medium active:scale-95 shadow-sm hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 flex items-center justify-center gap-2 cursor-pointer";
 
   const variants = {
     primary:

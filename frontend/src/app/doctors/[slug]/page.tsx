@@ -5,6 +5,7 @@ import Link from "next/link";
 import { doctors } from "@/data/doctors";
 import TestimonialCard from "@/components/testimonial-card";
 import Button from "@/components/button";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 interface DoctorProfilePageProps {
@@ -82,10 +83,13 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
               transition={{ duration: 0.5 }}
               className="relative w-full max-w-sm aspect-[4/5] rounded-2xl overflow-hidden shadow-ambient bg-surface-container-lowest border border-outline-variant/10"
             >
-              <img
+              <Image
                 src={doctor.photo}
-                alt={doctor.name}
-                className="object-cover w-full h-full"
+                alt={`Portrait of ${doctor.name}`}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover"
               />
             </motion.div>
           </div>

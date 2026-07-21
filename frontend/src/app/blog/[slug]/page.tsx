@@ -6,6 +6,7 @@ import { blogPosts } from "@/data/blog";
 import BlogCard from "@/components/blog-card";
 import Button from "@/components/button";
 import CTABanner from "@/components/cta-banner";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 interface BlogDetailPageProps {
@@ -111,7 +112,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
           
           {/* Sticky Social Share Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1 lg:col-start-2 relative">
-            <div className="sticky top-28 flex flex-col gap-4 items-center">
+            <div className="sticky top-24 flex flex-col gap-4 items-center">
               <button
                 onClick={() => handleShareAlert("Facebook/Twitter")}
                 aria-label="Share"
@@ -162,10 +163,12 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                 
                 {/* Author Metadata */}
                 <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-4">
-                  <img
-                    className="w-12 h-12 rounded-full object-cover border border-outline-variant/20 shadow-sm"
+                  <Image
+                    className="rounded-full object-cover border border-outline-variant/20 shadow-sm"
                     alt={post.author}
                     src={post.authorPhoto}
+                    width={48}
+                    height={48}
                   />
                   <div className="text-center sm:text-left">
                     <p className="text-label-md font-bold text-on-surface">
@@ -184,11 +187,14 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
               </header>
 
               {/* Large Featured Image */}
-              <figure className="w-full rounded-2xl overflow-hidden shadow-sm mb-8 bg-surface-container-lowest border border-outline-variant/10">
-                <img
-                  className="w-full h-auto aspect-video object-cover"
+              <figure className="w-full relative rounded-2xl overflow-hidden shadow-sm mb-8 bg-surface-container-lowest border border-outline-variant/10">
+                <Image
+                  className="object-cover aspect-video"
                   alt={post.title}
                   src={post.featuredImage}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 66vw"
                 />
               </figure>
 
@@ -226,10 +232,12 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
 
               {/* Author Bio Card */}
               <div className="bg-surface-container-low/30 rounded-3xl p-6 md:p-8 border border-outline-variant/10 mt-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
-                <img
-                  className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-outline-variant/20 shadow-sm"
+                <Image
+                  className="rounded-full object-cover flex-shrink-0 border border-outline-variant/20 shadow-sm"
                   alt={post.author}
                   src={authorInfo.photo}
+                  width={80}
+                  height={80}
                 />
                 <div className="space-y-2">
                   <h3 className="text-headline-sm font-bold text-on-background">

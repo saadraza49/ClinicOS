@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/button";
+import Image from "next/image";
 
 export default function ContactPage() {
   // Form State
@@ -84,7 +85,7 @@ export default function ContactPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
             href="tel:1234567890"
-            className="flex flex-col items-center gap-2 group cursor-pointer"
+            className="flex flex-col items-center gap-2 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
           >
             <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 shadow-ambient border border-outline-variant/10">
               <span className="material-symbols-outlined text-3xl">call</span>
@@ -101,7 +102,7 @@ export default function ContactPage() {
             href="https://wa.me/1234567890"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-2 group cursor-pointer"
+            className="flex flex-col items-center gap-2 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
           >
             <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 shadow-ambient border border-outline-variant/10">
               <span className="material-symbols-outlined text-3xl">chat</span>
@@ -116,7 +117,7 @@ export default function ContactPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.4 }}
             href="mailto:hello@luminahealth.com"
-            className="flex flex-col items-center gap-2 group cursor-pointer"
+            className="flex flex-col items-center gap-2 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
           >
             <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 shadow-ambient border border-outline-variant/10">
               <span className="material-symbols-outlined text-3xl">mail</span>
@@ -137,7 +138,7 @@ export default function ContactPage() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-ambient border border-outline-variant/10"
+            className="bg-surface-container-lowest rounded-3xl p-4 sm:p-6 md:p-8 shadow-ambient border border-outline-variant/10"
           >
             <h2 className="text-headline-sm md:text-headline-md text-on-surface mb-6 font-bold">
               Send a Message
@@ -186,7 +187,7 @@ export default function ContactPage() {
                           setName(e.target.value);
                           if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
                         }}
-                        className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 ${
+                        className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                           errors.name ? "border-error focus:ring-error" : "border-outline-variant"
                         }`}
                         placeholder="Jane Doe"
@@ -206,7 +207,7 @@ export default function ContactPage() {
                           setEmail(e.target.value);
                           if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                         }}
-                        className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 ${
+                        className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                           errors.email ? "border-error focus:ring-error" : "border-outline-variant"
                         }`}
                         placeholder="jane@example.com"
@@ -228,7 +229,7 @@ export default function ContactPage() {
                           setPhone(e.target.value);
                           if (errors.phone) setErrors((prev) => ({ ...prev, phone: "" }));
                         }}
-                        className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 ${
+                        className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                           errors.phone ? "border-error focus:ring-error" : "border-outline-variant"
                         }`}
                         placeholder="(555) 123-4567"
@@ -246,7 +247,7 @@ export default function ContactPage() {
                           id="subject"
                           value={subject}
                           onChange={(e) => setSubject(e.target.value)}
-                          className="w-full appearance-none rounded-lg border border-outline-variant bg-surface-container-lowest text-body-md py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          className="w-full appearance-none rounded-lg border border-outline-variant bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
                         >
                           <option>General Inquiry</option>
                           <option>Appointments</option>
@@ -271,7 +272,7 @@ export default function ContactPage() {
                         setMessage(e.target.value);
                         if (errors.message) setErrors((prev) => ({ ...prev, message: "" }));
                       }}
-                      className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline/50 resize-none ${
+                      className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 resize-none ${
                         errors.message ? "border-error focus:ring-error" : "border-outline-variant"
                       }`}
                       placeholder="How can we help you?"
@@ -308,7 +309,7 @@ export default function ContactPage() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-ambient flex flex-col h-full border border-outline-variant/10"
+            className="bg-surface-container-lowest rounded-3xl p-4 sm:p-6 md:p-8 shadow-ambient flex flex-col h-full border border-outline-variant/10"
           >
             <h2 className="text-headline-sm md:text-headline-md text-on-surface mb-6 font-bold">
               Clinic Information
@@ -346,10 +347,12 @@ export default function ContactPage() {
 
             {/* Placeholder for Map */}
             <div className="w-full h-48 bg-surface-container rounded-2xl overflow-hidden relative shadow-sm border border-outline-variant/10 group">
-              <img
-                className="object-cover w-full h-full opacity-80 transition-transform duration-500 group-hover:scale-103"
+              <Image
+                className="object-cover opacity-80 transition-transform duration-500 group-hover:scale-103"
                 alt="Clinic Map Location"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqeGvaCOn3kKJk-w4T5Zy0_2iGH95h0gZxv0YFGyxFaYelFMsItaons8_A3mnUZ3uk9gLAs50Mf-dtikIfgA6G-wtai1sevWOTrMzHrP87PoLagaXJ6yDhdSmzQF6xFuX-Yt_Opw70n4GWLfsxc4o0LQ6PX-0orovvFClT7BAnrPrcoKhlQe-kf8lTIPzH9N6Orq8U1-cj0Cv25X7m2cVj2jp-AZ76a_v_ONmj0LGhkmvHQmhV313m_1pcWNZDnqBByZni_azwdR_Y"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/5">
                 <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>

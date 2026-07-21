@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 import TrustBar from "@/components/trust-bar";
 import CTABanner from "@/components/cta-banner";
 
@@ -125,12 +126,14 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="order-1 md:order-2 rounded-2xl overflow-hidden shadow-ambient aspect-video md:aspect-[4/3]"
+            className="order-1 md:order-2 rounded-2xl overflow-hidden shadow-ambient aspect-video md:aspect-[4/3] relative"
           >
-            <img
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            <Image
+              className="object-cover transition-transform duration-500 hover:scale-105"
               alt="Bright modern LuminaHealth clinic interior"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrhBMP_1QTD4zBE7bKZ-zbVlvaJb2VwAJKVWhkSN5g5dKE0ZdCEueeJaBSHPsXgnIHn8jHOo5ajFbWQa_ooSCChFlhFC0qOFFxBFvOuMSHOdzhkcqHoYDnLRYV-05n2OrVgenLe17G86Riwc0MUGZB9XcPtttkKhP-ohJmzLu7jLoUDT_KLnp9Ho-ExRoAvM2hbOYgGY58tgzOLnH5XbVXfSNpT-1g9sew_DLxPNnN9US7Fm3HGcrEymnEOvFlCJuj-ktFO2KA-RfI"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </motion.div>
         </div>
@@ -260,10 +263,12 @@ export default function AboutPage() {
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
                 className="overflow-hidden rounded-2xl aspect-square shadow-sm border border-outline-variant/10 relative group"
               >
-                <img
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108 cursor-pointer"
+                <Image
+                  className="object-cover transition-transform duration-500 group-hover:scale-108 cursor-pointer"
                   alt={img.alt}
                   src={img.src}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
                 />
               </motion.div>
             ))}
