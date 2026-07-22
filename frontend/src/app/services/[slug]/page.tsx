@@ -299,9 +299,8 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                 key={relatedService.id}
                 title={relatedService.name}
                 description={relatedService.shortDescription}
-                icon={relatedService.icon}
+                image={relatedService.image}
                 slug={relatedService.slug}
-                accentColor={relatedService.accentColor}
               />
             ))}
           </div>
