@@ -47,6 +47,18 @@ export default function Navbar() {
     };
   }, [isLangOpen]);
 
+  // Prevent background scroll when mobile hamburger drawer is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
   const languages = [
     { code: "EN", label: "English", flag: "🇺🇸" },
     { code: "ES", label: "Español", flag: "🇪🇸" },
@@ -66,9 +78,13 @@ export default function Navbar() {
   if (pathname === "/book-appointment/confirmation") return null;
 
   return (
-    <header className="sticky top-0 w-full pt-3 px-4 md:px-6 z-50">
-      <div className={`max-w-[1400px] mx-auto backdrop-blur-md rounded-full flex items-center justify-between border border-white/10 transition-all duration-300 ease-in-out ${
-        isScrolled ? "py-2 px-4 shadow-md bg-white/70" : "py-2.5 px-6 shadow-sm bg-white/95"
+    <header className={`sticky top-0 w-full z-50 transition-all duration-300 ease-in-out ${
+      isScrolled ? "pt-3 px-4 md:px-6" : "pt-0 px-0"
+    }`}>
+      <div className={`relative z-50 backdrop-blur-md flex items-center justify-between transition-all duration-300 ease-in-out ${
+        isScrolled 
+          ? "max-w-[1400px] mx-auto rounded-full border border-white/10 py-2 px-4 shadow-md bg-white/70" 
+          : "w-full max-w-full rounded-none border-b border-gray-200/50 py-3.5 px-6 md:px-10 shadow-sm bg-white/95"
       }`}>
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
           {/* Logo */}
@@ -215,26 +231,72 @@ export default function Navbar() {
             <span>Book Appointment</span>
           </Link>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button with Animated Icon Morph */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-1.5 sm:p-2 rounded-full text-gray-700 hover:text-[#2c336b] hover:bg-gray-100 transition-colors cursor-pointer"
+            className="lg:hidden p-1.5 sm:p-2 rounded-full text-gray-700 hover:text-[#2c336b] hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center"
             aria-label="Toggle Menu"
           >
-            {isMobileMenuOpen ? <X className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" /> : <Menu className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-[#2c336b]"
+            >
+              <motion.line
+                x1="4"
+                y1="6"
+                x2="20"
+                y2="6"
+                animate={isMobileMenuOpen ? { x1: 5, y1: 5, x2: 19, y2: 19 } : { x1: 4, y1: 6, x2: 20, y2: 6 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              />
+              <motion.line
+                x1="4"
+                y1="12"
+                x2="20"
+                y2="12"
+                animate={isMobileMenuOpen ? { opacity: 0 } : { opacity: 1 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+              />
+              <motion.line
+                x1="4"
+                y1="18"
+                x2="20"
+                y2="18"
+                animate={isMobileMenuOpen ? { x1: 5, y1: 19, x2: 19, y2: 5 } : { x1: 4, y1: 18, x2: 20, y2: 18 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              />
+            </svg>
           </button>
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile Navigation Drawer & Backdrop */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {isMobileMenuOpen && [
+          /* Full-screen Blurred Backdrop */
           <motion.div
+            key="mobile-menu-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-md z-40 lg:hidden cursor-pointer"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />,
+
+          /* Slide-down Mobile Menu Drawer */
+          <motion.div
+            key="mobile-menu-drawer"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden overflow-y-auto max-h-[calc(100vh-100px)] w-full mt-2 bg-white/95 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-xl"
+            className="relative z-50 lg:hidden overflow-y-auto max-h-[calc(100vh-100px)] w-full mt-2 bg-white/95 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-xl"
           >
             <div className="p-4 sm:p-5 flex flex-col gap-3">
               <nav className="flex flex-col gap-1 sm:gap-1.5">
@@ -290,7 +352,7 @@ export default function Navbar() {
               </div>
             </div>
           </motion.div>
-        )}
+        ]}
       </AnimatePresence>
     </header>
   );
