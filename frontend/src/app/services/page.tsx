@@ -85,25 +85,17 @@ export default function ServicesPage() {
         </motion.div>
 
         {/* Services Grid */}
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[400px]">
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 min-h-[400px]">
           <AnimatePresence mode="popLayout">
             {filteredServices.map((service, index) => (
-              <motion.div
+              <ServiceCard
                 key={service.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-              >
-                <ServiceCard
-                  title={service.name}
-                  description={service.shortDescription}
-                  icon={service.icon}
-                  slug={service.slug}
-                  accentColor={service.accentColor}
-                />
-              </motion.div>
+                title={service.name}
+                description={service.shortDescription}
+                image={service.image}
+                slug={service.slug}
+                index={index}
+              />
             ))}
           </AnimatePresence>
         </motion.div>

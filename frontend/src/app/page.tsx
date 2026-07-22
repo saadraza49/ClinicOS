@@ -1,51 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Pill, Stethoscope, Smartphone, User, TestTube, RefreshCcw, Ban, Calendar, Award, Receipt, ShieldCheck } from "lucide-react";
 import ServiceCard from "@/components/service-card";
 import TrustBar from "@/components/trust-bar";
 
-// Services Data
-const services = [
-  {
-    title: "General Practice",
-    description: "Routine check-ups, preventative care, and managing common illnesses.",
-    icon: "medical_services",
-    slug: "general-practice",
-  },
-  {
-    title: "Pediatrics",
-    description: "Specialized care for infants, children, and adolescents in a welcoming setting.",
-    icon: "child_care",
-    slug: "pediatrics",
-  },
-  {
-    title: "Cardiology",
-    description: "Expert diagnosis and management of heart and cardiovascular conditions.",
-    icon: "favorite",
-    slug: "cardiology",
-  },
-  {
-    title: "Dental Care",
-    description: "Comprehensive dentistry for a healthy, confident smile.",
-    icon: "dentistry",
-    slug: "dental-care",
-  },
-  {
-    title: "Wellness",
-    description: "Holistic approaches including nutrition counseling and stress management.",
-    icon: "spa",
-    slug: "wellness",
-  },
-  {
-    title: "Diagnostics",
-    description: "State-of-the-art imaging and laboratory services for accurate results.",
-    icon: "science",
-    slug: "diagnostics",
-  },
-];
+import { services } from "@/data/services";
 
 // Why Choose Us Data
 const features = [
@@ -75,45 +38,151 @@ const features = [
   },
 ];
 
+const heroImages = [
+  {
+    src: "/images/hero/hero-1.png",
+    alt: "General doctor consulting patient",
+  },
+  {
+    src: "/images/hero/hero-2.png",
+    alt: "Modern clinic waiting lounge",
+  },
+  {
+    src: "/images/hero/hero-3.png",
+    alt: "Friendly healthcare medical team",
+  },
+  {
+    src: "/images/hero/hero-4.png",
+    alt: "Clean general medical examination room",
+  },
+];
+
 export default function Home() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [prevImageIndex, setPrevImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => {
+        setPrevImageIndex(prev);
+        return (prev + 1) % heroImages.length;
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isHovered]);
+
+  const handleSelectSlide = (index: number) => {
+    setCurrentImageIndex((prev) => {
+      if (prev === index) return prev;
+      setPrevImageIndex(prev);
+      return index;
+    });
+  };
+
   return (
     <div className="bg-[#f5f5f5] min-h-screen font-sans pb-16">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 pt-4">
         {/* Main Hero Banner */}
-        <section className="relative bg-[#2c336b] rounded-[2rem] overflow-hidden min-h-[520px] flex items-center justify-center mb-6">
+        <section className="relative bg-[#2c336b] rounded-[2rem] overflow-hidden min-h-[520px] md:min-h-[580px] flex items-center justify-center mb-6 py-12 md:py-0">
           {/* Big background text */}
-          <div className="absolute inset-0 flex items-center justify-center z-0 overflow-hidden pointer-events-none" style={{ top: '-10%' }}>
-            <h1 className="text-[17vw] font-black text-white/95 leading-none select-none tracking-tight">
+          <div className="absolute inset-0 flex items-center justify-center z-0 overflow-hidden pointer-events-none">
+            <h1 
+              className="font-black text-white/95 leading-none select-none tracking-tight text-center w-full px-2"
+              style={{ 
+                fontSize: 'clamp(2.5rem, 11vw, 9rem)', 
+                transform: 'translateY(-8%)',
+                textShadow: 'none',
+                WebkitTextStroke: '0px transparent',
+                WebkitFontSmoothing: 'antialiased',
+              }}
+            >
               Healthcare
             </h1>
           </div>
           
-          {/* Main Doctor Image */}
-          <div className="relative z-10 w-full max-w-lg h-[480px] mt-12 flex justify-center">
-            <Image 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrxcvCmpCjISwmEnXT08rlKGREMO9Ebd64CE5d-fx2bWVaTN97wwa11eKWdimNq8f8C7-2BbBdTv3wcvWxTMiEI14yWFqriYP7KEcl9qwocwXnx_ivfA8Ns0aKuySw0xZFkCAG9vcR_NdJ8umGPZLmNn7r0K6glnSCG1HfahXY2K8TuOlbeg1OEyuIIWPbnBWukH-VYjcO_82UgtrbaYSjNwlr95vm4cVpBFYsocA81d5s8b_pVeJ7B2L_4Qy_6kpzz7ClGZ-93eLr" 
-              alt="Doctor" 
-              fill
-              priority
-              className="object-cover drop-shadow-2xl"
-              style={{ objectPosition: 'center top' }}
-            />
+          {/* Main Doctor Image Carousel Container */}
+          <div 
+            className="relative z-10 w-[88%] sm:w-[80%] md:w-full max-w-lg h-[360px] sm:h-[420px] md:h-[480px] mt-8 md:mt-12 mx-auto rounded-[2rem] overflow-hidden shadow-2xl bg-[#2c336b]"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {/* Underlay Image (Previous slide for seamless crossfade) */}
+            <div className="absolute inset-0 w-full h-full">
+              <Image 
+                src={heroImages[prevImageIndex].src} 
+                alt={heroImages[prevImageIndex].alt} 
+                fill
+                quality={90}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
+                className="object-cover"
+                style={{ objectPosition: 'center top' }}
+              />
+            </div>
+
+            {/* Active Fading Image */}
+            <AnimatePresence mode="sync">
+              <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full z-10"
+              >
+                <Image 
+                  src={heroImages[currentImageIndex].src} 
+                  alt={heroImages[currentImageIndex].alt} 
+                  fill
+                  priority={currentImageIndex === 0}
+                  quality={90}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
+                  className="object-cover"
+                  style={{ objectPosition: 'center top' }}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Carousel Dots */}
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
+              {heroImages.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleSelectSlide(i)}
+                  className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    i === currentImageIndex 
+                      ? "w-7 bg-[#f3d2de] shadow-sm" 
+                      : "w-2.5 bg-white/40 hover:bg-white/70"
+                  }`}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Floating Badges */}
-          <div className="absolute left-[10%] md:left-[20%] top-[48%] z-20 bg-[#353d74] border border-[#48508a] rounded-full pl-2 pr-5 py-2 hidden md:flex items-center gap-3 shadow-lg">
+          <motion.div 
+            className="absolute left-[4%] md:left-[8%] lg:left-[16%] top-[42%] md:top-[48%] z-20 bg-[#353d74] border border-[#48508a] rounded-full pl-2 pr-5 py-2 hidden md:flex items-center gap-3 shadow-xl"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
+          >
              <div className="bg-[#a9c7fb] p-1.5 rounded-full">
                 <RefreshCcw className="w-4 h-4 text-[#2c336b]" strokeWidth={2.5} />
              </div>
              <span className="text-[#a9c7fb] text-sm font-semibold tracking-wide">Reduced Uric Acid</span>
-          </div>
+          </motion.div>
 
-          <div className="absolute right-[10%] md:right-[20%] top-[48%] z-20 bg-[#353d74] border border-[#48508a] rounded-full pl-2 pr-5 py-2 hidden md:flex items-center gap-3 shadow-lg">
+          <motion.div 
+            className="absolute right-[4%] md:right-[8%] lg:right-[16%] top-[42%] md:top-[48%] z-20 bg-[#353d74] border border-[#48508a] rounded-full pl-2 pr-5 py-2 hidden md:flex items-center gap-3 shadow-xl"
+            animate={{ y: [0, -12, 0] }}
+            transition={{ repeat: Infinity, duration: 3.8, ease: "easeInOut", delay: 0.4 }}
+          >
              <div className="bg-[#f3d2de] p-1.5 rounded-full">
                 <Ban className="w-4 h-4 text-[#2c336b]" strokeWidth={2.5} />
              </div>
              <span className="text-[#f3d2de] text-sm font-semibold tracking-wide">No more tablets</span>
-          </div>
+          </motion.div>
 
           {/* Bottom Left Text */}
           <div className="absolute bottom-10 left-10 z-20 max-w-[340px] hidden md:block">
@@ -233,42 +302,34 @@ export default function Home() {
         </section>
 
         {/* Services Preview Section */}
-        <section className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-10">
-            <div>
-              <h2 className="text-3xl font-extrabold text-[#2c336b] mb-3">Comprehensive Services</h2>
-              <p className="text-gray-500 max-w-xl font-medium text-base">
-                From routine check-ups to specialized care, we offer a full spectrum of health services under one roof.
-              </p>
-            </div>
-            <Link
-              href="/services"
-              className="hidden md:inline-flex items-center gap-2 text-[#2c336b] hover:text-[#353d74] transition-colors font-bold text-sm mt-4 md:mt-0"
-            >
-              <span>View All Services</span>
-              <ArrowRight className="w-4 h-4 text-[#2c336b]" strokeWidth={2.5} />
-            </Link>
+        <section className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#2c336b] mb-4">Comprehensive Services</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto font-medium text-base">
+              From routine check-ups to specialized diagnostic care, we offer a full spectrum of health services tailored to your unique needs.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {services.slice(0, 6).map((service, index) => (
               <ServiceCard
-                key={service.title}
-                title={service.title}
-                description={service.description}
-                icon={service.icon}
+                key={service.id}
+                title={service.name}
+                description={service.shortDescription}
+                image={service.image}
                 slug={service.slug}
               />
             ))}
           </div>
 
-          <div className="md:hidden flex justify-center mt-8">
-            <Link
-              href="/services"
-              className="inline-flex items-center gap-2 text-[#2c336b] font-bold text-sm"
-            >
-              <span>View All Services</span>
-              <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+          <div className="flex justify-center mt-12">
+            <Link href="/services">
+              <button className="bg-[#f3d2de] text-[#2c336b] px-8 py-4 rounded-full font-bold text-[15px] flex items-center gap-4 hover:scale-105 transition shadow-lg cursor-pointer">
+                <span>View All Services</span>
+                <div className="bg-white rounded-full p-1.5 border border-black/5">
+                  <ArrowRight className="w-4 h-4 text-[#2c336b]" strokeWidth={3} />
+                </div>
+              </button>
             </Link>
           </div>
         </section>

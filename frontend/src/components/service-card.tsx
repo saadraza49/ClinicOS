@@ -1,52 +1,60 @@
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
+import { motion } from "framer-motion";
 
 interface ServiceCardProps {
   title: string;
-  description: string;
-  icon: string;
+  description?: string;
+  image: string;
   slug: string;
-  accentColor?: "primary" | "secondary" | "tertiary";
-  delayClass?: string;
+  index?: number;
 }
 
 export default function ServiceCard({
   title,
   description,
-  icon,
+  image,
   slug,
-  accentColor = "primary",
-  delayClass = "",
+  index = 0,
 }: ServiceCardProps) {
-  const badgeColors = {
-    primary: "bg-primary/10 text-primary",
-    secondary: "bg-secondary/10 text-secondary",
-    tertiary: "bg-tertiary/10 text-tertiary",
-  };
-
   return (
-    <Link
-      href={`/services/${slug}`}
-      className={`bg-surface-container-lowest rounded-2xl p-6 shadow-ambient hover:shadow-ambient-hover hover:scale-105 transition-all duration-300 cursor-pointer group flex flex-col justify-between ${delayClass}`}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, delay: index * 0.08 }}
+      className="h-full"
     >
-      <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-xl shrink-0 ${badgeColors[accentColor]}`}>
-          <span className="material-symbols-outlined text-2xl">{icon}</span>
+      <Link
+        href={`/services/${slug}`}
+        className="group block h-full rounded-[2rem] overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between cursor-pointer"
+      >
+        {/* Top Image Container */}
+        <div className="relative w-full h-[220px] sm:h-[240px] overflow-hidden bg-[#2c336b]/10">
+          <Image
+            src={image}
+            alt={title}
+            fill
+            quality={90}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
         </div>
-        <div>
-          <h3 className="text-headline-sm text-on-background mb-2 text-lg font-semibold group-hover:text-primary transition-colors duration-200">
+
+        {/* Bottom Label Strip */}
+        <div className="bg-[#2c336b] text-white p-5 flex flex-col items-center justify-center text-center flex-grow group-hover:bg-[#353d74] transition-colors duration-300 min-h-[90px]">
+          <h3 className="text-white text-lg sm:text-[19px] font-extrabold tracking-wide leading-snug">
             {title}
           </h3>
-          <p className="text-body-md text-on-surface-variant text-sm mb-4 leading-relaxed">
-            {description}
-          </p>
+          {description && (
+            <p className="text-white/80 text-xs sm:text-sm mt-1 font-medium line-clamp-2 max-w-[92%]">
+              {description}
+            </p>
+          )}
         </div>
-      </div>
-      <div className="pl-14 flex items-center gap-1.5 text-label-sm text-primary font-bold">
-        <span>Learn More</span>
-        <span className="material-symbols-outlined text-sm transition-transform duration-200 group-hover:translate-x-1">
-          arrow_forward
-        </span>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }
