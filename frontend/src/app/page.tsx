@@ -64,10 +64,13 @@ export default function Home() {
         {/* Full-width Video Background */}
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
           <video
+            src="https://res.cloudinary.com/hwztkijn/video/upload/v1784816229/A_professional_cinematic_s_gytgit.mp4"
             autoPlay
             loop
             muted
             playsInline
+            preload="auto"
+            crossOrigin="anonymous"
             className="w-full h-full object-cover"
           >
             <source src="https://res.cloudinary.com/hwztkijn/video/upload/v1784816229/A_professional_cinematic_s_gytgit.mp4" type="video/mp4" />
