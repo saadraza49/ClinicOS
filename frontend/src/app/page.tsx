@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, Pill, Stethoscope, Smartphone, User, TestTube, RefreshCcw, Ban, Calendar, Award, Receipt, ShieldCheck } from "lucide-react";
 import ServiceCard from "@/components/service-card";
 import TrustBar from "@/components/trust-bar";
@@ -38,6 +36,7 @@ const features = [
   },
 ];
 
+// Preserved hero images for future reference or fallback
 const heroImages = [
   {
     src: "/images/hero/hero-1.png",
@@ -58,151 +57,65 @@ const heroImages = [
 ];
 
 export default function Home() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [prevImageIndex, setPrevImageIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    if (isHovered) return;
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => {
-        setPrevImageIndex(prev);
-        return (prev + 1) % heroImages.length;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [isHovered]);
-
-  const handleSelectSlide = (index: number) => {
-    setCurrentImageIndex((prev) => {
-      if (prev === index) return prev;
-      setPrevImageIndex(prev);
-      return index;
-    });
-  };
-
   return (
     <div className="bg-[#f5f5f5] min-h-screen font-sans pb-16">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-6 pt-4">
-        {/* Main Hero Banner */}
-        <section className="relative bg-[#2c336b] rounded-[2rem] overflow-hidden min-h-[520px] md:min-h-[580px] flex items-center justify-center mb-6 py-12 md:py-0">
-          {/* Big background text */}
-          <div className="absolute inset-0 flex items-center justify-center z-0 overflow-hidden pointer-events-none">
-            <h1 
-              className="font-black text-white/95 leading-none select-none tracking-tight text-center w-full px-2"
-              style={{ 
-                fontSize: 'clamp(2.5rem, 11vw, 9rem)', 
-                transform: 'translateY(-8%)',
-                textShadow: 'none',
-                WebkitTextStroke: '0px transparent',
-                WebkitFontSmoothing: 'antialiased',
-              }}
-            >
-              Healthcare
+      {/* Main Hero Banner - Full Width Wall-to-Wall Video */}
+      <section className="relative w-full bg-[#2c336b] overflow-hidden min-h-[580px] md:min-h-[640px] lg:min-h-[700px] flex items-center mb-6">
+        {/* Full-width Video Background */}
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src="/videos/hero-section-video.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+
+          {/* Dark Gradient Overlay for Maximum Text Contrast & Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/30 z-10 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-10 pointer-events-none" />
+        </div>
+
+        {/* Hero Content Container - Vertically Centered Left-Aligned Block */}
+        <div className="relative z-20 w-full max-w-[1400px] mx-auto px-4 md:px-8 py-16 md:py-24 flex items-center min-h-[580px] md:min-h-[640px] lg:min-h-[700px]">
+          <div className="max-w-2xl text-left flex flex-col items-start">
+            {/* Main Heading */}
+            <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-5 drop-shadow-md">
+              World-Class <br className="hidden sm:inline" />Medical Care
             </h1>
-          </div>
-          
-          {/* Main Doctor Image Carousel Container */}
-          <div 
-            className="relative z-10 w-[88%] sm:w-[80%] md:w-full max-w-lg h-[360px] sm:h-[420px] md:h-[480px] mt-8 md:mt-12 mx-auto rounded-[2rem] overflow-hidden shadow-2xl bg-[#2c336b]"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {/* Underlay Image (Previous slide for seamless crossfade) */}
-            <div className="absolute inset-0 w-full h-full">
-              <Image 
-                src={heroImages[prevImageIndex].src} 
-                alt={heroImages[prevImageIndex].alt} 
-                fill
-                quality={90}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
-                className="object-cover"
-                style={{ objectPosition: 'center top' }}
-              />
-            </div>
 
-            {/* Active Fading Image */}
-            <AnimatePresence mode="sync">
-              <motion.div
-                key={currentImageIndex}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, ease: "easeInOut" }}
-                className="absolute inset-0 w-full h-full z-10"
-              >
-                <Image 
-                  src={heroImages[currentImageIndex].src} 
-                  alt={heroImages[currentImageIndex].alt} 
-                  fill
-                  priority={currentImageIndex === 0}
-                  quality={90}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
-                  className="object-cover"
-                  style={{ objectPosition: 'center top' }}
-                />
-              </motion.div>
-            </AnimatePresence>
+            {/* Supporting Subtext */}
+            <p className="text-white/90 text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 max-w-xl drop-shadow-sm">
+              Expert doctors, personalized care, and same-day appointments when you need them most.
+            </p>
 
-            {/* Carousel Dots */}
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
-              {heroImages.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => handleSelectSlide(i)}
-                  className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    i === currentImageIndex 
-                      ? "w-7 bg-[#f3d2de] shadow-sm" 
-                      : "w-2.5 bg-white/40 hover:bg-white/70"
-                  }`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
+            {/* CTA Button Group */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+              {/* Primary CTA Button */}
+              <Link href="/book-appointment" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto bg-[#f3d2de] text-[#2c336b] px-7 py-4 rounded-full font-bold text-[15px] sm:text-base flex items-center justify-center gap-4 hover:scale-[1.03] active:scale-95 transition-all duration-200 shadow-xl cursor-pointer group">
+                  <span>Book Appointment</span>
+                  <div className="bg-white rounded-full p-1.5 border border-black/5 group-hover:translate-x-0.5 transition-transform">
+                    <ArrowRight className="w-4 h-4 text-[#2c336b]" strokeWidth={3} />
+                  </div>
+                </button>
+              </Link>
+
+              {/* Secondary Ghost CTA Button */}
+              <Link href="/services" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto bg-white/10 hover:bg-white/20 border border-white/30 hover:border-white/60 text-white backdrop-blur-md px-7 py-4 rounded-full font-bold text-[15px] sm:text-base flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer">
+                  <span>Explore Our Services</span>
+                </button>
+              </Link>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Floating Badges */}
-          <motion.div 
-            className="absolute left-[4%] md:left-[8%] lg:left-[16%] top-[42%] md:top-[48%] z-20 bg-[#353d74] border border-[#48508a] rounded-full pl-2 pr-5 py-2 hidden md:flex items-center gap-3 shadow-xl"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
-          >
-             <div className="bg-[#a9c7fb] p-1.5 rounded-full">
-                <RefreshCcw className="w-4 h-4 text-[#2c336b]" strokeWidth={2.5} />
-             </div>
-             <span className="text-[#a9c7fb] text-sm font-semibold tracking-wide">Reduced Uric Acid</span>
-          </motion.div>
-
-          <motion.div 
-            className="absolute right-[4%] md:right-[8%] lg:right-[16%] top-[42%] md:top-[48%] z-20 bg-[#353d74] border border-[#48508a] rounded-full pl-2 pr-5 py-2 hidden md:flex items-center gap-3 shadow-xl"
-            animate={{ y: [0, -12, 0] }}
-            transition={{ repeat: Infinity, duration: 3.8, ease: "easeInOut", delay: 0.4 }}
-          >
-             <div className="bg-[#f3d2de] p-1.5 rounded-full">
-                <Ban className="w-4 h-4 text-[#2c336b]" strokeWidth={2.5} />
-             </div>
-             <span className="text-[#f3d2de] text-sm font-semibold tracking-wide">No more tablets</span>
-          </motion.div>
-
-          {/* Bottom Left Text */}
-          <div className="absolute bottom-10 left-10 z-20 max-w-[340px] hidden md:block">
-             <p className="text-white/80 text-[11px] font-bold leading-[1.8] tracking-wider uppercase">
-               If you're looking for a creative and easy<br/>way to build a website, branding face is<br/>the perfect solution.
-             </p>
-          </div>
-
-          {/* Bottom Right Button */}
-          <div className="absolute bottom-10 right-10 z-20">
-             <Link href="/book-appointment">
-               <button className="bg-[#f3d2de] text-[#2c336b] px-6 py-3.5 rounded-full font-bold text-[15px] flex items-center gap-4 hover:scale-105 transition shadow-xl cursor-pointer">
-                 Book Appointment
-                 <div className="bg-white rounded-full p-1.5 border border-black/5">
-                   <ArrowRight className="w-4 h-4 text-[#2c336b]" strokeWidth={3} />
-                 </div>
-               </button>
-             </Link>
-          </div>
-        </section>
+      <div className="max-w-[1400px] mx-auto px-4 md:px-6">
 
         {/* 4 Cards Grid Section */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
