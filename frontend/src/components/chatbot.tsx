@@ -8,7 +8,11 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  if (pathname === "/book-appointment/confirmation") return null;
+  if (
+    pathname === "/book-appointment/confirmation" ||
+    pathname === "/login" ||
+    pathname === "/signup"
+  ) return null;
 
   return (
     <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end">
