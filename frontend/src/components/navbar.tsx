@@ -81,16 +81,24 @@ export default function Navbar() {
     <header className={`sticky top-0 w-full z-50 transition-all duration-300 ease-in-out ${
       isScrolled ? "pt-3 px-4 md:px-6" : "pt-0 px-0"
     }`}>
+<<<<<<< Updated upstream
       <div className={`relative z-50 backdrop-blur-md flex items-center justify-between transition-all duration-300 ease-in-out ${
         isScrolled 
           ? "max-w-[1400px] mx-auto rounded-full border border-white/10 py-2 px-4 shadow-md bg-white/70" 
           : "w-full max-w-full rounded-none border-b border-gray-200/50 py-3.5 px-6 md:px-10 shadow-sm bg-white/95"
+=======
+      <div className={`relative z-50 mx-auto backdrop-blur-md flex items-center justify-between transition-all duration-300 ease-in-out ${
+        isScrolled 
+          ? "max-w-[1400px] rounded-2xl border border-white/10 py-2 px-4 shadow-md bg-white/70" 
+          : "max-w-full rounded-none border-b border-gray-200/50 py-3.5 px-6 md:px-10 bg-white/95 shadow-sm"
+>>>>>>> Stashed changes
       }`}>
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 pl-1 group">
-            <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-tr from-[#2c336b] to-[#4c549b] shadow-md transition-all duration-300 ${isScrolled ? "w-7.5 h-7.5" : "w-8.5 h-8.5"
-              }`}>
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 pl-1 group">
+            <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-tr from-[#2c336b] to-[#4c549b] shadow-md transition-all duration-300 ${
+              isScrolled ? "w-7.5 h-7.5" : "w-8.5 h-8.5"
+            }`}>
               <svg width={isScrolled ? "14" : "16"} height={isScrolled ? "14" : "16"} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white shrink-0">
                 <circle cx="12" cy="4" r="3" fill="currentColor" />
                 <circle cx="4" cy="12" r="3" fill="#a9c7fb" />
@@ -111,7 +119,7 @@ export default function Navbar() {
             href="https://maps.google.com/?q=123+Healing+Way,+Wellness+District,+CA+90210"
             target="_blank"
             rel="noopener noreferrer"
-            className={`hidden md:flex items-center gap-1.5 rounded-full bg-[#f3faff] text-[#2c336b] border border-[#2c336b]/10 hover:border-[#2c336b]/30 hover:bg-[#2c336b]/10 transition-all duration-300 shadow-sm group ${
+            className={`hidden md:flex items-center gap-1.5 rounded-xl bg-[#f3faff] text-[#2c336b] border border-[#2c336b]/10 hover:border-[#2c336b]/30 hover:bg-[#2c336b]/10 transition-all duration-300 shadow-sm group ${
               isScrolled ? "px-3 py-1 text-[11px]" : "px-3.5 py-1.5 text-[11px] lg:text-[11px] xl:px-4 xl:py-2 xl:text-xs"
             }`}
           >
@@ -128,7 +136,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative px-2 xl:px-3 py-1.5 text-[11px] xl:text-[12px] font-semibold transition-colors duration-300 rounded-full z-10 ${
+                className={`relative px-2.5 xl:px-3.5 py-1.5 text-[11px] xl:text-[12px] font-semibold transition-colors duration-300 rounded-xl z-10 ${
                   isActive 
                     ? "text-[#2c336b]" 
                     : "text-gray-600 hover:text-[#2c336b] hover:bg-[#2c336b]/4"
@@ -138,7 +146,7 @@ export default function Navbar() {
                 {isActive && (
                   <motion.span
                     layoutId="activeNavPill"
-                    className="absolute inset-0 bg-[#2c336b]/8 rounded-full -z-10"
+                    className="absolute inset-0 bg-[#2c336b]/8 rounded-xl -z-10"
                     transition={{ type: "spring", stiffness: 380, damping: 28 }}
                   />
                 )}
@@ -153,7 +161,7 @@ export default function Navbar() {
           <div className="relative" ref={langDropdownRef}>
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className={`flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-xs font-bold text-gray-700 hover:text-[#2c336b] bg-gray-100/80 hover:bg-gray-200/50 rounded-full transition-all cursor-pointer ${
+              className={`flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-xs font-bold text-gray-700 hover:text-[#2c336b] bg-gray-100/80 hover:bg-gray-200/50 rounded-xl transition-all cursor-pointer ${
                 isScrolled ? "px-1.5 py-0.5 sm:px-3 sm:py-1.5" : "px-2 py-1 sm:px-3.5 sm:py-2"
               }`}
             >
@@ -201,8 +209,8 @@ export default function Navbar() {
           {/* Login / Register Button (Desktop) */}
           <Link
             href="/login"
-            className={`hidden lg:flex items-center gap-1.5 rounded-full border border-[#2c336b]/20 text-[#2c336b] hover:bg-[#2c336b]/5 font-bold transition-all duration-300 ${
-              isScrolled ? "px-3 py-1 text-[11px]" : "px-3 py-1.5 text-[11px] xl:px-4 xl:py-2 xl:text-xs"
+            className={`hidden lg:flex items-center gap-1.5 rounded-xl border border-[#2c336b]/20 text-[#2c336b] hover:bg-[#2c336b]/5 font-bold transition-all duration-300 ${
+              isScrolled ? "px-3 py-1 text-[11px]" : "px-3.5 py-1.5 text-[11px] xl:px-4 xl:py-2 xl:text-xs"
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -212,7 +220,7 @@ export default function Navbar() {
           {/* Login / Register Button (Mobile/Tablet Icon) */}
           <Link
             href="/login"
-            className={`flex lg:hidden items-center justify-center rounded-full bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${
+            className={`flex lg:hidden items-center justify-center rounded-xl bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${
               isScrolled ? "w-6.5 h-6.5 sm:w-7.5 sm:h-7.5" : "w-7.5 h-7.5 sm:w-8.5 sm:h-8.5"
             }`}
             aria-label="Login / Register"
@@ -223,7 +231,7 @@ export default function Navbar() {
           {/* Book Appointment CTA Button */}
           <Link
             href="/book-appointment"
-            className={`hidden md:flex items-center gap-1.5 rounded-full bg-[#2c336b] text-white hover:bg-[#3d468e] font-bold shadow-md transition-all duration-300 group ${
+            className={`hidden md:flex items-center gap-1.5 rounded-xl bg-[#2c336b] text-white hover:bg-[#3d468e] font-bold shadow-md transition-all duration-300 group ${
               isScrolled ? "px-3.5 py-1 text-[11px]" : "px-4 py-1.5 text-[11px] xl:px-5 xl:py-2 xl:text-xs"
             }`}
           >
@@ -234,7 +242,11 @@ export default function Navbar() {
           {/* Mobile Menu Button with Animated Icon Morph */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+<<<<<<< Updated upstream
             className="lg:hidden p-1.5 sm:p-2 rounded-full text-gray-700 hover:text-[#2c336b] hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center"
+=======
+            className="lg:hidden p-1.5 sm:p-2 rounded-xl text-gray-700 hover:text-[#2c336b] hover:bg-gray-100 transition-colors cursor-pointer"
+>>>>>>> Stashed changes
             aria-label="Toggle Menu"
           >
             <svg
@@ -277,6 +289,7 @@ export default function Navbar() {
 
       {/* Mobile Navigation Drawer & Backdrop */}
       <AnimatePresence>
+<<<<<<< Updated upstream
         {isMobileMenuOpen && [
           /* Full-screen Blurred Backdrop */
           <motion.div
@@ -298,6 +311,27 @@ export default function Navbar() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="relative z-50 lg:hidden overflow-y-auto max-h-[calc(100vh-100px)] w-full mt-2 bg-white/95 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-xl"
           >
+=======
+        {isMobileMenuOpen && (
+          <>
+            {/* Blurred Backdrop click-outside overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-[4px] z-30 lg:hidden cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="relative z-40 lg:hidden overflow-y-auto max-h-[calc(100vh-100px)] w-full mt-2 bg-white/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl"
+            >
+>>>>>>> Stashed changes
             <div className="p-4 sm:p-5 flex flex-col gap-3">
               <nav className="flex flex-col gap-1 sm:gap-1.5">
                 {navLinks.map((link) => {
@@ -352,7 +386,12 @@ export default function Navbar() {
               </div>
             </div>
           </motion.div>
+<<<<<<< Updated upstream
         ]}
+=======
+          </>
+        )}
+>>>>>>> Stashed changes
       </AnimatePresence>
     </header>
   );
