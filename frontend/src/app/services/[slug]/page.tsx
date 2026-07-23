@@ -294,14 +294,14 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
         <section className="py-20 max-w-7xl mx-auto px-4 md:px-6">
           <h2 className="text-headline-md text-on-surface mb-8 font-bold">Related Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedServices.map((relatedService) => (
+            {relatedServices.map((relatedService, index) => (
               <ServiceCard
                 key={relatedService.id}
                 title={relatedService.name}
                 description={relatedService.shortDescription}
-                icon={relatedService.icon}
+                image={relatedService.image}
                 slug={relatedService.slug}
-                accentColor={relatedService.accentColor}
+                index={index}
               />
             ))}
           </div>
