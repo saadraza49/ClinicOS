@@ -301,6 +301,10 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                 description={relatedService.shortDescription}
                 image={relatedService.image}
                 slug={relatedService.slug}
+<<<<<<< HEAD
+=======
+                index={index}
+>>>>>>> feature-UI-01
               />
             ))}
           </div>
