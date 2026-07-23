@@ -75,7 +75,11 @@ export default function Navbar() {
     { name: "Contact", href: "/contact" },
   ];
 
-  if (pathname === "/book-appointment/confirmation") return null;
+  if (
+    pathname === "/book-appointment/confirmation" ||
+    pathname === "/login" ||
+    pathname === "/signup"
+  ) return null;
 
   return (
     <header className={`sticky top-0 w-full z-50 transition-all duration-300 ease-in-out ${
