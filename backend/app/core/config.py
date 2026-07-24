@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     ENVIRONMENT: str = "development"
     FRONTEND_URL: str = "http://localhost:3000"
+    CHATBOT_GROQ_API_KEY: str = os.getenv("CHATBOT_GROQ_API_KEY", "")
+    GROQ_API_KEY: str = os.getenv("CHATBOT_GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
 
     model_config = SettingsConfigDict(
         env_file=".env",
