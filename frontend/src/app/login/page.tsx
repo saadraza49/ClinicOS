@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Mail, 
@@ -22,8 +23,11 @@ import {
   LockKeyhole
 } from "lucide-react";
 import Button from "@/components/button";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [role, setRole] = useState<"patient" | "doctor">("patient");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +38,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [apiError, setApiError] = useState<string | null>(null);
   
   // Forgot password modal
   const [isForgotOpen, setIsForgotOpen] = useState(false);
@@ -58,16 +63,23 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError(null);
     if (!validate()) return;
 
     setIsLoading(true);
-    // Simulate login API authentication delay
-    setTimeout(() => {
+    try {
+      await login({ email, password, role });
       setIsLoading(false);
       setIsSuccess(true);
-    }, 1200);
+      setTimeout(() => {
+        router.push("/");
+      }, 1200);
+    } catch (err: any) {
+      setIsLoading(false);
+      setApiError(err.message || "Invalid email or password");
+    }
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {
@@ -225,6 +237,12 @@ export default function LoginPage() {
               </motion.div>
             ) : (
               <form onSubmit={handleLogin} className="space-y-5">
+                {apiError && (
+                  <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-700 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{apiError}</span>
+                  </div>
+                )}
                 
                 {/* Social Logins */}
                 <div className="grid grid-cols-2 gap-3.5 mb-4">

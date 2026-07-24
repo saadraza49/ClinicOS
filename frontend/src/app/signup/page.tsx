@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, 
@@ -24,8 +25,11 @@ import {
   LockKeyhole
 } from "lucide-react";
 import Button from "@/components/button";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { signup } = useAuth();
   const [role, setRole] = useState<"patient" | "doctor">("patient");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,6 +44,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Password strength logic
   const getPasswordStrength = () => {
@@ -86,16 +91,30 @@ export default function SignupPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError(null);
     if (!validate()) return;
 
     setIsLoading(true);
-    // Simulate registration API call delay
-    setTimeout(() => {
+    try {
+      await signup({
+        fullName,
+        email,
+        phone,
+        password,
+        confirmPassword,
+        role
+      });
       setIsLoading(false);
       setIsSuccess(true);
-    }, 1400);
+      setTimeout(() => {
+        router.push("/");
+      }, 1200);
+    } catch (err: any) {
+      setIsLoading(false);
+      setApiError(err.message || "Could not complete registration");
+    }
   };
 
   return (
@@ -250,6 +269,12 @@ export default function SignupPage() {
               </motion.div>
             ) : (
               <form onSubmit={handleSignup} className="space-y-4">
+                {apiError && (
+                  <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-700 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{apiError}</span>
+                  </div>
+                )}
                 
                 {/* Full Name */}
                 <div>

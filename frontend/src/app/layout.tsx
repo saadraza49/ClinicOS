@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Chatbot from "@/components/chatbot";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -54,11 +55,14 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container">
-        <Navbar />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-        <Chatbot />
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-grow">{children}</main>
+          <Footer />
+          <Chatbot />
+        </AuthProvider>
       </body>
     </html>
   );
 }
+

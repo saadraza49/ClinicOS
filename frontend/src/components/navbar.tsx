@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, ChevronDown, Globe, Menu, X, Calendar, User } from "lucide-react";
+import { MapPin, ChevronDown, Globe, Menu, X, Calendar, User, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [selectedLang, setSelectedLang] = useState<{ code: string; label: string; flag: string }>({
     code: "EN",
     label: "English",
@@ -16,6 +18,7 @@ export default function Navbar() {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Scroll listener to toggle navbar size with safe hysteresis thresholds to prevent jitter
   useEffect(() => {
@@ -47,17 +50,14 @@ export default function Navbar() {
     };
   }, [isLangOpen]);
 
-  // Prevent background scroll when mobile hamburger drawer is open
+  // Prevent background scroll when mobile hamburger drawer or logout modal popup is open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    const shouldLockScroll = Boolean(isMobileMenuOpen || isLogoutModalOpen);
+    document.body.style.overflow = shouldLockScroll ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isLogoutModalOpen]);
 
   const languages = [
     { code: "EN", label: "English", flag: "🇺🇸" },
@@ -202,27 +202,46 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          {/* Login / Register Button (Desktop) */}
-          <Link
-            href="/login"
-            className={`hidden lg:flex items-center gap-1.5 rounded-full border border-[#2c336b]/20 text-[#2c336b] hover:bg-[#2c336b]/5 font-bold transition-all duration-300 ${
-              isScrolled ? "px-3 py-1 text-[11px]" : "px-3 py-1.5 text-[11px] xl:px-4 xl:py-2 xl:text-xs"
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>Login / Register</span>
-          </Link>
+          {/* Login / User Account Action (Desktop & Mobile) */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2c336b]/10 text-[#2c336b] text-xs font-bold border border-[#2c336b]/20">
+                <User className="w-3.5 h-3.5 text-[#2c336b]" />
+                <span className="max-w-[120px] truncate">{user.full_name}</span>
+              </div>
+              <button
+                onClick={() => setIsLogoutModalOpen(true)}
+                className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Login / Register Button (Desktop) */}
+              <Link
+                href="/login"
+                className={`hidden lg:flex items-center gap-1.5 rounded-full border border-[#2c336b]/20 text-[#2c336b] hover:bg-[#2c336b]/5 font-bold transition-all duration-300 ${
+                  isScrolled ? "px-3 py-1 text-[11px]" : "px-3 py-1.5 text-[11px] xl:px-4 xl:py-2 xl:text-xs"
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Login / Register</span>
+              </Link>
 
-          {/* Login / Register Button (Mobile/Tablet Icon) */}
-          <Link
-            href="/login"
-            className={`flex lg:hidden items-center justify-center rounded-full bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${
-              isScrolled ? "w-6.5 h-6.5 sm:w-7.5 sm:h-7.5" : "w-7.5 h-7.5 sm:w-8.5 sm:h-8.5"
-            }`}
-            aria-label="Login / Register"
-          >
-            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2c336b]" />
-          </Link>
+              {/* Login / Register Button (Mobile/Tablet Icon) */}
+              <Link
+                href="/login"
+                className={`flex lg:hidden items-center justify-center rounded-full bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${
+                  isScrolled ? "w-6.5 h-6.5 sm:w-7.5 sm:h-7.5" : "w-7.5 h-7.5 sm:w-8.5 sm:h-8.5"
+                }`}
+                aria-label="Login / Register"
+              >
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2c336b]" />
+              </Link>
+            </>
+          )}
 
           {/* Book Appointment CTA Button */}
           <Link
@@ -325,14 +344,38 @@ export default function Navbar() {
               <hr className="border-gray-100 my-1 sm:my-1.5" />
 
               <div className="flex flex-col gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex md:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-bold text-xs"
-                >
-                  <User className="w-3.5 h-3.5 text-[#2c336b]" />
-                  Login / Register
-                </Link>
+                {user ? (
+                  <div className="flex flex-col gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="flex items-center justify-between px-3 py-2 text-xs font-bold text-[#2c336b]">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-[#2c336b]" />
+                        <span className="truncate max-w-[150px]">{user.full_name}</span>
+                      </div>
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#2c336b]/10 text-[#2c336b] font-extrabold">
+                        {user.role}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsLogoutModalOpen(true);
+                      }}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-red-50 text-red-600 border border-red-100 font-bold text-xs hover:bg-red-100 transition-all cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex lg:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-bold text-xs"
+                  >
+                    <User className="w-3.5 h-3.5 text-[#2c336b]" />
+                    Login / Register
+                  </Link>
+                )}
 
                 <a
                   href="https://maps.google.com/?q=123+Healing+Way,+Wellness+District,+CA+90210"
@@ -357,6 +400,68 @@ export default function Navbar() {
             </div>
           </motion.div>
         ]}
+      </AnimatePresence>
+
+      {/* Logout Confirmation Modal Popup */}
+      <AnimatePresence>
+        {isLogoutModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsLogoutModalOpen(false)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm cursor-pointer"
+            />
+
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="relative bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 text-center z-10 space-y-5"
+            >
+              {/* Alert Icon */}
+              <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mx-auto text-red-600 shadow-inner">
+                <LogOut className="w-7 h-7" />
+              </div>
+
+              {/* Title & Description */}
+              <div className="space-y-1.5">
+                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  Confirm Sign Out
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
+                  Are you sure you want to log out of your <span className="font-bold text-slate-700">LuminaHealth</span> account?
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="py-3 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogoutModalOpen(false);
+                    logout();
+                  }}
+                  className="py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-200 transition-all cursor-pointer"
+                >
+                  Yes, Log Out
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </header>
   );
