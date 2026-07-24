@@ -208,7 +208,8 @@ def chat_endpoint(payload: ChatRequest):
                 quickReplies=["Find a Doctor", "Book Appointment"]
             )
 
-    groq_api_key = (settings.CHATBOT_GROQ_API_KEY or settings.GROQ_API_KEY).strip()
+    # Directly use the dedicated chatbot API key from environment
+    groq_api_key = settings.CHATBOT_GROQ_API_KEY.strip()
     if not groq_api_key or "your_groq_api_key" in groq_api_key:
         # Fallback to local response if Groq API Key is not set up
         return ChatResponse(
