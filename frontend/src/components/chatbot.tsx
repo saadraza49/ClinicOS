@@ -188,7 +188,7 @@ const DOCTORS_DATABASE = [
   }
 ];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 // 6-Hour session expiration constants
 const SIX_HOURS_SEC = 6 * 60 * 60;
@@ -220,6 +220,8 @@ export default function Chatbot() {
   const [showDoctorsDirectory, setShowDoctorsDirectory] = useState(false);
   const [selectedSpecialtyFilter, setSelectedSpecialtyFilter] = useState("All");
   const [isDoctorsPanelOpen, setIsDoctorsPanelOpen] = useState(true);
+  const [showMapPanel, setShowMapPanel] = useState(false);
+  const [isMapPanelOpen, setIsMapPanelOpen] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -307,10 +309,10 @@ export default function Chatbot() {
     if (isBookingCompleted) {
       setIsBookingFlowActive(false);
       setShowDoctorsDirectory(false);
-      return;
+      setIsDoctorsPanelOpen(false);
+    } else {
+      setIsBookingFlowActive(hasBookingTrigger);
     }
-
-    setIsBookingFlowActive(hasBookingTrigger);
 
     // 2. Should we show doctors list?
     // Trigger when user or bot is talking about doctors OR when at the specialty / doctor selection stages in booking.
@@ -341,13 +343,49 @@ export default function Chatbot() {
       lastUserText.includes("doctor");
 
     // Automatically expand the panel if we hit a trigger stage
-    const shouldShow = hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors;
+    const shouldShowDocs = !isBookingCompleted && (hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors);
 
-    setShowDoctorsDirectory(shouldShow);
-
-    // Auto-open panel when triggered
-    if (shouldShow) {
+    if (shouldShowDocs) {
+      setShowDoctorsDirectory(true);
       setIsDoctorsPanelOpen(true);
+      setIsMapPanelOpen(false); // Close map if doctors directory is opened
+    }
+    
+    // 3. Map Panel Logic
+    const isChattingAboutLocation =
+      lastUserText.includes("location") ||
+      lastUserText.includes("where") ||
+      lastUserText.includes("address") ||
+      lastUserText.includes("open map") ||
+      lastUserText.includes("show map") ||
+      lastUserText.includes("open the map") ||
+      lastUserText.includes("open the location") ||
+      lastBotText.includes("located at") ||
+      lastBotText.includes("map");
+
+    const shouldShowMap = isBookingCompleted || isChattingAboutLocation;
+    
+    if (shouldShowMap) {
+      setShowMapPanel(true);
+      setIsMapPanelOpen(true);
+      setIsDoctorsPanelOpen(false); // Close doctors directory if map is opened
+    }
+
+    // Smart Close Panel commands
+    const isCloseCommand =
+      lastUserText === "close it" ||
+      lastUserText === "close" ||
+      lastUserText.includes("close map") ||
+      lastUserText.includes("hide map") ||
+      lastUserText.includes("close panel") ||
+      lastUserText.includes("close doctors") ||
+      lastUserText.includes("hide doctors") ||
+      lastUserText.includes("close directory") ||
+      lastUserText.includes("hide directory");
+
+    if (isCloseCommand) {
+      setIsMapPanelOpen(false);
+      setIsDoctorsPanelOpen(false);
     }
   }, [messages]);
 
@@ -373,6 +411,18 @@ export default function Chatbot() {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  const handleCloseChatbot = () => {
+    if (isDoctorsPanelOpen || isMapPanelOpen) {
+      setIsDoctorsPanelOpen(false);
+      setIsMapPanelOpen(false);
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 300);
+    } else {
+      setIsOpen(false);
+    }
+  };
 
   if (
     pathname === "/book-appointment/confirmation" ||
@@ -700,6 +750,49 @@ export default function Chatbot() {
               )}
             </AnimatePresence>
 
+            {/* Side Map Panel (Desktop Sidebar) */}
+            <AnimatePresence>
+              {showMapPanel && isMapPanelOpen && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 450, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="absolute right-[100%] top-0 bottom-0 h-full bg-slate-50/98 backdrop-blur-md border-r border-slate-200/80 shadow-2xl hidden md:flex flex-col z-[65] overflow-hidden rounded-none"
+                >
+                  <div className="w-[450px] h-full flex flex-col shrink-0">
+                    <div className="px-3 py-2 border-b border-slate-200/60 bg-white flex items-center justify-between shrink-0">
+                      <div>
+                        <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[#2c336b] text-lg font-bold">location_on</span>
+                          Clinic Location
+                        </h3>
+                        <p className="text-[10px] text-slate-500 font-bold mt-0.5">123 Healing Way, Wellness District</p>
+                      </div>
+                      <button
+                        onClick={() => setIsMapPanelOpen(false)}
+                        className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-none transition-colors cursor-pointer"
+                        title="Hide panel"
+                      >
+                        <span className="material-symbols-outlined text-lg">chevron_right</span>
+                      </button>
+                    </div>
+                    <div className="flex-1 w-full bg-slate-200 relative">
+                       <iframe 
+                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11545.92211475143!2d-79.3905096!3d43.6542735!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b34cae697a48d%3A0xe54e3001dd2d7eb0!2sToronto%20General%20Hospital!5e0!3m2!1sen!2sca!4v1716335123456!5m2!1sen!2sca" 
+                         width="100%" 
+                         height="100%" 
+                         style={{ border: 0 }} 
+                         allowFullScreen={false} 
+                         loading="lazy" 
+                         referrerPolicy="no-referrer-when-downgrade"
+                       ></iframe>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Main Chat Panel Container */}
             <div className="h-full flex-1 flex flex-row overflow-hidden bg-white shadow-2xl relative z-10">
               {/* Left Sidebar inside Chat Panel */}
@@ -723,6 +816,19 @@ export default function Chatbot() {
                       title="Toggle Doctors Directory"
                     >
                       <span className="material-symbols-outlined text-lg">groups</span>
+                    </button>
+                  )}
+
+                  {showMapPanel && (
+                    <button
+                      onClick={() => setIsMapPanelOpen(!isMapPanelOpen)}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isMapPanelOpen
+                        ? "bg-[#2c336b] text-white shadow-xs"
+                        : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
+                        }`}
+                      title="Toggle Map"
+                    >
+                      <span className="material-symbols-outlined text-lg">map</span>
                     </button>
                   )}
                 </div>
@@ -759,7 +865,7 @@ export default function Chatbot() {
                       <span className="material-symbols-outlined text-lg">refresh</span>
                     </button>
                     <button
-                      onClick={() => setIsOpen(false)}
+                      onClick={handleCloseChatbot}
                       className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                       aria-label="Close chat"
                     >
