@@ -345,28 +345,47 @@ export default function Chatbot() {
     // Automatically expand the panel if we hit a trigger stage
     const shouldShowDocs = !isBookingCompleted && (hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors);
 
-    setShowDoctorsDirectory(shouldShowDocs);
-
-    // Auto-open panel when triggered
-    if (shouldShowDocs && !showMapPanel) {
+    if (shouldShowDocs) {
+      setShowDoctorsDirectory(true);
       setIsDoctorsPanelOpen(true);
+      setIsMapPanelOpen(false); // Close map if doctors directory is opened
     }
-
-    // 3. Should we show Map?
+    
+    // 3. Map Panel Logic
     const isChattingAboutLocation =
       lastUserText.includes("location") ||
       lastUserText.includes("where") ||
       lastUserText.includes("address") ||
+      lastUserText.includes("open map") ||
+      lastUserText.includes("show map") ||
+      lastUserText.includes("open the map") ||
+      lastUserText.includes("open the location") ||
       lastBotText.includes("located at") ||
       lastBotText.includes("map");
 
     const shouldShowMap = isBookingCompleted || isChattingAboutLocation;
     
-    setShowMapPanel(shouldShowMap);
     if (shouldShowMap) {
+      setShowMapPanel(true);
       setIsMapPanelOpen(true);
+      setIsDoctorsPanelOpen(false); // Close doctors directory if map is opened
+    }
+
+    // Smart Close Panel commands
+    const isCloseCommand =
+      lastUserText === "close it" ||
+      lastUserText === "close" ||
+      lastUserText.includes("close map") ||
+      lastUserText.includes("hide map") ||
+      lastUserText.includes("close panel") ||
+      lastUserText.includes("close doctors") ||
+      lastUserText.includes("hide doctors") ||
+      lastUserText.includes("close directory") ||
+      lastUserText.includes("hide directory");
+
+    if (isCloseCommand) {
+      setIsMapPanelOpen(false);
       setIsDoctorsPanelOpen(false);
-      setShowDoctorsDirectory(false);
     }
   }, [messages]);
 
