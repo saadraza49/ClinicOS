@@ -6,8 +6,14 @@ import urllib.request
 import urllib.error
 import re
 from groq import Groq
-import re
 from app.core.config import settings
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.models.chat import FAQ
+from app.models.doctor import DoctorProfile, Department
+from app.models.appointment import Service
+from app.core.embeddings import get_embedding
+
 
 router = APIRouter()
 
@@ -30,20 +36,60 @@ EMERGENCY_NUMBER = "+92 300 1234567"
 ADDRESS = "123 Healing Way, Wellness District, CA 90210"
 FEE_INFO = "General Physician: 1,500 PKR. Specialists: 2,500 PKR."
 
-SYSTEM_PROMPT = f"""You are an AI assistant for {CLINIC_NAME}.
-Your responsibility is to assist users with clinic-related information only.
+def get_system_prompt(db: Session) -> str:
+    """
+    Build the system prompt dynamically from live PostgreSQL database records:
+    - Departments
+    - Doctor Profiles & Schedules
+    - Services
+    """
+    # 1. Departments (Live from PostgreSQL)
+    depts = db.query(Department).all()
+    if depts:
+        dept_lines = [f"- {d.name}: {d.description or 'Specialist care department'}" for d in depts]
+        depts_text = "\n".join(dept_lines)
+    else:
+        depts_text = "- Pediatrics, Cardiology, Dermatology, Primary Care, Dentistry, Neurology"
 
-Doctors Database (10 Doctors):
-1. Dr. Elena Rodriguez (Specialty: Pediatrics, Gender: Female)
-2. Dr. Robert Miller (Specialty: Pediatrics, Gender: Male)
-3. Dr. Marcus Vance (Specialty: Cardiology, Gender: Male)
-4. Dr. Sarah Jenkins (Specialty: Cardiology, Gender: Female)
-5. Dr. Omar Al-Fayed (Specialty: Dermatology, Gender: Male)
-6. Dr. Sophia Carter (Specialty: Dermatology, Gender: Female)
-7. Dr. James Wilson (Specialty: Primary Care, Gender: Male)
-8. Dr. Fatima Ali (Specialty: Primary Care, Gender: Female)
-9. Dr. Bilal Ahmed (Specialty: Dentistry, Gender: Male)
-10. Dr. Priya Patel (Specialty: Neurology, Gender: Female)
+    # 2. Doctors & Schedules (Live from PostgreSQL)
+    doctors = db.query(DoctorProfile).all()
+    if doctors:
+        doc_lines = []
+        for idx, doc in enumerate(doctors, 1):
+            schedules_str = ""
+            if doc.schedules:
+                sched_items = [f"{s.day_of_week} ({s.start_time}-{s.end_time})" for s in doc.schedules if s.is_active]
+                if sched_items:
+                    schedules_str = f" | Availability: {', '.join(sched_items)}"
+            
+            doc_lines.append(
+                f"{idx}. {doc.full_name} (Specialty: {doc.specialty}, Gender: {doc.gender or 'Unspecified'}, "
+                f"Fee: ${doc.consultation_fee:.0f}, Exp: {doc.experience_years} yrs, Qual: {doc.qualifications or 'MD'}, "
+                f"Languages: {doc.languages or 'English'}{schedules_str})"
+            )
+        doctors_db_text = "\n".join(doc_lines)
+    else:
+        doctors_db_text = "1. Dr. Elena Rodriguez (Specialty: Pediatrics, Gender: Female)"
+
+    # 3. Services (Live from PostgreSQL)
+    services = db.query(Service).all()
+    if services:
+        srv_lines = [f"- {srv.name} ({srv.short_description or srv.name}, Fee: ${srv.price:.0f}, Duration: {srv.duration_minutes} mins)" for srv in services]
+        services_db_text = "\n".join(srv_lines)
+    else:
+        services_db_text = "- General Physician Consultation"
+
+    return f"""You are an AI assistant for {CLINIC_NAME}.
+Your responsibility is to assist users with clinic-related information using LIVE database records from PostgreSQL.
+
+Departments in Clinic (Live from PostgreSQL):
+{depts_text}
+
+Doctors & Schedules Database (Live from PostgreSQL):
+{doctors_db_text}
+
+Services Offered (Live from PostgreSQL):
+{services_db_text}
 
 Clinic Information:
 - Name: {CLINIC_NAME}
@@ -53,34 +99,30 @@ Clinic Information:
 - Consultation Fees: {FEE_INFO}
 
 General Behavior:
-- Keep answers short and friendly. Use simple English.
-- Stay focused on clinic-related topics.
+- Keep answers short, friendly, and helpful.
+- Base your answers strictly on the live database records above and any retrieved knowledge.
+- Do not fabricate doctors, fees, or services that are not in the database.
 - If users ask medical questions, provide general educational information only and recommend consulting a licensed doctor.
-- Do not diagnose diseases or prescribe medicines.
-- Never fabricate information.
 
 Appointment Booking Behavior:
 Whenever the user expresses an intention to book an appointment (e.g., "Book appointment", "I need to see a doctor", "Schedule an appointment"), immediately switch into Appointment Booking Mode.
-- Collect the following required information one question at a time:
+- Collect required information one question at a time:
   1. Full Name
   2. Phone Number
-  3. Email Address (optional - ask user if they want to share or skip)
+  3. Email Address (optional)
   4. Age
   5. Gender (Patient's gender: Male/Female)
-  6. Medical Specialty (e.g. Pediatrics, Cardiology, Dermatology, Primary Care, Dentistry, Neurology)
-  7. Doctor Gender Preference (ONLY ask this question if the selected Specialty has BOTH Male and Female doctors in the Doctors Database. If the specialty has only one doctor or only one gender available, SKIP this question entirely!)
-  8. Preferred Doctor (Suggest the doctor(s) matching the selected Specialty and Gender Preference. If the gender question was skipped, suggest the only doctor available for that specialty by name and ask if that works. Make sure the doctor's proper name like "Dr. Elena Rodriguez" is recorded.)
+  6. Medical Specialty
+  7. Doctor Gender Preference (ONLY ask if the selected specialty has BOTH Male and Female doctors available in the live Doctors Database above!)
+  8. Preferred Doctor (Suggest matching doctors from the live database above!)
   9. Reason for Visit / Symptoms
   10. Preferred Date
   11. Preferred Time
-- Ask only ONE question at a time and wait for the user's answer before asking the next question.
-- Validate obvious mistakes (e.g., invalid phone numbers).
-- Remember every answer during the conversation. Never ask for information already collected.
+- Ask only ONE question at a time and wait for the user's response.
+- Validate obvious mistakes.
 
 After all required information has been collected:
-- Do NOT ask more questions. Do NOT claim the appointment has been booked. Do NOT confirm the booking.
-- Only prepare the appointment details.
-- Return a structured appointment summary exactly like this:
+- Do NOT ask more questions. Return the Appointment Summary format:
 
 Appointment Summary
 Full Name: [Name]
@@ -88,7 +130,7 @@ Phone Number: [Phone]
 Email: [Email]
 Age: [Age]
 Gender: [Gender]
-Doctor: [Selected Doctor Name, e.g. Dr. Omar Al-Fayed]
+Doctor: [Selected Doctor Name]
 Specialty: [Selected Specialty]
 Reason: [Reason]
 Preferred Date: [Date]
@@ -102,7 +144,7 @@ If everything looks correct, press the Submit Appointment button.
 If you want to change anything, simply tell me which field you'd like to edit."
 
 Frontend Integration:
-When all required information has been collected and the summary is displayed, include the following JSON exactly at the very end of your response:
+When all required information has been collected and the summary is displayed, include the following JSON at the very end:
 {{
 "action": "SHOW_APPOINTMENT_REVIEW",
 "completed": true,
@@ -111,7 +153,7 @@ When all required information has been collected and the summary is displayed, i
   "phone": "[Collected Phone]",
   "age": "[Collected Age]",
   "gender": "[Collected Gender]",
-  "doctor": "[Selected Doctor Name, e.g. Dr. Omar Al-Fayed]",
+  "doctor": "[Selected Doctor Name]",
   "specialty": "[Selected Specialty]",
   "symptoms": "[Collected Reason/Symptoms]",
   "date": "[Collected Date]",
@@ -119,6 +161,8 @@ When all required information has been collected and the summary is displayed, i
 }}
 }}
 """
+
+
 
 def clean_message(msg: str) -> str:
     # Remove emojis and leading/trailing whitespace
@@ -142,87 +186,58 @@ def is_booking_in_progress(history: Optional[List[ChatMessage]]) -> bool:
     return False
 
 @router.post("", response_model=ChatResponse)
-def chat_endpoint(payload: ChatRequest):
+def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
     user_msg = payload.message
     cleaned = clean_message(user_msg)
 
-    # Only run static rule-based flows if we are NOT in the middle of booking an appointment
+    # 1. RAG Retrieve context using pgvector if we are not booking
+    context = ""
+    top_faq_match = None
     if not is_booking_in_progress(payload.history):
-        # 1. Rule-based flow: Doctor Flow & Symptom mapping
-        skin_keywords = ["skin problems", "skin problem", "itchy skin", "acne", "rash", "dermatologist", "skin issue", "skin doctor"]
-        if any(keyword in cleaned for keyword in skin_keywords):
-            return ChatResponse(
-                reply="I recommend consulting a Dermatologist.",
-                quickReplies=["Book Appointment", "Clinic Services"]
-            )
-
-        heart_keywords = ["heart pain", "chest pain", "cardiologist", "heart issue", "heart problem", "heart doctor"]
-        if any(keyword in cleaned for keyword in heart_keywords):
-            return ChatResponse(
-                reply="For heart related concerns, I recommend consulting a Cardiologist. If you are experiencing severe chest pain, please call emergency services immediately.",
-                quickReplies=["Book Appointment", "Emergency Contact"]
-            )
-
-        child_keywords = ["child sick", "pediatrician", "baby", "toddler", "child doctor"]
-        if any(keyword in cleaned for keyword in child_keywords):
-            return ChatResponse(
-                reply="For children and infant healthcare, I recommend consulting a Pediatrician.",
-                quickReplies=["Book Appointment", "Clinic Services"]
-            )
-
-        dentist_keywords = ["toothache", "dentist", "dental", "teeth", "tooth pain"]
-        if any(keyword in cleaned for keyword in dentist_keywords):
-            return ChatResponse(
-                reply="For dental concerns and toothaches, I recommend consulting a Dentist.",
-                quickReplies=["Book Appointment", "Clinic Services"]
-            )
-
-        # 4. Quick reply mappings for static information
-        if any(k in cleaned for k in ["clinic timings", "opening hours", "timings", "opening hour"]):
-            return ChatResponse(
-                reply=f"{CLINIC_NAME} is open {CLINIC_HOURS}.",
-                quickReplies=["Book Appointment", "Clinic Location"]
-            )
-
-        if any(k in cleaned for k in ["clinic location", "address", "where is the clinic", "location"]):
-            return ChatResponse(
-                reply=f"We are located at {ADDRESS}. You can visit us during our operating hours.",
-                quickReplies=["Clinic Timings", "Book Appointment"]
-            )
-
-        if any(k in cleaned for k in ["consultation fee", "fees", "price", "cost"]):
-            return ChatResponse(
-                reply=f"Our consultation fees are:\n- {FEE_INFO}",
-                quickReplies=["Book Appointment", "Find a Doctor"]
-            )
-
-        if any(k in cleaned for k in ["emergency contact", "emergency number", "emergency"]):
-            return ChatResponse(
-                reply=f"For medical emergencies, please call our 24/7 emergency line at {EMERGENCY_NUMBER} immediately.",
-                quickReplies=["Clinic Timings", "Book Appointment"]
-            )
-
-        if any(k in cleaned for k in ["clinic services", "services"]):
-            return ChatResponse(
-                reply="We offer a wide range of services including General Medicine, Cardiology, Dermatology, Dentistry, Pediatrics, and Gynecology.",
-                quickReplies=["Find a Doctor", "Book Appointment"]
-            )
+        try:
+            query_embedding = get_embedding(user_msg)
+            related_faqs = db.query(FAQ).filter(FAQ.is_published == True)\
+                .order_by(FAQ.embedding.cosine_distance(query_embedding))\
+                .limit(4).all()
+            if related_faqs:
+                # Keep the absolute closest match for a direct fallback if Groq is offline/missing
+                top_faq_match = related_faqs[0]
+                
+                chunks = []
+                for faq in related_faqs:
+                    chunks.append(f"Category: {faq.category}\nTopic: {faq.question}\nInformation: {faq.answer}")
+                context = "\n\n".join(chunks)
+        except Exception as rag_err:
+            print(f"RAG Retrieval Error: {rag_err}")
 
     # Directly use the dedicated chatbot API key from environment
     groq_api_key = settings.CHATBOT_GROQ_API_KEY.strip()
     if not groq_api_key or "your_groq_api_key" in groq_api_key:
+        # Smart fallback: if user asked a simple clinic question and we have a very close RAG match, return it directly!
+        if top_faq_match and not is_booking_in_progress(payload.history):
+            # Check if keyword matches the query to confirm intent
+            return ChatResponse(
+                reply=top_faq_match.answer,
+                quickReplies=["Book Appointment", "Clinic Services", "Clinic Timings"]
+            )
         # Fallback to local response if Groq API Key is not set up
         return ChatResponse(
             reply=f"Welcome to {CLINIC_NAME}! I can help you book appointments, explain our services, timings, or location. How may I assist you today?",
             quickReplies=["Book Appointment", "Clinic Timings", "Clinic Location"]
         )
 
-    # Build prompt messages including session history
-    api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    # Build prompt messages including session history, live DB data, and RAG context
+    dynamic_system_prompt = get_system_prompt(db)
+
+    if context:
+        dynamic_system_prompt += f"\n\nUse the following official Clinic Knowledge Base information to answer the user's questions. If the user's query cannot be answered by this information, answer based on general clinic knowledge or politely request them to contact the clinic emergency line +92 300 1234567.\n\n[Clinic Knowledge Base]\n{context}"
+
+    api_messages = [{"role": "system", "content": dynamic_system_prompt}]
     if payload.history:
         for hist in payload.history[-30:]:  # Limit history to last 30 messages to keep context window and history tracking balanced
             api_messages.append({"role": hist.role, "content": hist.content})
     api_messages.append({"role": "user", "content": user_msg})
+
 
     try:
         client = Groq(api_key=groq_api_key.strip())

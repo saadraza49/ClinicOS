@@ -4,6 +4,8 @@ from sqlalchemy import Column, String, Integer, Text, Boolean, DateTime, Foreign
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
+from pgvector.sqlalchemy import Vector
+
 def generate_uuid():
     return str(uuid.uuid4())
 
@@ -45,7 +47,9 @@ class FAQ(Base):
     category = Column(String(100), default="General", nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
+    embedding = Column(Vector(384), nullable=True)
     is_published = Column(Boolean, default=True, nullable=False)
     display_order = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+

@@ -188,7 +188,7 @@ const DOCTORS_DATABASE = [
   }
 ];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 // 6-Hour session expiration constants
 const SIX_HOURS_SEC = 6 * 60 * 60;
@@ -220,6 +220,8 @@ export default function Chatbot() {
   const [showDoctorsDirectory, setShowDoctorsDirectory] = useState(false);
   const [selectedSpecialtyFilter, setSelectedSpecialtyFilter] = useState("All");
   const [isDoctorsPanelOpen, setIsDoctorsPanelOpen] = useState(true);
+  const [showMapPanel, setShowMapPanel] = useState(false);
+  const [isMapPanelOpen, setIsMapPanelOpen] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -307,10 +309,10 @@ export default function Chatbot() {
     if (isBookingCompleted) {
       setIsBookingFlowActive(false);
       setShowDoctorsDirectory(false);
-      return;
+      setIsDoctorsPanelOpen(false);
+    } else {
+      setIsBookingFlowActive(hasBookingTrigger);
     }
-
-    setIsBookingFlowActive(hasBookingTrigger);
 
     // 2. Should we show doctors list?
     // Trigger when user or bot is talking about doctors OR when at the specialty / doctor selection stages in booking.
@@ -341,13 +343,30 @@ export default function Chatbot() {
       lastUserText.includes("doctor");
 
     // Automatically expand the panel if we hit a trigger stage
-    const shouldShow = hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors;
+    const shouldShowDocs = !isBookingCompleted && (hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors);
 
-    setShowDoctorsDirectory(shouldShow);
+    setShowDoctorsDirectory(shouldShowDocs);
 
     // Auto-open panel when triggered
-    if (shouldShow) {
+    if (shouldShowDocs && !showMapPanel) {
       setIsDoctorsPanelOpen(true);
+    }
+
+    // 3. Should we show Map?
+    const isChattingAboutLocation =
+      lastUserText.includes("location") ||
+      lastUserText.includes("where") ||
+      lastUserText.includes("address") ||
+      lastBotText.includes("located at") ||
+      lastBotText.includes("map");
+
+    const shouldShowMap = isBookingCompleted || isChattingAboutLocation;
+    
+    setShowMapPanel(shouldShowMap);
+    if (shouldShowMap) {
+      setIsMapPanelOpen(true);
+      setIsDoctorsPanelOpen(false);
+      setShowDoctorsDirectory(false);
     }
   }, [messages]);
 
@@ -373,6 +392,18 @@ export default function Chatbot() {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  const handleCloseChatbot = () => {
+    if (isDoctorsPanelOpen || isMapPanelOpen) {
+      setIsDoctorsPanelOpen(false);
+      setIsMapPanelOpen(false);
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 300);
+    } else {
+      setIsOpen(false);
+    }
+  };
 
   if (
     pathname === "/book-appointment/confirmation" ||
@@ -590,7 +621,7 @@ export default function Chatbot() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-slate-900/15 backdrop-blur-[2px] z-[60]"
-            onClick={() => setIsOpen(false)}
+            onClick={handleCloseChatbot}
             aria-hidden="true"
           />
         )}
@@ -610,12 +641,13 @@ export default function Chatbot() {
             <AnimatePresence>
               {showDoctorsDirectory && isDoctorsPanelOpen && (
                 <motion.div
-                  initial={{ x: 120, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: 120, opacity: 0 }}
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 360, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
                   transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  className="absolute right-[100%] top-0 bottom-0 h-full w-[360px] bg-slate-50/98 backdrop-blur-md border-r border-slate-200/80 shadow-2xl hidden md:flex flex-col z-[65] overflow-hidden rounded-none"
+                  className="absolute right-[100%] top-0 bottom-0 h-full bg-slate-50/98 backdrop-blur-md border-r border-slate-200/80 shadow-2xl hidden md:flex flex-col z-[65] overflow-hidden rounded-none"
                 >
+                  <div className="w-[360px] h-full flex flex-col shrink-0">
                   {/* Header */}
                   <div className="px-5 py-4.5 border-b border-slate-200/60 bg-white flex items-center justify-between shrink-0">
                     <div>
@@ -655,7 +687,10 @@ export default function Chatbot() {
                     {filteredDoctors.map(doc => (
                       <div
                         key={doc.id}
-                        onClick={() => handleSendMessage(doc.name)}
+                        onClick={() => {
+                          handleSendMessage(doc.name);
+                          setIsDoctorsPanelOpen(false);
+                        }}
                         className="bg-white border border-slate-100 p-3.5 rounded-none shadow-2xs hover:shadow-xs hover:border-[#2c336b]/20 transition-all flex gap-3 cursor-pointer group active:scale-[0.98]"
                       >
                         <div className="w-14 h-14 rounded-none overflow-hidden shrink-0 border border-slate-100 bg-slate-50 relative">
@@ -696,6 +731,50 @@ export default function Chatbot() {
                       </div>
                     )}
                   </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Side Map Panel (Desktop Sidebar) */}
+            <AnimatePresence>
+              {showMapPanel && isMapPanelOpen && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 450, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="absolute right-[100%] top-0 bottom-0 h-full bg-slate-50/98 backdrop-blur-md border-r border-slate-200/80 shadow-2xl hidden md:flex flex-col z-[65] overflow-hidden rounded-none"
+                >
+                  <div className="w-[450px] h-full flex flex-col shrink-0">
+                    <div className="px-3 py-2 border-b border-slate-200/60 bg-white flex items-center justify-between shrink-0">
+                    <div>
+                      <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[#2c336b] text-lg font-bold">location_on</span>
+                        Clinic Location
+                      </h3>
+                      <p className="text-[10px] text-slate-500 font-bold mt-0.5">123 Healing Way, Wellness District</p>
+                    </div>
+                    <button
+                      onClick={() => setIsMapPanelOpen(false)}
+                      className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-none transition-colors cursor-pointer"
+                      title="Hide panel"
+                    >
+                      <span className="material-symbols-outlined text-lg">chevron_right</span>
+                    </button>
+                  </div>
+                  <div className="flex-1 w-full bg-slate-200 relative">
+                     <iframe 
+                       src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11545.92211475143!2d-79.3905096!3d43.6542735!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b34cae697a48d%3A0xe54e3001dd2d7eb0!2sToronto%20General%20Hospital!5e0!3m2!1sen!2sca!4v1716335123456!5m2!1sen!2sca" 
+                       width="100%" 
+                       height="100%" 
+                       style={{ border: 0 }} 
+                       allowFullScreen={false} 
+                       loading="lazy" 
+                       referrerPolicy="no-referrer-when-downgrade"
+                     ></iframe>
+                  </div>
+                </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -715,7 +794,7 @@ export default function Chatbot() {
                   {/* Middle: Doctors toggle button when booking or doctor conversation is active */}
                   {showDoctorsDirectory && (
                     <button
-                      onClick={() => setIsDoctorsPanelOpen(!isDoctorsPanelOpen)}
+                      onClick={() => { setIsDoctorsPanelOpen(!isDoctorsPanelOpen); setIsMapPanelOpen(false); }}
                       className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isDoctorsPanelOpen
                         ? "bg-[#2c336b] text-white shadow-xs"
                         : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
@@ -723,6 +802,18 @@ export default function Chatbot() {
                       title="Toggle Doctors Directory"
                     >
                       <span className="material-symbols-outlined text-lg">groups</span>
+                    </button>
+                  )}
+                  {showMapPanel && (
+                    <button
+                      onClick={() => { setIsMapPanelOpen(!isMapPanelOpen); setIsDoctorsPanelOpen(false); }}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isMapPanelOpen
+                        ? "bg-[#2c336b] text-white shadow-xs"
+                        : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
+                        }`}
+                      title="Toggle Map"
+                    >
+                      <span className="material-symbols-outlined text-lg">map</span>
                     </button>
                   )}
                 </div>
@@ -759,7 +850,7 @@ export default function Chatbot() {
                       <span className="material-symbols-outlined text-lg">refresh</span>
                     </button>
                     <button
-                      onClick={() => setIsOpen(false)}
+                      onClick={handleCloseChatbot}
                       className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                       aria-label="Close chat"
                     >
@@ -900,34 +991,12 @@ export default function Chatbot() {
                                       {
                                         id: Math.random().toString(),
                                         sender: "bot",
-                                        text: "🎉 Success! Your appointment form has been submitted and confirmed by WeCare Clinic. Redirecting you to the confirmation page...",
+                                        text: "🎉 Success! Your appointment form has been submitted and confirmed by WeCare Clinic. Check the map on the left for directions!",
                                         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                                       }
                                     ]);
-                                    setQuickReplies(["Back to Menu", "Clinic Services"]);
+                                    setQuickReplies(["Back to Menu", "Clinic Services", "Directions"]);
                                     setIsLoading(false);
-
-                                    // Build query params for redirection
-                                    const name = msg.appointmentDetails?.name || "";
-                                    const phone = msg.appointmentDetails?.phone || "";
-                                    const service = msg.appointmentDetails?.specialty || msg.appointmentDetails?.doctor || "General Consultation";
-                                    const doctor = msg.appointmentDetails?.doctor || "Any Available Doctor";
-                                    const date = msg.appointmentDetails?.date || new Date().toISOString().split('T')[0];
-                                    const time = msg.appointmentDetails?.time || "10:00 AM";
-
-                                    const query = new URLSearchParams({
-                                      name,
-                                      phone,
-                                      service,
-                                      doctor,
-                                      date,
-                                      time
-                                    });
-
-                                    setTimeout(() => {
-                                      router.push(`/book-appointment/confirmation?${query.toString()}`);
-                                      setIsOpen(false);
-                                    }, 2200);
                                   }}
                                   className="flex-1 py-2.5 px-3 rounded-xl bg-[#2c336b] hover:bg-[#3d468e] text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                                 >
@@ -1119,6 +1188,49 @@ export default function Chatbot() {
                   <p className="text-xs font-bold text-slate-400">No doctors found in this specialty</p>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Map Directory (Bottom Sheet Drawer) */}
+      <AnimatePresence>
+        {isOpen && showMapPanel && isMapPanelOpen && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed bottom-0 left-0 right-0 h-[65vh] bg-white rounded-none z-[80] shadow-[0_-8px_35px_rgba(0,0,0,0.15)] md:hidden flex flex-col overflow-hidden"
+          >
+            <div className="w-12 h-1 bg-slate-200 rounded-none mx-auto my-2 shrink-0"></div>
+
+            <div className="px-3 pb-2 flex items-center justify-between shrink-0 border-b border-slate-100">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[#2c336b] text-lg font-bold">location_on</span>
+                  Clinic Location
+                </h3>
+                <p className="text-[10px] text-slate-500 font-bold mt-0.5">123 Healing Way, Wellness District</p>
+              </div>
+              <button
+                onClick={() => setIsMapPanelOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-none transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 w-full relative bg-slate-200">
+               <iframe 
+                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11545.92211475143!2d-79.3905096!3d43.6542735!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b34cae697a48d%3A0xe54e3001dd2d7eb0!2sToronto%20General%20Hospital!5e0!3m2!1sen!2sca!4v1716335123456!5m2!1sen!2sca" 
+                 width="100%" 
+                 height="100%" 
+                 style={{ border: 0 }} 
+                 allowFullScreen={false} 
+                 loading="lazy" 
+                 referrerPolicy="no-referrer-when-downgrade"
+               ></iframe>
             </div>
           </motion.div>
         )}
