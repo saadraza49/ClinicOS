@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocationModal } from "@/context/LocationContext";
 
 interface Message {
   id: string;
@@ -209,6 +210,7 @@ function getCookie(name: string): string | null {
 }
 
 export default function Chatbot() {
+  const { openLocationModal } = useLocationModal();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -445,9 +447,9 @@ export default function Chatbot() {
         quickReplies: ["Book Appointment", "Clinic Location"]
       };
     }
-    if (cleaned.includes("location") || cleaned.includes("address")) {
+    if (cleaned.includes("location") || cleaned.includes("address") || cleaned.includes("where")) {
       return {
-        reply: "We are located at 123 Healing Way, Wellness District, CA 90210.",
+        reply: "We are located at 31.487555, 73.076189 (LuminaHealth Care Center).\n\nGoogle Maps Location: https://maps.app.goo.gl/MRgu6Fdbd9PhaGmu7",
         quickReplies: ["Clinic Timings", "Book Appointment"]
       };
     }
@@ -761,29 +763,41 @@ export default function Chatbot() {
                   className="absolute right-[100%] top-0 bottom-0 h-full bg-slate-50/98 backdrop-blur-md border-r border-slate-200/80 shadow-2xl hidden md:flex flex-col z-[65] overflow-hidden rounded-none"
                 >
                   <div className="w-[450px] h-full flex flex-col shrink-0">
-                    <div className="px-3 py-2 border-b border-slate-200/60 bg-white flex items-center justify-between shrink-0">
+                    <div className="px-3.5 py-2.5 border-b border-slate-200/60 bg-white flex items-center justify-between shrink-0">
                       <div>
                         <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[#2c336b] text-lg font-bold">location_on</span>
                           Clinic Location
                         </h3>
-                        <p className="text-[10px] text-slate-500 font-bold mt-0.5">123 Healing Way, Wellness District</p>
+                        <p className="text-[10px] text-slate-500 font-bold mt-0.5">31.487555, 73.076189 • LuminaHealth Care Center</p>
                       </div>
-                      <button
-                        onClick={() => setIsMapPanelOpen(false)}
-                        className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-none transition-colors cursor-pointer"
-                        title="Hide panel"
-                      >
-                        <span className="material-symbols-outlined text-lg">chevron_right</span>
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <a
+                          href="https://maps.app.goo.gl/MRgu6Fdbd9PhaGmu7"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-bold bg-[#2c336b]/10 hover:bg-[#2c336b] text-[#2c336b] hover:text-white px-2 py-1 rounded transition-colors flex items-center gap-1"
+                        >
+                          <span>Open Maps</span>
+                          <span className="material-symbols-outlined text-xs">open_in_new</span>
+                        </a>
+                        <button
+                          onClick={() => setIsMapPanelOpen(false)}
+                          className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                          title="Hide panel"
+                        >
+                          <span className="material-symbols-outlined text-lg">chevron_right</span>
+                        </button>
+                      </div>
                     </div>
                     <div className="flex-1 w-full bg-slate-200 relative">
                        <iframe 
-                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11545.92211475143!2d-79.3905096!3d43.6542735!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b34cae697a48d%3A0xe54e3001dd2d7eb0!2sToronto%20General%20Hospital!5e0!3m2!1sen!2sca!4v1716335123456!5m2!1sen!2sca" 
+                         title="Chatbot Clinic Location Map"
+                         src="https://maps.google.com/maps?q=31.487555,73.076189&hl=en&z=16&output=embed" 
                          width="100%" 
                          height="100%" 
                          style={{ border: 0 }} 
-                         allowFullScreen={false} 
+                         allowFullScreen={true} 
                          loading="lazy" 
                          referrerPolicy="no-referrer-when-downgrade"
                        ></iframe>
@@ -950,6 +964,17 @@ export default function Chatbot() {
                           >
                             {msg.text}
                           </div>
+
+                          {msg.sender === "bot" && (msg.text.toLowerCase().includes("location") || msg.text.toLowerCase().includes("address") || msg.text.includes("maps.app.goo.gl")) && (
+                            <button
+                              onClick={openLocationModal}
+                              type="button"
+                              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2c336b] text-white font-bold text-xs shadow-sm hover:bg-[#3d468e] transition-all self-start"
+                            >
+                              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>
+                              <span>Open Interactive Map Modal</span>
+                            </button>
+                          )}
 
                           {msg.isReviewAction && (
                             <div className="mt-3.5 p-4 bg-gradient-to-br from-white to-[#f3faff] border border-[#2c336b]/10 rounded-2xl shadow-sm space-y-3">

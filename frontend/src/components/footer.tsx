@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocationModal } from "@/context/LocationContext";
 
 export default function Footer() {
   const pathname = usePathname();
+  const { openLocationModal } = useLocationModal();
   if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
@@ -74,12 +76,18 @@ export default function Footer() {
           <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">Contact</h4>
           <ul className="space-y-3 text-sm text-on-surface-variant">
             <li className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-[20px] text-primary">location_on</span>
-              <span>
-                123 Healing Way
+              <span className="material-symbols-outlined text-[20px] text-primary mt-0.5">location_on</span>
+              <button
+                onClick={openLocationModal}
+                type="button"
+                className="text-left hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
+              >
+                <span>LuminaHealth Clinic</span>
                 <br />
-                Wellness City, HC 90210
-              </span>
+                <span className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5">
+                  View Map & Directions <span className="material-symbols-outlined text-xs">open_in_new</span>
+                </span>
+              </button>
             </li>
             <li className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px] text-primary">call</span>

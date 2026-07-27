@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation";
 import { MapPin, ChevronDown, Globe, Menu, X, Calendar, User, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { useLocationModal } from "@/context/LocationContext";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { openLocationModal } = useLocationModal();
   const [selectedLang, setSelectedLang] = useState<{ code: string; label: string; flag: string }>({
     code: "EN",
     label: "English",
@@ -111,17 +113,16 @@ export default function Navbar() {
           <div className="hidden md:block w-px h-5 bg-gray-200"></div>
 
           {/* Our Location Map Button */}
-          <a
-            href="https://maps.google.com/?q=123+Healing+Way,+Wellness+District,+CA+90210"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={openLocationModal}
+            type="button"
             className={`hidden md:flex items-center gap-1.5 rounded-full bg-[#f3faff] text-[#2c336b] border border-[#2c336b]/10 hover:border-[#2c336b]/30 hover:bg-[#2c336b]/10 transition-all duration-300 shadow-sm group ${
               isScrolled ? "px-3 py-1 text-[11px]" : "px-3.5 py-1.5 text-[11px] lg:text-[11px] xl:px-4 xl:py-2 xl:text-xs"
             }`}
           >
             <MapPin className="w-3.5 h-3.5 text-[#2c336b] group-hover:translate-y-[-2px] transition-transform duration-300" />
             <span className="font-bold tracking-wide">Our Location</span>
-          </a>
+          </button>
         </div>
 
         {/* Navigation Links - Desktop */}
@@ -377,16 +378,17 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                <a
-                  href="https://maps.google.com/?q=123+Healing+Way,+Wellness+District,+CA+90210"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openLocationModal();
+                  }}
                   className="flex md:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-semibold text-xs"
                 >
                   <MapPin className="w-3.5 h-3.5 text-[#2c336b]" />
                   Our Location
-                </a>
+                </button>
 
                 <Link
                   href="/book-appointment"

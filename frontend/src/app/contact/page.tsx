@@ -4,8 +4,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/button";
 import Image from "next/image";
+import { useLocationModal } from "@/context/LocationContext";
 
 export default function ContactPage() {
+  const { openLocationModal } = useLocationModal();
+
   // Form State
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -345,18 +348,29 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Placeholder for Map */}
-            <div className="w-full h-48 bg-surface-container rounded-2xl overflow-hidden relative shadow-sm border border-outline-variant/10 group">
-              <Image
-                className="object-cover opacity-80 transition-transform duration-500 group-hover:scale-103"
-                alt="Clinic Map Location"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqeGvaCOn3kKJk-w4T5Zy0_2iGH95h0gZxv0YFGyxFaYelFMsItaons8_A3mnUZ3uk9gLAs50Mf-dtikIfgA6G-wtai1sevWOTrMzHrP87PoLagaXJ6yDhdSmzQF6xFuX-Yt_Opw70n4GWLfsxc4o0LQ6PX-0orovvFClT7BAnrPrcoKhlQe-kf8lTIPzH9N6Orq8U1-cj0Cv25X7m2cVj2jp-AZ76a_v_ONmj0LGhkmvHQmhV313m_1pcWNZDnqBByZni_azwdR_Y"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
+            {/* Real Interactive Map Section */}
+            <div
+              onClick={openLocationModal}
+              className="w-full h-56 sm:h-64 bg-surface-container rounded-2xl overflow-hidden relative shadow-md border border-outline-variant/20 group cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-primary/40"
+            >
+              <iframe
+                title="Clinic Map Location Preview"
+                src="https://maps.google.com/maps?q=31.487555,73.076189&hl=en&z=15&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                className="w-full h-full pointer-events-none group-hover:scale-102 transition-transform duration-500"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/5">
-                <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  location_on
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-between p-4 transition-opacity group-hover:from-black/70">
+                <div className="flex items-center gap-2 text-white">
+                  <span className="material-symbols-outlined text-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    location_on
+                  </span>
+                  <span className="text-body-sm font-semibold drop-shadow-sm">Click to open interactive map & directions</span>
+                </div>
+                <span className="bg-primary/90 hover:bg-primary text-on-primary text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                  Enlarge <span className="material-symbols-outlined text-sm">open_in_full</span>
                 </span>
               </div>
             </div>

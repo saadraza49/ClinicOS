@@ -27,7 +27,8 @@ class ChatResponse(BaseModel):
 CLINIC_NAME = "LuminaHealth Clinic"
 CLINIC_HOURS = "Monday to Saturday, 9:00 AM – 9:00 PM (Closed on Sundays)"
 EMERGENCY_NUMBER = "+92 300 1234567"
-ADDRESS = "123 Healing Way, Wellness District, CA 90210"
+MAPS_URL = "https://maps.app.goo.gl/MRgu6Fdbd9PhaGmu7"
+ADDRESS = f"31.487555, 73.076189 (LuminaHealth Care Center). Google Maps: {MAPS_URL}"
 FEE_INFO = "General Physician: 1,500 PKR. Specialists: 2,500 PKR."
 
 SYSTEM_PROMPT = f"""You are an AI assistant for {CLINIC_NAME}.
