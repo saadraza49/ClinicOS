@@ -11,7 +11,7 @@ from app.models.chat import ChatSession, ChatMessage, FAQ
 from app.core.security import get_password_hash
 
 def seed_master_data():
-    print("Re-creating and initializing database tables...")
+    print("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
 
     # Pre-hash password once for instant seeding speed
@@ -19,6 +19,24 @@ def seed_master_data():
 
     db = SessionLocal()
     try:
+        print("Clearing all previous data from database tables...")
+        try:
+            db.query(AppointmentReview).delete()
+            db.query(Appointment).delete()
+            db.query(ChatMessage).delete()
+            db.query(ChatSession).delete()
+            db.query(DoctorSchedule).delete()
+            db.query(Service).delete()
+            db.query(DoctorProfile).delete()
+            db.query(PatientProfile).delete()
+            db.query(User).delete()
+            db.query(Department).delete()
+            db.query(FAQ).delete()
+            db.commit()
+            print("[SUCCESS] Cleared previous records.")
+        except Exception as e:
+            db.rollback()
+            print(f"[WARN] Clearing tables skipped: {e}")
 
         # ==========================================
         # 1. DEPARTMENTS (10 Records)
@@ -150,10 +168,16 @@ def seed_master_data():
                 db.commit()
                 db.refresh(profile)
 
-                # Add 2 Schedules per doctor
-                s1 = DoctorSchedule(doctor_id=profile.id, day_of_week="Mon", start_time="09:00 AM", end_time="05:00 PM")
-                s2 = DoctorSchedule(doctor_id=profile.id, day_of_week="Wed", start_time="09:00 AM", end_time="05:00 PM")
-                db.add_all([s1, s2])
+                # Add Schedules per doctor (Mon - Sat)
+                schedules_to_add = [
+                    DoctorSchedule(doctor_id=profile.id, day_of_week="Mon", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
+                    DoctorSchedule(doctor_id=profile.id, day_of_week="Tue", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
+                    DoctorSchedule(doctor_id=profile.id, day_of_week="Wed", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
+                    DoctorSchedule(doctor_id=profile.id, day_of_week="Thu", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
+                    DoctorSchedule(doctor_id=profile.id, day_of_week="Fri", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
+                    DoctorSchedule(doctor_id=profile.id, day_of_week="Sat", start_time="09:00 AM", end_time="01:00 PM", slot_duration_minutes=30),
+                ]
+                db.add_all(schedules_to_add)
                 db.commit()
 
             doctors_list.append(profile)
@@ -303,19 +327,16 @@ def seed_master_data():
 
         faqs_list = []
         for idx, f in enumerate(faqs_seed_data):
-            faq = db.query(FAQ).filter(FAQ.question == f["q"]).first()
-            if not faq:
-                faq = FAQ(
-                    category=f["cat"],
-                    question=f["q"],
-                    answer=f["a"],
-                    is_published=True,
-                    display_order=idx + 1
-                )
-                db.add(faq)
-                db.commit()
-                db.refresh(faq)
+            faq = FAQ(
+                category=f["cat"],
+                question=f["q"],
+                answer=f["a"],
+                is_published=True,
+                display_order=idx + 1
+            )
+            db.add(faq)
             faqs_list.append(faq)
+        db.commit()
         print(f"[SUCCESS] Seeded {len(faqs_list)} FAQs.")
 
         print("\n==========================================")

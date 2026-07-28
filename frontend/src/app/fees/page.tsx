@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { services } from "@/data/services";
+import { getServices, ServiceData } from "@/lib/api";
 import PricingTierCard, { PricingFeature } from "@/components/pricing-tier-card";
 import CTABanner from "@/components/cta-banner";
 
@@ -11,28 +12,28 @@ const categories = [
     id: "general",
     title: "General Consultations",
     description: "Standard checkups, routine health screenings, and preventative care consultations.",
-    range: "$50 - $150",
+    range: "1,500 PKR",
     icon: "stethoscope",
   },
   {
     id: "diagnostics",
     title: "Diagnostics & Labs",
     description: "Laboratory blood tests, modern digital x-ray imaging, and ultrasounds.",
-    range: "$80 - $300",
+    range: "2,000 PKR - 5,000 PKR",
     icon: "biotech",
   },
   {
     id: "vaccinations",
     title: "Vaccinations",
     description: "Pediatric schedules, travel immunizations, and annual influenza vaccines.",
-    range: "$25 - $100",
+    range: "1,000 PKR - 3,500 PKR",
     icon: "vaccines",
   },
   {
     id: "wellness",
-    title: "Health & Wellness",
-    description: "Specialized lifestyle assessments, dietary plans, and preventive care programs.",
-    range: "$100 - $400",
+    title: "Specialist Care",
+    description: "Specialized evaluations with senior clinical consultants.",
+    range: "2,500 PKR",
     icon: "monitor_heart",
   },
 ];
@@ -40,43 +41,60 @@ const categories = [
 const plans = [
   {
     name: "Basic",
-    price: "$29",
+    price: "2,500 PKR",
     description: "Essential care for proactive individuals.",
     isPopular: false,
     features: [
       { text: "1 Free Consultation/yr", included: true },
       { text: "10% off Diagnostics", included: true },
-      { text: "24/7 Telehealth Access", included: false },
+      { text: "Telehealth Access", included: false },
       { text: "Priority Booking slots", included: false },
     ] as PricingFeature[],
   },
   {
     name: "Standard",
-    price: "$59",
+    price: "5,000 PKR",
     description: "Comprehensive care for growing families.",
     isPopular: true,
     features: [
       { text: "3 Free Consultations/yr", included: true },
       { text: "20% off Diagnostics", included: true },
-      { text: "24/7 Telehealth Access", included: true },
+      { text: "Telehealth Access", included: true },
       { text: "Priority Booking slots", included: false },
     ] as PricingFeature[],
   },
   {
     name: "Premium",
-    price: "$99",
+    price: "9,500 PKR",
     description: "Ultimate care and immediate clinical access.",
     isPopular: false,
     features: [
       { text: "Unlimited Consultations", included: true },
       { text: "50% off Diagnostics", included: true },
-      { text: "24/7 Telehealth Access", included: true },
+      { text: "Telehealth Access", included: true },
       { text: "Priority Booking slots", included: true },
     ] as PricingFeature[],
   },
 ];
 
 export default function FeesPage() {
+  const [servicesList, setServicesList] = useState<ServiceData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadServices() {
+      try {
+        const data = await getServices();
+        setServicesList(data);
+      } catch (err) {
+        console.error("Failed to fetch services for fee table:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadServices();
+  }, []);
+
   const handleChoosePlan = (planName: string) => {
     alert(`You selected the ${planName} Plan. Booking consultation is next step!`);
   };
@@ -164,29 +182,45 @@ export default function FeesPage() {
         >
           <h2 className="text-headline-md text-on-surface mb-6 font-bold">Detailed Service Fees</h2>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-outline-variant/30 text-label-sm text-on-surface-variant">
-                  <th className="py-4 px-2">Service Name</th>
-                  <th className="py-4 px-2">Category</th>
-                  <th className="py-4 px-2 text-right">Standard Fee</th>
-                </tr>
-              </thead>
-              <tbody>
-                {services.map((service) => (
-                  <tr
-                    key={service.id}
-                    className="border-b border-outline-variant/10 hover:bg-surface-container-low/20 transition-colors"
-                  >
-                    <td className="py-4 px-2 font-semibold text-on-surface">{service.name}</td>
-                    <td className="py-4 px-2 text-on-surface-variant capitalize text-sm">{service.category}</td>
-                    <td className="py-4 px-2 text-right font-bold text-primary">{service.price}</td>
+          {loading ? (
+            <div className="space-y-4 animate-pulse py-4">
+              <div className="h-8 bg-surface-container rounded w-full"></div>
+              <div className="h-8 bg-surface-container rounded w-full"></div>
+              <div className="h-8 bg-surface-container rounded w-full"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-outline-variant/30 text-label-sm text-on-surface-variant">
+                    <th className="py-4 px-2">Service Name</th>
+                    <th className="py-4 px-2">Department</th>
+                    <th className="py-4 px-2">Duration</th>
+                    <th className="py-4 px-2 text-right">Standard Fee</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {servicesList.map((service) => (
+                    <tr
+                      key={service.id}
+                      className="border-b border-outline-variant/10 hover:bg-surface-container-low/20 transition-colors"
+                    >
+                      <td className="py-4 px-2 font-semibold text-on-surface">{service.name}</td>
+                      <td className="py-4 px-2 text-on-surface-variant capitalize text-sm">
+                        {service.department?.name || "General Care"}
+                      </td>
+                      <td className="py-4 px-2 text-on-surface-variant text-sm">
+                        {service.duration_minutes} mins
+                      </td>
+                      <td className="py-4 px-2 text-right font-bold text-primary">
+                        {service.price.toLocaleString()} PKR
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </motion.div>
       </section>
 

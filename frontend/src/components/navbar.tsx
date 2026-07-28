@@ -206,10 +206,14 @@ export default function Navbar() {
           {/* Login / User Account Action (Desktop & Mobile) */}
           {user ? (
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2c336b]/10 text-[#2c336b] text-xs font-bold border border-[#2c336b]/20">
+              <Link
+                href="/patient-dashboard"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2c336b]/10 text-[#2c336b] hover:bg-[#2c336b]/20 text-xs font-bold border border-[#2c336b]/20 transition-all cursor-pointer"
+                title="View Patient Profile Dashboard"
+              >
                 <User className="w-3.5 h-3.5 text-[#2c336b]" />
                 <span className="max-w-[120px] truncate">{user.full_name}</span>
-              </div>
+              </Link>
               <button
                 onClick={() => setIsLogoutModalOpen(true)}
                 className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"

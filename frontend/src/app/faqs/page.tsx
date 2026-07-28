@@ -1,27 +1,47 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { faqs } from "@/data/faqs";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { getFAQs, FAQData } from "@/lib/api";
 import Accordion from "@/components/accordion";
 import CTABanner from "@/components/cta-banner";
 
-const categories = [
-  { id: "appointments", name: "Appointments" },
-  { id: "billing", name: "Billing & Insurance" },
-  { id: "services", name: "Services" },
-  { id: "general", name: "General" },
-];
-
 export default function FAQsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [faqsList, setFaqsList] = useState<FAQData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredFaqs = faqs.filter(
+  useEffect(() => {
+    async function loadFaqs() {
+      try {
+        const data = await getFAQs();
+        setFaqsList(data);
+      } catch (err) {
+        console.error("Failed to fetch FAQs from DB:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadFaqs();
+  }, []);
+
+  const filteredFaqs = faqsList.filter(
     (faq) =>
       faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Group FAQs by category dynamically
+  const categoriesMap: Record<string, FAQData[]> = {};
+  filteredFaqs.forEach((faq) => {
+    const catKey = faq.category || "General";
+    if (!categoriesMap[catKey]) {
+      categoriesMap[catKey] = [];
+    }
+    categoriesMap[catKey].push(faq);
+  });
+
+  const categoryKeys = Object.keys(categoriesMap);
   const hasResults = filteredFaqs.length > 0;
 
   return (
@@ -67,21 +87,26 @@ export default function FAQsPage() {
 
       {/* FAQs list section */}
       <section className="px-4 md:px-6 pb-20 max-w-3xl mx-auto min-h-[400px]">
-        {hasResults ? (
-          categories.map((category) => {
-            const categoryFaqs = filteredFaqs.filter((f) => f.category === category.id);
-            if (categoryFaqs.length === 0) return null;
-
+        {loading ? (
+          <div className="space-y-6 animate-pulse py-8">
+            <div className="h-6 bg-surface-container w-1/4 rounded mb-4"></div>
+            <div className="h-16 bg-surface-container rounded-2xl w-full"></div>
+            <div className="h-16 bg-surface-container rounded-2xl w-full"></div>
+            <div className="h-16 bg-surface-container rounded-2xl w-full"></div>
+          </div>
+        ) : hasResults ? (
+          categoryKeys.map((catName) => {
+            const categoryFaqs = categoriesMap[catName];
             return (
-              <div key={category.id} className="mb-10">
+              <div key={catName} className="mb-10">
                 <motion.h2
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
-                  className="text-headline-md text-primary mb-6 border-b border-outline-variant/20 pb-2 font-bold"
+                  className="text-headline-md text-primary mb-6 border-b border-outline-variant/20 pb-2 font-bold capitalize"
                 >
-                  {category.name}
+                  {catName}
                 </motion.h2>
 
                 <div className="flex flex-col gap-4">
@@ -111,7 +136,7 @@ export default function FAQsPage() {
             </span>
             <h3 className="text-headline-sm text-on-background font-bold mb-2">No matching questions</h3>
             <p className="text-body-md text-on-surface-variant max-w-md mx-auto">
-              We couldn't find any FAQs matching your query "{searchQuery}". Try searching for other terms like "billing", "cancellation", or "location".
+              We couldn't find any FAQs matching your query "{searchQuery}". Try searching for other terms like "appointment", "pricing", or "hours".
             </p>
           </motion.div>
         )}

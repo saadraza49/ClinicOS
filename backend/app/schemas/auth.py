@@ -28,3 +28,9 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AuthResponse(BaseModel):
+    user: UserOut
+    access_token: str
+    token_type: str = "bearer"
+

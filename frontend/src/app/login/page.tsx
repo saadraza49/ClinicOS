@@ -74,7 +74,7 @@ export default function LoginPage() {
       setIsLoading(false);
       setIsSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        router.push(role === "patient" ? "/patient-dashboard" : "/");
       }, 1200);
     } catch (err: any) {
       setIsLoading(false);

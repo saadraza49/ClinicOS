@@ -1,8 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { services } from "@/data/services";
+import { getServiceBySlug, getServices, ServiceData } from "@/lib/api";
+import { services as staticServices } from "@/data/services";
 import ServiceCard from "@/components/service-card";
 import Button from "@/components/button";
 import CTABanner from "@/components/cta-banner";
@@ -13,13 +14,86 @@ interface ServiceDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+const defaultIncludes = [
+  {
+    title: "Comprehensive Clinical Assessment",
+    description: "Detailed discussion of your medical history, symptoms, and health concerns with a specialized physician.",
+    icon: "stethoscope",
+  },
+  {
+    title: "Vital Health Metrics",
+    description: "Review of key vital signs, physiological metrics, and diagnostic indicators.",
+    icon: "monitor_heart",
+  },
+  {
+    title: "Personalized Action Plan",
+    description: "Tailored summary of medical recommendations, lifestyle guidance, and necessary prescriptions.",
+    icon: "assignment",
+  },
+];
+
+const defaultSteps = [
+  {
+    step: 1,
+    title: "Easy Online Booking",
+    icon: "calendar_month",
+    description: "Select your preferred date, time slot, and clinical specialist in under two minutes.",
+  },
+  {
+    step: 2,
+    title: "In-Person or Virtual Visit",
+    icon: "medical_services",
+    description: "Consult directly with our experienced medical team in a supportive environment.",
+  },
+  {
+    step: 3,
+    title: "Follow-Up & Continuous Care",
+    icon: "health_and_safety",
+    description: "Access your digital consultation records and receive ongoing clinical support.",
+  },
+];
+
+const defaultWhosItFor = ["General Health Checks", "Preventative Care", "Symptom Diagnosis", "Routine Clinical Care"];
+
 export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
 
-  const service = services.find((s) => s.slug === slug);
+  const [dbService, setDbService] = useState<ServiceData | null>(null);
+  const [allDbServices, setAllDbServices] = useState<ServiceData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!service) {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const [fetchedService, fetchedAll] = await Promise.all([
+          getServiceBySlug(slug),
+          getServices()
+        ]);
+        setDbService(fetchedService);
+        setAllDbServices(fetchedAll);
+      } catch (err) {
+        console.error(`Failed to load service ${slug}:`, err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [slug]);
+
+  const staticService = staticServices.find((s) => s.slug === slug || s.id === slug);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-on-surface-variant font-medium text-body-lg">Loading database service details...</p>
+      </div>
+    );
+  }
+
+  if (!dbService && !staticService) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
         <span className="material-symbols-outlined text-primary text-6xl mb-4 select-none">
@@ -27,7 +101,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
         </span>
         <h1 className="text-headline-md font-bold mb-2">Service Not Found</h1>
         <p className="text-body-lg text-on-surface-variant max-w-md mb-8">
-          We couldn't find the requested medical service. It may have been renamed or relocated.
+          We couldn't find the requested medical service in our database. It may have been updated or relocated.
         </p>
         <Link href="/services">
           <Button variant="primary">Return to Services</Button>
@@ -36,10 +110,22 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
     );
   }
 
-  // Find related services from their slugs
-  const relatedServices = services.filter(
-    (s) => service.relatedSlugs?.includes(s.slug) && s.id !== service.id
-  ).slice(0, 3);
+  const serviceId = dbService?.id || staticService?.id || slug;
+  const name = dbService?.name || staticService?.name || "Medical Service";
+  const tagline = dbService?.short_description || staticService?.tagline || "Comprehensive healthcare consultation.";
+  const longDescription = dbService?.full_description || staticService?.longDescription || dbService?.short_description || "Professional medical evaluation and personalized care plan tailored to your health requirements.";
+  const priceDisplay = dbService ? `$${dbService.price}` : staticService?.price || "$150";
+  const durationDisplay = dbService ? `${dbService.duration_minutes} mins` : staticService?.duration || "30 mins";
+  const serviceIcon = dbService?.icon || staticService?.icon || "medical_services";
+  const image = staticService?.image || "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800";
+  const includes = staticService?.includes || defaultIncludes;
+  const whosItFor = staticService?.whosItFor || defaultWhosItFor;
+  const steps = staticService?.steps || defaultSteps;
+
+  // Filter related services from live database services
+  const relatedServices = allDbServices.length > 0
+    ? allDbServices.filter(s => s.id !== serviceId && s.slug !== slug).slice(0, 3)
+    : staticServices.filter(s => staticService?.relatedSlugs?.includes(s.slug) && s.id !== serviceId).slice(0, 3);
 
   return (
     <div className="overflow-x-hidden">
@@ -73,18 +159,29 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                     chevron_right
                   </span>
                   <span className="text-primary font-semibold">
-                    {service.name}
+                    {name}
                   </span>
                 </div>
               </li>
             </ol>
           </nav>
 
+          <div className="flex items-center gap-3 mb-3">
+            <span className="material-symbols-outlined text-primary text-3xl select-none">
+              {serviceIcon}
+            </span>
+            {dbService?.department && (
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                {dbService.department.name}
+              </span>
+            )}
+          </div>
+
           <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface mb-4 font-bold leading-tight">
-            {service.name}
+            {name}
           </h1>
           <p className="text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
-            {service.tagline}
+            {tagline}
           </p>
         </div>
       </section>
@@ -104,8 +201,8 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               {/* Service Hero Image */}
               <div className="w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-8 relative">
                 <Image
-                  src={service.image}
-                  alt={`Hero image for ${service.name}`}
+                  src={image}
+                  alt={`Hero image for ${name}`}
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 66vw"
@@ -117,13 +214,13 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               <h2 className="text-headline-sm md:text-headline-md text-on-surface mb-4 font-bold">
                 What it includes
               </h2>
-              <p className="text-on-surface-variant mb-8 leading-relaxed">
-                {service.longDescription}
+              <p className="text-on-surface-variant mb-8 leading-relaxed text-body-lg">
+                {longDescription}
               </p>
 
               {/* Checklist details with icons */}
               <ul className="space-y-6">
-                {service.includes.map((item, idx) => (
+                {includes.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-4">
                     <div className="bg-primary/10 p-2.5 rounded-full text-primary shrink-0 mt-0.5 select-none">
                       <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -153,7 +250,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                   This health offering is ideal for individuals experiencing or seeking:
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {service.whosItFor.map((tag) => (
+                  {whosItFor.map((tag) => (
                     <span
                       key={tag}
                       className="bg-surface-container text-primary-container-on-primary px-3 py-1.5 rounded-full text-label-sm border border-primary/15 font-semibold"
@@ -177,10 +274,10 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               <div className="flex justify-between items-end border-b border-outline-variant/10 pb-4">
                 <div>
                   <span className="block text-on-surface-variant text-label-sm uppercase tracking-wider mb-1 font-semibold text-xs">
-                    Price
+                    Fee / Price
                   </span>
                   <span className="text-display-lg-mobile md:text-headline-md lg:text-display-lg-mobile text-primary font-bold">
-                    {service.price}
+                    {priceDisplay}
                   </span>
                 </div>
                 <div className="text-right">
@@ -188,7 +285,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                     Duration
                   </span>
                   <span className="text-headline-sm text-on-surface font-bold">
-                    {service.duration}
+                    {durationDisplay}
                   </span>
                 </div>
               </div>
@@ -210,7 +307,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               </ul>
 
               {/* Book Button */}
-              <Link href={`/book-appointment?service=${service.id}`} className="w-full">
+              <Link href={`/book-appointment?service=${serviceId}`} className="w-full">
                 <Button variant="primary" className="w-full justify-center py-3.5 gap-2">
                   Book This Service
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -222,7 +319,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                 <span className="material-symbols-outlined text-secondary text-lg select-none" style={{ fontVariationSettings: "'FILL' 1" }}>
                   verified_user
                 </span>
-                <span className="font-semibold text-xs">CQC Registered &amp; Confidential</span>
+                <span className="font-semibold text-xs">Verified Clinical Database Service</span>
               </div>
             </motion.div>
           </div>
@@ -255,7 +352,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {service.steps.map((step, idx) => (
+            {steps.map((step, idx) => (
               <motion.div
                 key={step.step}
                 initial={{ opacity: 0, y: 20 }}
@@ -292,18 +389,32 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
       {/* Related Services Grid */}
       {relatedServices.length > 0 && (
         <section className="py-20 max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-headline-md text-on-surface mb-8 font-bold">Related Services</h2>
+          <h2 className="text-headline-md text-on-surface mb-8 font-bold">Related Services from Database</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedServices.map((relatedService, index) => (
-              <ServiceCard
-                key={relatedService.id}
-                title={relatedService.name}
-                description={relatedService.shortDescription}
-                image={relatedService.image}
-                slug={relatedService.slug}
-                index={index}
-              />
-            ))}
+            {relatedServices.map((relatedService, index) => {
+              const item = relatedService as any;
+              const desc = item.short_description || item.shortDescription || "Comprehensive clinical consultation.";
+              const priceVal = typeof item.price === "number" ? item.price : parseFloat(String(item.price || "").replace(/[^0-9.]/g, "")) || undefined;
+              const durationVal = item.duration_minutes || (item.duration ? parseInt(String(item.duration)) : undefined);
+              const deptVal = item.department?.name || (item.category ? String(item.category).toUpperCase() : undefined);
+              const iconVal = item.icon || "medical_services";
+              const imgVal = item.image || "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=600";
+
+              return (
+                <ServiceCard
+                  key={item.id}
+                  title={item.name}
+                  description={desc}
+                  image={imgVal}
+                  slug={item.slug}
+                  icon={iconVal}
+                  price={priceVal}
+                  durationMinutes={durationVal}
+                  departmentName={deptVal}
+                  index={index}
+                />
+              );
+            })}
           </div>
         </section>
       )}
@@ -322,3 +433,4 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
     </div>
   );
 }
+

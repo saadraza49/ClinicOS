@@ -30,15 +30,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const res = await fetch(`${API_BASE_URL}/auth/me`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
       });
       if (res.ok) {
         const userData: User = await res.json();
         setUser(userData);
       } else {
+        if (typeof window !== "undefined") localStorage.removeItem("token");
         setUser(null);
       }
     } catch (err) {
@@ -65,7 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(errorData.detail || "Invalid email or password");
     }
 
-    const userData: User = await res.json();
+    const authData = await res.json();
+    const userData: User = authData.user || authData;
+    const token: string = authData.access_token;
+    if (token && typeof window !== "undefined") {
+      localStorage.setItem("token", token);
+    }
     setUser(userData);
     return userData;
   };
@@ -83,20 +94,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(errorData.detail || "Could not complete registration");
     }
 
-    const userData: User = await res.json();
+    const authData = await res.json();
+    const userData: User = authData.user || authData;
+    const token: string = authData.access_token;
+    if (token && typeof window !== "undefined") {
+      localStorage.setItem("token", token);
+    }
     setUser(userData);
     return userData;
   };
 
   const logout = async () => {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
+        headers,
         credentials: "include",
       });
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
       setUser(null);
     }
   };

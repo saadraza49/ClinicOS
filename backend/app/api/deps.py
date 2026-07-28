@@ -12,8 +12,13 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # Read JWT token from httpOnly cookie 'access_token'
+    # Read JWT token from httpOnly cookie 'access_token' or Authorization header
     token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
     if not token:
         raise credentials_exception
 
@@ -22,10 +27,16 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
         raise credentials_exception
 
     user_id: Optional[str] = payload.get("sub")
-    if user_id is None:
-        raise credentials_exception
+    user = None
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
 
-    user = db.query(User).filter(User.id == user_id).first()
+    # Fallback search by email if database was reseeded
+    if user is None:
+        user_email = payload.get("email")
+        if user_email:
+            user = db.query(User).filter(User.email == user_email.lower()).first()
+
     if user is None:
         raise credentials_exception
 

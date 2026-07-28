@@ -6,7 +6,9 @@ from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import UserLogin, UserOut, UserSignup
+from app.models.patient import PatientProfile
+from app.models.doctor import DoctorProfile
+from app.schemas.auth import UserLogin, UserOut, UserSignup, AuthResponse
 
 router = APIRouter()
 
@@ -35,7 +37,7 @@ def clear_auth_cookie(response: Response):
         path="/"
     )
 
-@router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def signup(
     user_in: UserSignup,
     response: Response,
@@ -58,24 +60,41 @@ def signup(
 
     # Hash password and create user
     hashed_pwd = get_password_hash(user_in.password)
+    user_role = user_in.role or "patient"
     user = User(
         full_name=user_in.full_name,
         email=user_in.email.lower(),
         phone=user_in.phone,
-        role=user_in.role or "patient",
+        role=user_role,
         hashed_password=hashed_pwd
     )
     db.add(user)
     db.commit()
     db.refresh(user)
 
+    # Auto-create profile in respective table based on role
+    if user_role == "patient":
+        patient_profile = PatientProfile(user_id=user.id)
+        db.add(patient_profile)
+        db.commit()
+    elif user_role == "doctor":
+        slug_name = user.full_name.lower().replace(" ", "-")
+        doctor_profile = DoctorProfile(
+            user_id=user.id,
+            full_name=user.full_name,
+            slug=slug_name,
+            specialty="General Medicine"
+        )
+        db.add(doctor_profile)
+        db.commit()
+
     # Create JWT token and set in httpOnly cookie
-    token = create_access_token(subject=user.id)
+    token = create_access_token(subject=user.id, email=user.email)
     set_auth_cookie(response, token)
 
-    return user
+    return AuthResponse(user=UserOut.model_validate(user), access_token=token)
 
-@router.post("/login", response_model=UserOut)
+@router.post("/login", response_model=AuthResponse)
 def login(
     user_in: UserLogin,
     response: Response,
@@ -98,11 +117,31 @@ def login(
             detail=f"This account is registered as a {actual_role_title}, not a {role_title}. Please switch portal tab to sign in."
         )
 
+    # Ensure PatientProfile / DoctorProfile exists
+    if user.role == "patient":
+        p_profile = db.query(PatientProfile).filter(PatientProfile.user_id == user.id).first()
+        if not p_profile:
+            p_profile = PatientProfile(user_id=user.id)
+            db.add(p_profile)
+            db.commit()
+    elif user.role == "doctor":
+        d_profile = db.query(DoctorProfile).filter(DoctorProfile.user_id == user.id).first()
+        if not d_profile:
+            slug_name = user.full_name.lower().replace(" ", "-")
+            d_profile = DoctorProfile(
+                user_id=user.id,
+                full_name=user.full_name,
+                slug=slug_name,
+                specialty="General Medicine"
+            )
+            db.add(d_profile)
+            db.commit()
+
     # Create JWT token and set in httpOnly cookie
-    token = create_access_token(subject=user.id)
+    token = create_access_token(subject=user.id, email=user.email)
     set_auth_cookie(response, token)
 
-    return user
+    return AuthResponse(user=UserOut.model_validate(user), access_token=token)
 
 @router.post("/logout")
 def logout(response: Response):
