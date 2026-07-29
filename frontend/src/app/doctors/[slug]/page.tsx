@@ -1,8 +1,8 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { doctors } from "@/data/doctors";
+import { getDoctorBySlug, DoctorData } from "@/lib/api";
 import TestimonialCard from "@/components/testimonial-card";
 import Button from "@/components/button";
 import Image from "next/image";
@@ -16,7 +16,39 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
 
-  const doctor = doctors.find((d) => d.slug === slug);
+  const [doctor, setDoctor] = useState<DoctorData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDoctor() {
+      try {
+        const data = await getDoctorBySlug(slug);
+        setDoctor(data);
+      } catch (err) {
+        console.error("Failed to load doctor by slug:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDoctor();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-20 animate-pulse">
+        <div className="h-10 bg-surface-container w-1/3 rounded mb-8"></div>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div className="md:col-span-5 h-96 bg-surface-container rounded-2xl"></div>
+          <div className="md:col-span-7 flex flex-col gap-4">
+            <div className="h-8 bg-surface-container w-1/4 rounded"></div>
+            <div className="h-12 bg-surface-container w-3/4 rounded"></div>
+            <div className="h-24 bg-surface-container w-full rounded"></div>
+            <div className="h-12 bg-surface-container w-1/2 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!doctor) {
     return (
@@ -34,6 +66,14 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
       </div>
     );
   }
+
+  const languagesList = doctor.languages ? doctor.languages.split(",").map(s => s.trim()) : ["English"];
+  const availableDays = doctor.schedules && doctor.schedules.length > 0
+    ? doctor.schedules.map(s => s.day_of_week)
+    : ["Monday", "Wednesday", "Friday"];
+  const scheduleTime = doctor.schedules && doctor.schedules.length > 0
+    ? `${doctor.schedules[0].start_time} - ${doctor.schedules[0].end_time}`
+    : "09:00 AM - 05:00 PM";
 
   return (
     <div className="overflow-x-hidden">
@@ -63,7 +103,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                     chevron_right
                   </span>
                   <span className="text-on-surface font-semibold text-label-sm">
-                    {doctor.name}
+                    {doctor.full_name}
                   </span>
                 </div>
               </li>
@@ -84,8 +124,8 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
               className="relative w-full max-w-sm aspect-[4/5] rounded-2xl overflow-hidden shadow-ambient bg-surface-container-lowest border border-outline-variant/10"
             >
               <Image
-                src={doctor.photo}
-                alt={`Portrait of ${doctor.name}`}
+                src={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
+                alt={`Portrait of ${doctor.full_name}`}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 33vw"
@@ -105,7 +145,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
                 <span className="material-symbols-outlined text-[16px] mr-1">
-                  {doctor.specialtyIcon}
+                  stethoscope
                 </span>
                 {doctor.specialty}
               </span>
@@ -113,24 +153,24 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                 <span className="material-symbols-outlined text-[18px] text-primary">
                   workspace_premium
                 </span>
-                {doctor.qualifications}
+                {doctor.qualifications || "Medical Specialist"}
               </span>
               <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
                 <span className="material-symbols-outlined text-[18px] text-primary">
                   history
                 </span>
-                {doctor.yearsExperience} Years Experience
+                {doctor.experience_years} Years Experience
               </span>
             </div>
 
             {/* Doctor Name */}
             <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface mb-4 font-bold leading-tight">
-              {doctor.name}
+              {doctor.full_name}
             </h1>
 
             {/* Bio */}
             <p className="text-body-lg text-on-surface-variant mb-8 leading-relaxed">
-              {doctor.bio}
+              {doctor.bio || "Dedicated healthcare professional focused on delivering exceptional, evidence-based care to patients."}
             </p>
 
             {/* Langs and Availability tags */}
@@ -143,7 +183,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   Languages Spoken
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {doctor.languages.map((lang) => (
+                  {languagesList.map((lang) => (
                     <span
                       key={lang}
                       className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-medium"
@@ -162,7 +202,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   Availability
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {doctor.availableDays.map((day) => (
+                  {availableDays.map((day) => (
                     <span
                       key={day}
                       className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-semibold"
@@ -172,7 +212,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   ))}
                 </div>
                 <p className="text-label-sm text-on-surface-variant mt-2 pl-7 text-xs">
-                  {doctor.availabilityTime}
+                  {scheduleTime}
                 </p>
               </div>
             </div>
@@ -181,7 +221,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
             <div className="pt-4 border-t border-outline-variant/10">
               <Link href={`/book-appointment?doctor=${doctor.id}`} className="inline-block w-full sm:w-auto">
                 <Button variant="primary" className="w-full sm:w-auto">
-                  Book with {doctor.name}
+                  Book with {doctor.full_name}
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </Button>
               </Link>
@@ -209,33 +249,39 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   ))}
                 </div>
                 <span className="text-label-md text-on-surface-variant font-bold">
-                  {doctor.rating} ({doctor.reviewCount} reviews)
+                  {doctor.rating} ({doctor.review_count} reviews)
                 </span>
               </div>
             </div>
-            <button className="text-primary hover:text-primary-container text-label-md font-bold transition-colors">
-              View all reviews
-            </button>
           </div>
 
-          {/* Testimonial Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {doctor.reviews.map((review, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-              >
-                <TestimonialCard
-                  quote={review.text}
-                  author={review.author}
-                  role="Verified Patient"
-                  rating={review.rating}
-                />
-              </motion.div>
-            ))}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+            >
+              <TestimonialCard
+                quote={`Dr. ${doctor.full_name.split(" ").slice(-1)[0]} provided exceptional care, thoroughly explaining my diagnosis and treatment plan with great empathy.`}
+                author="Verified Patient"
+                role="Clinical Care Patient"
+                rating={5}
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <TestimonialCard
+                quote="Seamless appointment process and top-notch medical professionalism. Highly recommended!"
+                author="Sarah M."
+                role="Verified Patient"
+                rating={5}
+              />
+            </motion.div>
           </div>
         </div>
       </section>

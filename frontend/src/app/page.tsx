@@ -1,14 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Pill, Stethoscope, Smartphone, User, TestTube, RefreshCcw, Ban, Calendar, Award, Receipt, ShieldCheck } from "lucide-react";
+import { ArrowRight, Pill, Stethoscope, Smartphone, User, TestTube, Calendar, Award, Receipt, ShieldCheck } from "lucide-react";
 import ServiceCard from "@/components/service-card";
 import TrustBar from "@/components/trust-bar";
+import { getServices, ServiceData } from "@/lib/api";
 
-import { services } from "@/data/services";
-
-// Why Choose Us Data
 const features = [
   {
     title: "Same-day Care",
@@ -36,32 +35,28 @@ const features = [
   },
 ];
 
-// Preserved hero images for future reference or fallback
-const heroImages = [
-  {
-    src: "/images/hero/hero-1.png",
-    alt: "General doctor consulting patient",
-  },
-  {
-    src: "/images/hero/hero-2.png",
-    alt: "Modern clinic waiting lounge",
-  },
-  {
-    src: "/images/hero/hero-3.png",
-    alt: "Friendly healthcare medical team",
-  },
-  {
-    src: "/images/hero/hero-4.png",
-    alt: "Clean general medical examination room",
-  },
-];
-
 export default function Home() {
+  const [servicesList, setServicesList] = useState<ServiceData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadHomeServices() {
+      try {
+        const data = await getServices();
+        setServicesList(data);
+      } catch (err) {
+        console.error("Failed to load home page services from DB:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadHomeServices();
+  }, []);
+
   return (
     <div className="bg-[#f5f5f5] min-h-screen font-sans pb-16">
       {/* Main Hero Banner - Full Width Wall-to-Wall Video */}
       <section className="relative w-full bg-[#2c336b] overflow-hidden min-h-[580px] md:min-h-[640px] lg:min-h-[700px] flex items-center mb-6">
-        {/* Full-width Video Background */}
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
           <video
             src="https://res.cloudinary.com/hwztkijn/video/upload/v1784816229/A_professional_cinematic_s_gytgit.mp4"
@@ -77,27 +72,21 @@ export default function Home() {
             Your browser does not support the video tag.
           </video>
 
-          {/* Dark Gradient Overlay for Maximum Text Contrast & Readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/30 z-10 pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-10 pointer-events-none" />
         </div>
 
-        {/* Hero Content Container - Vertically Centered Left-Aligned Block */}
         <div className="relative z-20 w-full max-w-[1400px] mx-auto px-4 md:px-8 py-16 md:py-24 flex items-center min-h-[580px] md:min-h-[640px] lg:min-h-[700px]">
           <div className="max-w-2xl text-left flex flex-col items-start">
-            {/* Main Heading */}
             <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-5 drop-shadow-md">
               World-Class <br className="hidden sm:inline" />Medical Care
             </h1>
 
-            {/* Supporting Subtext */}
             <p className="text-white/90 text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 max-w-xl drop-shadow-sm">
               Expert doctors, personalized care, and same-day appointments when you need them most.
             </p>
 
-            {/* CTA Button Group */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
-              {/* Primary CTA Button */}
               <Link href="/book-appointment" className="w-full sm:w-auto">
                 <button className="w-full sm:w-auto bg-[#f3d2de] text-[#2c336b] px-7 py-4 rounded-full font-bold text-[15px] sm:text-base flex items-center justify-center gap-4 hover:scale-[1.03] active:scale-95 transition-all duration-200 shadow-xl cursor-pointer group">
                   <span>Book Appointment</span>
@@ -107,7 +96,6 @@ export default function Home() {
                 </button>
               </Link>
 
-              {/* Secondary Ghost CTA Button */}
               <Link href="/services" className="w-full sm:w-auto">
                 <button className="w-full sm:w-auto bg-white/10 hover:bg-white/20 border border-white/30 hover:border-white/60 text-white backdrop-blur-md px-7 py-4 rounded-full font-bold text-[15px] sm:text-base flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer">
                   <span>Explore Our Services</span>
@@ -119,11 +107,9 @@ export default function Home() {
       </section>
 
       <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-
         {/* 4 Cards Grid Section */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {/* Card 1 */}
-          <Link href="/services/general-practice" className="bg-[#eecbd8] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
+          <Link href="/services" className="bg-[#eecbd8] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
                <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">24/7<br/>Medicines</h3>
                <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Essentials at your doorstep</p>
@@ -136,8 +122,7 @@ export default function Home() {
              </div>
           </Link>
           
-          {/* Card 2 */}
-          <Link href="/services/general-practice" className="bg-[#f4df82] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
+          <Link href="/book-appointment" className="bg-[#f4df82] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
                <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">Instant Video<br/>Consultation</h3>
                <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Connect within 60 seconds</p>
@@ -151,7 +136,6 @@ export default function Home() {
              </div>
           </Link>
 
-          {/* Card 3 */}
           <Link href="/doctors" className="bg-[#bce4cd] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
                <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">Find Doctors<br/>near you</h3>
@@ -165,8 +149,7 @@ export default function Home() {
              </div>
           </Link>
 
-          {/* Card 4 */}
-          <Link href="/services/diagnostics" className="bg-[#a9c7fb] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
+          <Link href="/services" className="bg-[#a9c7fb] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
                <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">Lab<br/>Tests</h3>
                <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Sample pickup at your home</p>
@@ -188,7 +171,7 @@ export default function Home() {
         {/* Why Choose Us Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-[#2c336b] mb-4">Why Choose WeCare</h2>
+            <h2 className="text-3xl font-extrabold text-[#2c336b] mb-4">Why Choose LuminaHealth</h2>
             <p className="text-gray-500 max-w-2xl mx-auto font-medium text-base">
               We blend cutting-edge medical expertise with genuine human warmth to provide an unparalleled healthcare experience.
             </p>
@@ -226,17 +209,28 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {services.slice(0, 6).map((service, index) => (
-              <ServiceCard
-                key={service.id}
-                title={service.name}
-                description={service.shortDescription}
-                image={service.image}
-                slug={service.slug}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl h-80 animate-pulse p-6">
+                  <div className="w-full h-40 bg-gray-200 rounded-xl mb-4"></div>
+                  <div className="w-2/3 h-6 bg-gray-200 rounded mb-2"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {servicesList.slice(0, 6).map((service, index) => (
+                <ServiceCard
+                  key={service.id}
+                  title={service.name}
+                  description={service.short_description || "Comprehensive clinical service."}
+                  image="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=600"
+                  slug={service.slug}
+                />
+              ))}
+            </div>
+          )}
 
           <div className="flex justify-center mt-12">
             <Link href="/services">

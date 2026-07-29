@@ -3,12 +3,15 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   variant?: "primary" | "secondary" | "outline";
+  isLoading?: boolean;
 }
 
 export default function Button({
   children,
   variant = "primary",
   className = "",
+  isLoading = false,
+  disabled,
   ...props
 }: ButtonProps) {
   const baseStyles =
@@ -25,10 +28,19 @@ export default function Button({
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${className}`}
+      disabled={disabled || isLoading}
+      className={`${baseStyles} ${variants[variant]} ${isLoading || disabled ? "opacity-75 cursor-not-allowed pointer-events-none" : ""} ${className}`}
       {...props}
     >
-      {children}
+      {isLoading ? (
+        <>
+          <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+          <span>Processing...</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }
+

@@ -1,35 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { services } from "@/data/services";
+import { getServices, getDepartments, ServiceData, DepartmentData } from "@/lib/api";
 import ServiceCard from "@/components/service-card";
 import Button from "@/components/button";
 import FilterPills from "@/components/filter-pills";
 
-const categories = [
-  { id: "all", name: "All Services" },
-  { id: "general", name: "General" },
-  { id: "diagnostics", name: "Diagnostics" },
-  { id: "vaccinations", name: "Vaccinations" },
-  { id: "mental-health", name: "Mental Health" },
-  { id: "wellness", name: "Wellness" },
-];
+const categoryImages: Record<string, string> = {
+  pediatrics: "/images/services/immunization-clinic.png",
+  cardiology: "/images/services/routine-checkups.png",
+  dermatology: "/images/services/hayfever-allergy.png",
+  dentistry: "/images/services/nutritional-planning.png",
+  neurology: "/images/services/cognitive-therapy.png",
+  "primary-care": "/images/services/routine-checkups.png",
+  ophthalmology: "/images/services/digital-imaging.png",
+  orthopedics: "/images/services/digital-imaging.png",
+};
+
+function getServiceImage(service: ServiceData): string {
+  const deptSlug = service.department?.slug?.toLowerCase() || service.department_id?.toLowerCase() || "";
+  if (categoryImages[deptSlug]) return categoryImages[deptSlug];
+  return "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=600";
+}
 
 export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [servicesList, setServicesList] = useState<ServiceData[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<DepartmentData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredServices =
-    selectedCategory === "all"
-      ? services
-      : services.filter((s) => s.category === selectedCategory);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [servicesData, deptsData] = await Promise.all([
+          getServices(),
+          getDepartments()
+        ]);
+        setServicesList(servicesData);
+        setDepartmentsList(deptsData);
+      } catch (err) {
+        console.error("Failed to fetch services/departments:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const categories = [
+    { id: "all", name: "All Services" },
+    ...departmentsList.map(d => ({ id: d.slug, name: d.name }))
+  ];
+
+  const filteredServices = selectedCategory === "all"
+    ? servicesList
+    : servicesList.filter(s => {
+        const deptSlug = s.department?.slug;
+        if (deptSlug && deptSlug.toLowerCase() === selectedCategory.toLowerCase()) return true;
+        return s.name.toLowerCase().includes(selectedCategory.toLowerCase()) || 
+               (s.short_description && s.short_description.toLowerCase().includes(selectedCategory.toLowerCase()));
+      });
 
   return (
     <div className="overflow-x-hidden">
       {/* Header Banner */}
       <header className="relative bg-surface-container py-16 px-4 md:px-6 overflow-hidden">
-        {/* Subtle abstract medical background pattern */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -85,20 +122,36 @@ export default function ServicesPage() {
         </motion.div>
 
         {/* Services Grid */}
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 min-h-[400px]">
-          <AnimatePresence mode="popLayout">
-            {filteredServices.map((service, index) => (
-              <ServiceCard
-                key={service.id}
-                title={service.name}
-                description={service.shortDescription}
-                image={service.image}
-                slug={service.slug}
-                index={index}
-              />
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 min-h-[400px]">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-surface-container-lowest rounded-2xl h-80 animate-pulse p-6">
+                <div className="w-full h-40 bg-surface-container rounded-xl mb-4"></div>
+                <div className="w-2/3 h-6 bg-surface-container rounded mb-2"></div>
+                <div className="w-full h-12 bg-surface-container rounded"></div>
+              </div>
             ))}
-          </AnimatePresence>
-        </motion.div>
+          </div>
+        ) : (
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 min-h-[400px]">
+            <AnimatePresence mode="popLayout">
+              {filteredServices.map((service, index) => (
+                <ServiceCard
+                  key={service.id}
+                  title={service.name}
+                  description={service.short_description || "Comprehensive clinical consultation and treatment service."}
+                  image={getServiceImage(service)}
+                  slug={service.slug}
+                  icon={service.icon}
+                  price={service.price}
+                  durationMinutes={service.duration_minutes}
+                  departmentName={service.department?.name}
+                  index={index}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </section>
 
       {/* Coordinator Help Banner */}
