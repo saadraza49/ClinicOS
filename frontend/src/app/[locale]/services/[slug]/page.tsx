@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getServiceBySlug, getServices, ServiceData } from "@/lib/api";
 import { services as staticServices } from "@/data/services";
 import ServiceCard from "@/components/service-card";
@@ -9,72 +9,48 @@ import Button from "@/components/button";
 import CTABanner from "@/components/cta-banner";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedServiceTitle, getLocalizedServiceDescription, getLocalizedSpecialty } from "@/lib/translations";
 
 interface ServiceDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-const defaultIncludes = [
-  {
-    title: "Comprehensive Clinical Assessment",
-    description: "Detailed discussion of your medical history, symptoms, and health concerns with a specialized physician.",
-    icon: "stethoscope",
-  },
-  {
-    title: "Vital Health Metrics",
-    description: "Review of key vital signs, physiological metrics, and diagnostic indicators.",
-    icon: "monitor_heart",
-  },
-  {
-    title: "Personalized Action Plan",
-    description: "Tailored summary of medical recommendations, lifestyle guidance, and necessary prescriptions.",
-    icon: "assignment",
-  },
-];
-
-const defaultSteps = [
-  {
-    step: 1,
-    title: "Easy Online Booking",
-    icon: "calendar_month",
-    description: "Select your preferred date, time slot, and clinical specialist in under two minutes.",
-  },
-  {
-    step: 2,
-    title: "In-Person or Virtual Visit",
-    icon: "medical_services",
-    description: "Consult directly with our experienced medical team in a supportive environment.",
-  },
-  {
-    step: 3,
-    title: "Follow-Up & Continuous Care",
-    icon: "health_and_safety",
-    description: "Access your digital consultation records and receive ongoing clinical support.",
-  },
-];
-
-const defaultWhosItFor = ["General Health Checks", "Preventative Care", "Symptom Diagnosis", "Routine Clinical Care"];
-
 export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
+  const t = useTranslations("ServiceDetailPage");
+  const locale = useLocale();
 
   const [dbService, setDbService] = useState<ServiceData | null>(null);
   const [allDbServices, setAllDbServices] = useState<ServiceData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Parse localized default data
+  const defaultIncludes = (t.raw("defaultIncludes") as {title: string, description: string}[]).map((item, idx) => ({
+    ...item,
+    icon: ["stethoscope", "monitor_heart", "assignment"][idx]
+  }));
+  const defaultSteps = (t.raw("defaultSteps") as {title: string, description: string}[]).map((item, idx) => ({
+    ...item,
+    step: idx + 1,
+    icon: ["calendar_month", "medical_services", "health_and_safety"][idx]
+  }));
+  const defaultWhosItFor = t.raw("defaultWhosItFor") as string[];
+
   useEffect(() => {
     async function loadData() {
       try {
-        setLoading(true);
-        const [fetchedService, fetchedAll] = await Promise.all([
+        const [singleDbService, allDbServicesList] = await Promise.all([
           getServiceBySlug(slug),
           getServices()
         ]);
-        setDbService(fetchedService);
-        setAllDbServices(fetchedAll);
+        if (singleDbService) {
+          setDbService(singleDbService);
+        }
+        setAllDbServices(allDbServicesList);
       } catch (err) {
-        console.error(`Failed to load service ${slug}:`, err);
+        console.error("Failed to load DB service details:", err);
       } finally {
         setLoading(false);
       }
@@ -82,42 +58,43 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
     loadData();
   }, [slug]);
 
-  const staticService = staticServices.find((s) => s.slug === slug || s.id === slug);
-
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-on-surface-variant font-medium text-body-lg">Loading database service details...</p>
+        <p className="text-on-surface-variant font-medium text-body-lg">{t("loadingDetails")}</p>
       </div>
     );
   }
 
+  // Combine static fallback mock data with potential DB data
+  const staticService = staticServices.find((s) => s.id === slug);
   if (!dbService && !staticService) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
         <span className="material-symbols-outlined text-primary text-6xl mb-4 select-none">
           error_outline
         </span>
-        <h1 className="text-headline-md font-bold mb-2">Service Not Found</h1>
+        <h1 className="text-headline-md font-bold mb-2">{t("serviceNotFound")}</h1>
         <p className="text-body-lg text-on-surface-variant max-w-md mb-8">
-          We couldn't find the requested medical service in our database. It may have been updated or relocated.
+          {t("serviceNotFoundDesc")}
         </p>
         <Link href="/services">
-          <Button variant="primary">Return to Services</Button>
+          <Button variant="primary">{t("returnToServices")}</Button>
         </Link>
       </div>
     );
   }
 
-  const serviceId = dbService?.id || staticService?.id || slug;
-  const name = dbService?.name || staticService?.name || "Medical Service";
-  const tagline = dbService?.short_description || staticService?.tagline || "Comprehensive healthcare consultation.";
-  const longDescription = dbService?.full_description || staticService?.longDescription || dbService?.short_description || "Professional medical evaluation and personalized care plan tailored to your health requirements.";
-  const priceDisplay = dbService ? `$${dbService.price}` : staticService?.price || "$150";
-  const durationDisplay = dbService ? `${dbService.duration_minutes} mins` : staticService?.duration || "30 mins";
+  const name = dbService?.name || staticService?.name || "Unknown Service";
+  const tagline = dbService?.short_description || staticService?.tagline || "";
+  const longDescription = dbService?.full_description || staticService?.longDescription || dbService?.short_description || t("fallbackLongDesc");
+  const priceDisplay = dbService?.price ? `${dbService.price} PKR` : staticService?.price || "1500 PKR";
+  const durationDisplay = dbService?.duration_minutes ? `${dbService.duration_minutes} mins` : staticService?.duration || "30 mins";
   const serviceIcon = dbService?.icon || staticService?.icon || "medical_services";
+  const serviceId = dbService?.id || staticService?.id || slug;
   const image = staticService?.image || "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800";
+
   const includes = staticService?.includes || defaultIncludes;
   const whosItFor = staticService?.whosItFor || defaultWhosItFor;
   const steps = staticService?.steps || defaultSteps;
@@ -140,7 +117,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
             <ol className="inline-flex items-center space-x-1 md:space-x-2">
               <li className="inline-flex items-center">
                 <Link href="/" className="hover:text-primary transition-colors font-semibold">
-                  Home
+                  {t("home")}
                 </Link>
               </li>
               <li>
@@ -149,7 +126,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                     chevron_right
                   </span>
                   <Link href="/services" className="hover:text-primary transition-colors font-semibold">
-                    Services
+                    {t("services")}
                   </Link>
                 </div>
               </li>
@@ -159,7 +136,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                     chevron_right
                   </span>
                   <span className="text-primary font-semibold">
-                    {name}
+                    {getLocalizedServiceTitle(name, locale)}
                   </span>
                 </div>
               </li>
@@ -172,16 +149,16 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
             </span>
             {dbService?.department && (
               <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                {dbService.department.name}
+                {getLocalizedSpecialty(dbService.department.name, locale)}
               </span>
             )}
           </div>
 
           <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface mb-4 font-bold leading-tight">
-            {name}
+            {getLocalizedServiceTitle(name, locale)}
           </h1>
           <p className="text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
-            {tagline}
+            {getLocalizedServiceDescription(tagline, name, locale)}
           </p>
         </div>
       </section>
@@ -212,7 +189,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
               {/* Long description text */}
               <h2 className="text-headline-sm md:text-headline-md text-on-surface mb-4 font-bold">
-                What it includes
+                {t("whatItIncludes")}
               </h2>
               <p className="text-on-surface-variant mb-8 leading-relaxed text-body-lg">
                 {longDescription}
@@ -244,10 +221,10 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               {/* Who it is for */}
               <div>
                 <h2 className="text-headline-sm text-on-surface mb-4 font-bold">
-                  Who it's for
+                  {t("whoItsFor")}
                 </h2>
                 <p className="text-on-surface-variant mb-6 leading-relaxed">
-                  This health offering is ideal for individuals experiencing or seeking:
+                  {t("whoItsForDesc")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {whosItFor.map((tag) => (
@@ -274,7 +251,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               <div className="flex justify-between items-end border-b border-outline-variant/10 pb-4">
                 <div>
                   <span className="block text-on-surface-variant text-label-sm uppercase tracking-wider mb-1 font-semibold text-xs">
-                    Fee / Price
+                    {t("feePrice")}
                   </span>
                   <span className="text-display-lg-mobile md:text-headline-md lg:text-display-lg-mobile text-primary font-bold">
                     {priceDisplay}
@@ -282,7 +259,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                 </div>
                 <div className="text-right">
                   <span className="block text-on-surface-variant text-label-sm uppercase tracking-wider mb-1 font-semibold text-xs">
-                    Duration
+                    {t("duration")}
                   </span>
                   <span className="text-headline-sm text-on-surface font-bold">
                     {durationDisplay}
@@ -292,24 +269,17 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
               {/* Bullet Features checklist */}
               <ul className="space-y-3 text-sm text-on-surface-variant font-medium">
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-base select-none">check_circle</span>
-                  In-person clinic visit
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-base select-none">check_circle</span>
-                  Same-day availability
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-base select-none">check_circle</span>
-                  Digital consultation notes
-                </li>
+                {(t.raw("features") as string[]).map((feature, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-base select-none">check_circle</span>
+                    {feature}
+                  </li>
+                ))}
               </ul>
 
-              {/* Book Button */}
               <Link href={`/book-appointment?service=${serviceId}`} className="w-full">
                 <Button variant="primary" className="w-full justify-center py-3.5 gap-2">
-                  Book This Service
+                  {t("bookThisService")}
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </Button>
               </Link>
@@ -319,7 +289,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                 <span className="material-symbols-outlined text-secondary text-lg select-none" style={{ fontVariationSettings: "'FILL' 1" }}>
                   verified_user
                 </span>
-                <span className="font-semibold text-xs">Verified Clinical Database Service</span>
+                <span className="font-semibold text-xs">{t("verifiedService")}</span>
               </div>
             </motion.div>
           </div>
@@ -338,7 +308,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               transition={{ duration: 0.5 }}
               className="text-headline-md text-on-surface mb-3 font-bold"
             >
-              What to Expect
+              {t("whatToExpect")}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
@@ -347,7 +317,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-body-lg text-on-surface-variant max-w-2xl mx-auto"
             >
-              A streamlined, stress-free journey from booking to follow-up care.
+              {t("whatToExpectDesc")}
             </motion.p>
           </div>
 
@@ -389,7 +359,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
       {/* Related Services Grid */}
       {relatedServices.length > 0 && (
         <section className="py-20 max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-headline-md text-on-surface mb-8 font-bold">Related Services from Database</h2>
+          <h2 className="text-headline-md text-on-surface mb-8 font-bold">{t("relatedServices")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {relatedServices.map((relatedService, index) => {
               const item = relatedService as any;
@@ -410,7 +380,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                   icon={iconVal}
                   price={priceVal}
                   durationMinutes={durationVal}
-                  departmentName={deptVal}
+                  departmentName={deptVal ? getLocalizedSpecialty(deptVal, locale) : undefined}
                   index={index}
                 />
               );

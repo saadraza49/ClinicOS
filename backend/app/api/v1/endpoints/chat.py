@@ -197,8 +197,6 @@ def localize_quick_replies(quick_replies: List[str], locale: str) -> List[str]:
 def chat_endpoint(payload: ChatRequest):
     user_msg = payload.message
     locale = (payload.locale or "en").lower()
-    print(f"DEBUG INCOMING LOCALE: {locale}")
-    print(f"DEBUG INCOMING MESSAGE: {user_msg}")
 
     # Determine language directive
     if locale == "zh" or any("\u4e00" <= c <= "\u9fff" for c in user_msg):

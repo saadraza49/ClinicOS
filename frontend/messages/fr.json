@@ -56,8 +56,9 @@
     "viewAllServices": "Voir Tous Les Services"
   },
   "DoctorsPage": {
-    "title": "Découvrez Notre Équipe Médicale",
-    "subtitle": "Un groupe diversifié de professionnels de santé dédiés à vous fournir des soins attentionnés et personnalisés."
+    "title": "Rencontrez Notre Équipe Clinique",
+    "subtitle": "Un groupe diversifié de professionnels de la santé de classe mondiale dédiés à vous fournir des soins exceptionnels, personnalisés et compatissants.",
+    "medicalSpecialist": "Spécialiste Médical"
   },
   "FeesPage": {
     "title": "Tarification Transparente",
@@ -109,5 +110,177 @@
     "clinicTimingsDesc": "Lun - Sam (9h - 21h)",
     "consultationFeeDesc": "Consulter les tarifs",
     "emergencyDesc": "Ligne d'urgence 24/7"
+  },
+  "ServicesPage": {
+    "title": "Nos Services Spécialisés",
+    "subtitle": "Des soins de santé complets et centrés sur l'humain, adaptés à vos besoins uniques. Nous associons l'excellence clinique à une approche compatissante pour vous accompagner à chaque étape de votre parcours de santé.",
+    "notSureTitle": "Vous ne savez pas de quel service vous avez besoin ?",
+    "notSureDesc": "Nos coordinateurs de soins sont disponibles pour vous aider à naviguer dans nos offres et à trouver le bon spécialiste pour vos symptômes.",
+    "bookConsultation": "Prendre une Consultation",
+    "messageUs": "Nous Contacter"
+  },
+  "ServiceDetailPage": {
+    "home": "Accueil",
+    "services": "Services",
+    "whatItIncludes": "Ce que cela inclut",
+    "whoItsFor": "Pour qui c'est fait",
+    "whoItsForDesc": "Cette offre de santé est idéale pour les personnes éprouvant ou recherchant :",
+    "feePrice": "Frais / Prix",
+    "duration": "Durée",
+    "features": [
+      "Visite en clinique en personne",
+      "Disponibilité le jour même",
+      "Notes de consultation numériques"
+    ],
+    "bookThisService": "Réserver ce Service",
+    "verifiedService": "Service de Base de Données Clinique Vérifié",
+    "whatToExpect": "À Quoi S'attendre",
+    "whatToExpectDesc": "Un parcours simplifié et sans stress, de la réservation aux soins de suivi.",
+    "relatedServices": "Services Connexes de la Base de Données",
+    "loadingDetails": "Chargement des détails du service...",
+    "serviceNotFound": "Service Introuvable",
+    "serviceNotFoundDesc": "Nous n'avons pas pu trouver le service médical demandé dans notre base de données. Il a peut-être été mis à jour ou déplacé.",
+    "returnToServices": "Retour aux Services",
+    "fallbackLongDesc": "Évaluation médicale professionnelle et plan de soins personnalisé adapté à vos besoins en matière de santé.",
+    "defaultIncludes": [
+      { "title": "Évaluation Clinique Complète", "description": "Discussion détaillée de vos antécédents médicaux, symptômes et préoccupations de santé avec un médecin spécialiste." },
+      { "title": "Mesures de Santé Vitales", "description": "Examen des principaux signes vitaux, des mesures physiologiques et des indicateurs de diagnostic." },
+      { "title": "Plan d'Action Personnalisé", "description": "Résumé sur mesure des recommandations médicales, conseils de mode de vie et prescriptions nécessaires." }
+    ],
+    "defaultSteps": [
+      { "title": "Réservation en Ligne Facile", "description": "Sélectionnez votre date préférée, le créneau horaire et le spécialiste clinique en moins de deux minutes." },
+      { "title": "Visite en Personne ou Virtuelle", "description": "Consultez directement notre équipe médicale expérimentée dans un environnement de soutien." },
+      { "title": "Suivi et Soins Continus", "description": "Accédez à vos dossiers de consultation numériques et bénéficiez d'un soutien clinique continu." }
+    ],
+    "defaultWhosItFor": [
+      "Bilan de Santé Général", "Soins Préventifs", "Diagnostic de Symptômes", "Soins Cliniques de Routine"
+    ]
+  },
+  "Chatbot": {
+    "headerTitle": "Assistant IA WeCare",
+    "headerSubtitle": "En ligne • Soins Médicaux 24/7",
+    "poweredBy": "PROPULSÉ PAR WECARE",
+    "floatingTrigger": "ASSISTANT IA",
+    "welcomeTitle": "Comment pouvons-nous vous aider aujourd'hui ?",
+    "welcomeSub": "Sélectionnez une option ci-dessous ou tapez votre message pour obtenir des conseils instantanés.",
+    "bookAppt": "Rendez-vous",
+    "bookApptDesc": "Planifiez une visite avec un spécialiste",
+    "findDoctor": "Trouver un Docteur",
+    "findDoctorDesc": "Parcourez notre équipe médicale",
+    "clinicServices": "Services de la Clinique",
+    "clinicServicesDesc": "Découvrez nos prestations médicales",
+    "clinicTimings": "Horaires",
+    "clinicTimingsDesc": "Consultez les heures d'ouverture",
+    "consultationFee": "Frais de Consultation",
+    "consultationFeeDesc": "Consultez les tarifs et frais",
+    "emergencyContact": "Contact d'Urgence",
+    "emergencyDesc": "Obtenez une assistance immédiate 24/7",
+    "inputPlaceholder": "Tapez votre question ou demande médicale...",
+    "submitApptBtn": "Soumettre le Formulaire de Rendez-vous",
+    "apptSuccessMsg": "🎉 Succès ! Votre formulaire a été soumis et confirmé par WeCare Clinic. Redirection vers la page de confirmation..."
+  },
+  "DoctorProfilePage": {
+    "returnToDirectory": "Retour à l'Annuaire de l'Équipe",
+    "medicalSpecialist": "Spécialiste Médical",
+    "yearsExperience": "{years} Années d'Expérience",
+    "defaultBio": "Professionnel de santé dévoué, axé sur la prestation de soins exceptionnels et fondés sur des preuves aux patients.",
+    "languagesSpoken": "Langues Parlées",
+    "availability": "Disponibilité",
+    "bookWith": "Prendre rendez-vous avec {name}",
+    "patientReviews": "Avis des Patients",
+    "verifiedPatient": "Patient Vérifié",
+    "clinicalCarePatient": "Patient en Soins Cliniques",
+    "reviewQuote1": "Le Dr {lastName} a fourni des soins exceptionnels, en m'expliquant soigneusement mon diagnostic et mon plan de traitement avec une grande empatie.",
+    "reviewQuote2": "Processus de rendez-vous fluide et un professionnalisme médical de premier ordre. Hautement recommandé !"
+  },
+  "CTABanner": {
+    "title": "Prêt à faire de votre santé une priorité ?",
+    "description": "Prenez rendez-vous avec l'un de nos spécialistes dès aujourd'hui.",
+    "buttonText": "Prendre Rendez-vous"
+  },
+  "LocationModal": {
+    "title": "Emplacement et Carte de la Clinique",
+    "subtitle": "Centre Médical LuminaHealth",
+    "addressLabel": "Adresse",
+    "addressText": "Clinique LuminaHealth, Quartier Bien-Être",
+    "coordinates": "Coordonnées : 31.487555, 73.076189",
+    "timingsLabel": "Horaires",
+    "timingsText": "Lundi – Samedi : 9:00 – 21:00",
+    "closedText": "Dimanche : Fermé",
+    "copyAddress": "Copier l'adresse",
+    "addressCopied": "Adresse copiée !",
+    "openDirections": "Ouvrir l'itinéraire dans Google Maps"
+  },
+  "BookAppointmentPage": {
+    "title": "Prendre un Rendez-vous",
+    "subtitle": "Planifiez une consultation avec notre équipe clinique expérimentée en moins d'une minute.",
+    "step1Title": "1. Détails de la Visite",
+    "selectService": "Sélectionner le Service",
+    "selectServiceReq": "Veuillez sélectionner un service",
+    "chooseService": "Choisissez un service",
+    "selectDoctor": "Sélectionner un Médecin (Optionnel)",
+    "anyDoctor": "Tout Médecin Disponible",
+    "step2Title": "2. Date & Heure",
+    "preferredDate": "Date Souhaitée",
+    "selectDateReq": "Veuillez sélectionner une date",
+    "availableSlots": "Créneaux Horaires Disponibles",
+    "selectTimeReq": "Veuillez choisir un créneau horaire disponible",
+    "checkingSchedule": "Vérification de l'emploi du temps...",
+    "fetchingSlots": "Récupération des créneaux disponibles...",
+    "noSlotsAvailable": "Aucun créneau disponible pour ce médecin à cette date. Veuillez choisir une autre date ou un autre médecin.",
+    "bookedTag": "(Réservé)",
+    "step3Title": "3. Vos Coordonnées",
+    "fullName": "Nom Complet",
+    "fullNameReq": "Le nom complet est requis",
+    "emailAddress": "Adresse E-mail",
+    "emailReq": "L'adresse e-mail est requise",
+    "emailInvalid": "Veuillez entrer une adresse e-mail valide",
+    "phoneNumber": "Numéro de Téléphone",
+    "phoneReq": "Le numéro de téléphone est requis",
+    "phoneInvalid": "Veuillez entrer un numéro valide",
+    "additionalNotes": "Notes Supplémentaires (Optionnel)",
+    "notesPlaceholder": "Symptômes, antécédents médicaux ou demandes particulières...",
+    "confirmAppt": "Confirmer le Rendez-vous"
+  },
+  "FAQsPage": {
+    "title": "Foire Aux Questions",
+    "subtitle": "Trouvez des réponses aux questions courantes sur les rendez-vous, les assurances et nos services cliniques.",
+    "searchPlaceholder": "Rechercher des questions ou sujets...",
+    "noResultsTitle": "Aucune question trouvée",
+    "noResultsDesc": "Aucune FAQ ne correspond à votre recherche. Essayez des termes comme 'rendez-vous', 'tarifs' ou 'horaires'.",
+    "stillHaveQuestionsTitle": "Vous avez encore des questions ?",
+    "stillHaveQuestionsDesc": "Notre équipe de support dédiée est là pour vous aider avec toutes vos demandes supplémentaires.",
+    "contactUsBtn": "Nous Contacter"
+  },
+  "BlogPage": {
+    "title": "Conseils Santé & Actualités",
+    "subtitle": "Restez informé grâce aux conseils d'experts médicaux et aux actualités de la clinique.",
+    "featuredBadge": "En Vedette",
+    "readArticle": "Lire l'Article",
+    "readMore": "Lire Plus",
+    "loadMore": "Charger Plus d'Articles",
+    "byAuthor": "Par {author}",
+    "noArticlesTitle": "Aucun article trouvé",
+    "noArticlesDesc": "Nous n'avons pas encore d'articles publiés dans cette catégorie. Revenez bientôt !"
+  },
+  "ContactPage": {
+    "title": "Contactez-nous",
+    "subtitle": "Nous sommes là pour vous aider dans votre parcours de santé. Contactez-nous pour toute question ou prise de rendez-vous.",
+    "sendMessageTitle": "Envoyer un Message",
+    "messageSuccessTitle": "Message Envoyé avec Succès !",
+    "messageSuccessDesc": "Merci de nous avoir contactés. Un coordinateur de soins vous recontactera sous peu.",
+    "sendAnotherMsg": "Envoyer un autre message",
+    "subjectGeneral": "Demande Générale",
+    "subjectAppointments": "Rendez-vous",
+    "subjectBilling": "Facturation",
+    "subjectFeedback": "Commentaires",
+    "yourMessage": "Votre Message",
+    "messagePlaceholder": "Comment pouvons-nous vous aider ?",
+    "sendingBtn": "Envoi en cours...",
+    "sendMsgBtn": "Envoyer le Message",
+    "clinicInfoTitle": "Informations sur la Clinique",
+    "workingHoursTitle": "Heures d'Ouverture",
+    "clickForMap": "Cliquez pour ouvrir la carte interactive & l'itinéraire",
+    "enlargeBtn": "Agrandir"
   }
 }

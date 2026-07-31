@@ -5,8 +5,12 @@ import { motion } from "framer-motion";
 import { getFAQs, FAQData } from "@/lib/api";
 import Accordion from "@/components/accordion";
 import CTABanner from "@/components/cta-banner";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedFAQCategory, getLocalizedFAQQuestion, getLocalizedFAQAnswer } from "@/lib/translations";
 
 export default function FAQsPage() {
+  const t = useTranslations("FAQsPage");
+  const locale = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [faqsList, setFaqsList] = useState<FAQData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,7 @@ export default function FAQsPage() {
           transition={{ duration: 0.6 }}
           className="text-display-lg-mobile md:text-display-lg text-on-background mb-4 font-bold"
         >
-          Frequently Asked Questions
+          {t("title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 15 }}
@@ -62,7 +66,7 @@ export default function FAQsPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          Find answers to common questions about appointments, insurance, and our clinical services to help you make informed healthcare decisions.
+          {t("subtitle")}
         </motion.p>
 
         {/* Search Bar */}
@@ -80,7 +84,7 @@ export default function FAQsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-4 rounded-full border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface-container-lowest shadow-sm outline-none text-body-md text-on-background placeholder:text-outline transition-all"
-            placeholder="Search for questions or topics..."
+            placeholder={t("searchPlaceholder")}
           />
         </motion.div>
       </section>
@@ -106,7 +110,7 @@ export default function FAQsPage() {
                   transition={{ duration: 0.5 }}
                   className="text-headline-md text-primary mb-6 border-b border-outline-variant/20 pb-2 font-bold capitalize"
                 >
-                  {catName}
+                  {getLocalizedFAQCategory(catName, locale)}
                 </motion.h2>
 
                 <div className="flex flex-col gap-4">
@@ -118,7 +122,11 @@ export default function FAQsPage() {
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: index * 0.05 }}
                     >
-                      <Accordion variant="card" title={faq.question} content={faq.answer} />
+                      <Accordion
+                        variant="card"
+                        title={getLocalizedFAQQuestion(faq.question, locale)}
+                        content={getLocalizedFAQAnswer(faq.answer, faq.question, locale)}
+                      />
                     </motion.div>
                   ))}
                 </div>
@@ -134,9 +142,9 @@ export default function FAQsPage() {
             <span className="material-symbols-outlined text-outline-variant text-5xl mb-4 select-none">
               search_off
             </span>
-            <h3 className="text-headline-sm text-on-background font-bold mb-2">No matching questions</h3>
+            <h3 className="text-headline-sm text-on-background font-bold mb-2">{t("noResultsTitle")}</h3>
             <p className="text-body-md text-on-surface-variant max-w-md mx-auto">
-              We couldn't find any FAQs matching your query "{searchQuery}". Try searching for other terms like "appointment", "pricing", or "hours".
+              {t("noResultsDesc")}
             </p>
           </motion.div>
         )}
@@ -152,9 +160,9 @@ export default function FAQsPage() {
         >
           <CTABanner
             variant="secondary"
-            title="Still have questions?"
-            description="Our dedicated support team is here to help you with any additional inquiries."
-            buttonText="Contact Us"
+            title={t("stillHaveQuestionsTitle")}
+            description={t("stillHaveQuestionsDesc")}
+            buttonText={t("contactUsBtn")}
             buttonHref="/contact"
           />
         </motion.div>

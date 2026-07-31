@@ -6,12 +6,14 @@ import { motion } from "framer-motion";
 import { getDoctors, getServices, getAvailableSlots, bookAppointment, DoctorData, ServiceData, TimeSlotData } from "@/lib/api";
 import Button from "@/components/button";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const doctorQuery = searchParams.get("doctor");
   const serviceQuery = searchParams.get("service");
+  const t = useTranslations("BookAppointmentPage");
 
   // Dynamic Options from DB
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
@@ -100,19 +102,19 @@ function BookingForm() {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!service) newErrors.service = "Please select a service";
-    if (!date) newErrors.date = "Please select a date";
-    if (!selectedTime) newErrors.time = "Please select an available time slot";
-    if (!name.trim()) newErrors.name = "Full name is required";
+    if (!service) newErrors.service = t("selectServiceReq");
+    if (!date) newErrors.date = t("selectDateReq");
+    if (!selectedTime) newErrors.time = t("selectTimeReq");
+    if (!name.trim()) newErrors.name = t("fullNameReq");
     if (!email.trim()) {
-      newErrors.email = "Email address is required";
+      newErrors.email = t("emailReq");
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = t("emailInvalid");
     }
     if (!phone.trim()) {
-      newErrors.phone = "Phone number is required";
+      newErrors.phone = t("phoneReq");
     } else if (!/^\+?[0-9\s-()]{7,15}$/.test(phone)) {
-      newErrors.phone = "Please enter a valid phone number";
+      newErrors.phone = t("phoneInvalid");
     }
 
     setErrors(newErrors);
@@ -183,13 +185,13 @@ function BookingForm() {
       {/* Step 1: Selection */}
       <div className="space-y-4">
         <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
-          1. Visit Details
+          {t("step1Title")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Service Dropdown */}
           <div className="flex flex-col gap-1">
             <label className="text-label-sm text-on-surface-variant" htmlFor="service">
-              Select Service <span className="text-error">*</span>
+              {t("selectService")} <span className="text-error">*</span>
             </label>
             <div className="relative">
               <select
@@ -205,11 +207,11 @@ function BookingForm() {
                 }`}
               >
                 <option value="" disabled>
-                  Choose a service
+                  {t("chooseService")}
                 </option>
                 {servicesList.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.price} USD)
+                    {s.name} ({s.price} PKR)
                   </option>
                 ))}
               </select>
@@ -223,7 +225,7 @@ function BookingForm() {
           {/* Doctor Dropdown */}
           <div className="flex flex-col gap-1">
             <label className="text-label-sm text-on-surface-variant" htmlFor="doctor">
-              Select Doctor (Optional)
+              {t("selectDoctor")}
             </label>
             <div className="relative">
               <select
@@ -233,7 +235,7 @@ function BookingForm() {
                 onChange={(e) => setDoctor(e.target.value)}
                 className="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
               >
-                <option value="any">Any Available Doctor</option>
+                <option value="any">{t("anyDoctor")}</option>
                 {displayDoctorsList.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.full_name} ({d.specialty})
@@ -251,11 +253,11 @@ function BookingForm() {
       {/* Step 2: Date & Time */}
       <div className="space-y-4 pt-4">
         <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
-          2. Date &amp; Time
+          {t("step2Title")}
         </h2>
         <div className="flex flex-col gap-1">
           <label className="text-label-sm text-on-surface-variant" htmlFor="date">
-            Preferred Date <span className="text-error">*</span>
+            {t("preferredDate")} <span className="text-error">*</span>
           </label>
           <input
             id="date"
@@ -277,17 +279,17 @@ function BookingForm() {
         {/* Time Slots */}
         <div className="flex flex-col gap-2 pt-2">
           <label className="text-label-sm text-on-surface-variant flex justify-between items-center">
-            <span>Available Time Slots <span className="text-error">*</span></span>
-            {loadingSlots && <span className="text-xs text-primary font-medium animate-pulse">Checking DB schedule...</span>}
+            <span>{t("availableSlots")} <span className="text-error">*</span></span>
+            {loadingSlots && <span className="text-xs text-primary font-medium animate-pulse">{t("checkingSchedule")}</span>}
           </label>
           {loadingSlots ? (
             <div className="p-4 bg-surface-container rounded-xl text-center text-sm font-medium text-primary animate-pulse">
-              Fetching available time slots from doctor schedule...
+              {t("fetchingSlots")}
             </div>
           ) : availableSlots.length === 0 ? (
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-sm font-medium flex items-center gap-2">
               <span className="material-symbols-outlined text-amber-600 text-lg select-none">event_busy</span>
-              <span>No working shifts available for this doctor on the selected date. Please pick another date or doctor.</span>
+              <span>{t("noSlotsAvailable")}</span>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -307,7 +309,7 @@ function BookingForm() {
                   />
                   {slot.disabled ? (
                     <span className="flex items-center justify-center w-full py-2.5 px-2 text-xs border border-outline-variant/30 bg-surface-container-low text-outline-variant/50 rounded-full text-center cursor-not-allowed select-none">
-                      {slot.label} (Booked)
+                      {slot.label} {t("bookedTag")}
                     </span>
                   ) : (
                     <label
@@ -332,12 +334,12 @@ function BookingForm() {
       {/* Step 3: Patient Details */}
       <div className="space-y-4 pt-4">
         <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
-          3. Your Details
+          {t("step3Title")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1 md:col-span-2">
             <label className="text-label-sm text-on-surface-variant" htmlFor="name">
-              Full Name <span className="text-error">*</span>
+              {t("fullName")} <span className="text-error">*</span>
             </label>
             <input
               id="name"
@@ -358,7 +360,7 @@ function BookingForm() {
 
           <div className="flex flex-col gap-1">
             <label className="text-label-sm text-on-surface-variant" htmlFor="email">
-              Email Address <span className="text-error">*</span>
+              {t("emailAddress")} <span className="text-error">*</span>
             </label>
             <input
               id="email"
@@ -379,7 +381,7 @@ function BookingForm() {
 
           <div className="flex flex-col gap-1">
             <label className="text-label-sm text-on-surface-variant" htmlFor="phone">
-              Phone Number <span className="text-error">*</span>
+              {t("phoneNumber")} <span className="text-error">*</span>
             </label>
             <input
               id="phone"
@@ -400,12 +402,12 @@ function BookingForm() {
 
           <div className="flex flex-col gap-1 md:col-span-2">
             <label className="text-label-sm text-on-surface-variant" htmlFor="notes">
-              Additional Notes (Optional)
+              {t("additionalNotes")}
             </label>
             <textarea
               id="notes"
               name="notes"
-              placeholder="Any symptoms, medical history, or specific requests..."
+              placeholder={t("notesPlaceholder")}
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -418,7 +420,7 @@ function BookingForm() {
       {/* Submit Button */}
       <div className="pt-4">
         <Button variant="primary" type="submit" isLoading={isLoading} className="w-full py-4 text-base font-bold shadow-md">
-          Confirm Appointment
+          {t("confirmAppt")}
         </Button>
       </div>
     </form>
@@ -426,6 +428,7 @@ function BookingForm() {
 }
 
 export default function BookAppointmentPage() {
+  const t = useTranslations("BookAppointmentPage");
   return (
     <div className="overflow-x-hidden py-12 md:py-16 px-4 md:px-6">
       <div className="max-w-4xl mx-auto">
@@ -434,10 +437,10 @@ export default function BookAppointmentPage() {
             calendar_clock
           </span>
           <h1 className="text-display-lg-mobile md:text-display-lg font-bold text-on-surface mb-3">
-            Book an Appointment
+            {t("title")}
           </h1>
           <p className="text-body-lg text-on-surface-variant max-w-xl mx-auto">
-            Schedule a consultation with our experienced clinical team in under a minute.
+            {t("subtitle")}
           </p>
         </div>
 

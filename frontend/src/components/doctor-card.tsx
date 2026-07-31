@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { getLocalizedSpecialty } from "@/lib/translations";
+import { getLocalizedSpecialty, getLocalizedQualification } from "@/lib/translations";
 
 interface DoctorCardProps {
   name: string;
@@ -47,7 +47,7 @@ export default function DoctorCard({
         {name}
       </h3>
       <p className="text-body-md text-on-surface-variant text-center mb-6 text-sm">
-        {credentials}
+        {getLocalizedQualification(credentials, locale)}
       </p>
 
       {/* View Profile Button Link */}

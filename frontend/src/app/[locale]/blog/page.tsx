@@ -8,19 +8,23 @@ import { blogPosts } from "@/data/blog";
 import BlogCard from "@/components/blog-card";
 import FilterPills from "@/components/filter-pills";
 import Button from "@/components/button";
-
-const categories = [
-  { id: "all", name: "All Topics" },
-  { id: "General Health", name: "General Health" },
-  { id: "Nutrition", name: "Nutrition" },
-  { id: "Mental Health", name: "Mental Health" },
-  { id: "Vaccinations", name: "Vaccinations" },
-  { id: "Clinic News", name: "Clinic News" },
-];
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedBlogCategory, getLocalizedBlogTitle, getLocalizedBlogExcerpt } from "@/lib/translations";
 
 export default function BlogListingPage() {
+  const t = useTranslations("BlogPage");
+  const locale = useLocale();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [visibleCount, setVisibleCount] = useState(3);
+
+  const categories = [
+    { id: "all", name: t("categories.all", { fallback: getLocalizedBlogCategory("All Topics", locale) }) },
+    { id: "General Health", name: getLocalizedBlogCategory("General Health", locale) },
+    { id: "Nutrition", name: getLocalizedBlogCategory("Nutrition", locale) },
+    { id: "Mental Health", name: getLocalizedBlogCategory("Mental Health", locale) },
+    { id: "Vaccinations", name: getLocalizedBlogCategory("Vaccinations", locale) },
+    { id: "Clinic News", name: getLocalizedBlogCategory("Clinic News", locale) },
+  ];
 
   // Filter posts based on selected category
   const filteredPosts =
@@ -62,7 +66,7 @@ export default function BlogListingPage() {
           transition={{ duration: 0.6 }}
           className="text-display-lg-mobile md:text-display-lg text-on-background mb-4 font-bold"
         >
-          Health Tips &amp; News
+          {t("title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 15 }}
@@ -70,7 +74,7 @@ export default function BlogListingPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
         >
-          Stay informed with expert medical advice, clinic updates, and wellness strategies for you and your family.
+          {t("subtitle")}
         </motion.p>
       </section>
 
@@ -102,7 +106,7 @@ export default function BlogListingPage() {
             <div className="md:w-1/2 relative h-64 md:h-auto overflow-hidden">
               <Image
                 className="object-cover transition-transform duration-700 group-hover:scale-103"
-                alt={featuredPost.title}
+                alt={getLocalizedBlogTitle(featuredPost.title, locale)}
                 src={featuredPost.featuredImage}
                 fill
                 priority
@@ -112,20 +116,20 @@ export default function BlogListingPage() {
                 <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   star
                 </span>{" "}
-                Featured
+                {t("featuredBadge")}
               </div>
             </div>
 
             {/* Featured Info */}
             <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
               <span className="text-secondary font-bold text-xs tracking-wider uppercase mb-3 block">
-                {featuredPost.category}
+                {getLocalizedBlogCategory(featuredPost.category, locale)}
               </span>
               <h2 className="text-headline-md text-on-background mb-4 font-bold group-hover:text-primary transition-colors leading-tight">
-                {featuredPost.title}
+                {getLocalizedBlogTitle(featuredPost.title, locale)}
               </h2>
               <p className="text-body-md text-on-surface-variant mb-6 leading-relaxed">
-                {featuredPost.excerpt}
+                {getLocalizedBlogExcerpt(featuredPost.excerpt, featuredPost.title, locale)}
               </p>
 
               {/* Author & Read Link */}
@@ -151,7 +155,7 @@ export default function BlogListingPage() {
                   className="text-primary font-bold text-sm hover:underline flex items-center gap-1"
                   href={`/blog/${featuredPost.slug}`}
                 >
-                  Read Article{" "}
+                  {t("readArticle")}{" "}
                   <span className="material-symbols-outlined text-[18px]">
                     arrow_forward
                   </span>
@@ -194,10 +198,10 @@ export default function BlogListingPage() {
                   article
                 </span>
                 <h3 className="text-headline-sm text-on-background font-bold mb-2">
-                  No articles found
+                  {t("noArticlesTitle")}
                 </h3>
                 <p className="text-body-md text-on-surface-variant max-w-md mx-auto">
-                  We don't have any articles published under the "{selectedCategory}" category yet. Check back soon for updates!
+                  {t("noArticlesDesc")}
                 </p>
               </motion.div>
             )
@@ -216,7 +220,7 @@ export default function BlogListingPage() {
             <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">
               refresh
             </span>
-            <span>Load More Articles</span>
+            <span>{t("loadMore")}</span>
           </Button>
         </section>
       )}

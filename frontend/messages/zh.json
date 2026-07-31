@@ -56,8 +56,9 @@
     "viewAllServices": "查看全部医疗服务"
   },
   "DoctorsPage": {
-    "title": "认识我们的专家团队",
-    "subtitle": "汇聚各领域资深医疗专家，倾心为您提供专业、温馨且个性化的诊疗服务。"
+    "title": "认识我们的临床团队",
+    "subtitle": "我们由世界一流医疗专业人士组成的多元化团队，致力于为您提供富有同情心、个性化和卓越的护理服务。",
+    "medicalSpecialist": "医学专家"
   },
   "FeesPage": {
     "title": "透明公开的收费标准",
@@ -109,5 +110,177 @@
     "clinicTimingsDesc": "周一至周六 (9am - 9pm)",
     "consultationFeeDesc": "查看价格详情",
     "emergencyDesc": "24/7 紧急热线"
+  },
+  "ServicesPage": {
+    "title": "我们的专科服务",
+    "subtitle": "全面、以人为本的医疗服务，满足您的独特需求。我们将卓越的临床技术与充满关怀的方法相结合，在您健康旅程的每个阶段为您提供支持。",
+    "notSureTitle": "不确定需要哪项服务？",
+    "notSureDesc": "我们的护理协调员随时为您提供帮助，引导您了解我们的服务，并为您找到合适的专科医生。",
+    "bookConsultation": "预约咨询",
+    "messageUs": "联系我们"
+  },
+  "ServiceDetailPage": {
+    "home": "首页",
+    "services": "医疗服务",
+    "whatItIncludes": "服务内容包括",
+    "whoItsFor": "适用人群",
+    "whoItsForDesc": "这项健康服务非常适合遇到以下情况或寻求以下服务的人士：",
+    "feePrice": "费用 / 价格",
+    "duration": "时长",
+    "features": [
+      "面对面诊所就诊",
+      "可当天预约",
+      "电子咨询记录"
+    ],
+    "bookThisService": "预约此服务",
+    "verifiedService": "已验证的临床数据库服务",
+    "whatToExpect": "期望流程",
+    "whatToExpectDesc": "从预约到随访护理的精简、无压力的旅程。",
+    "relatedServices": "来自数据库的相关服务",
+    "loadingDetails": "正在加载数据库服务详情...",
+    "serviceNotFound": "未找到服务",
+    "serviceNotFoundDesc": "我们在数据库中找不到请求的医疗服务。它可能已被更新或移除。",
+    "returnToServices": "返回服务列表",
+    "fallbackLongDesc": "针对您的健康需求量身定制的专业医疗评估和个性化护理计划。",
+    "defaultIncludes": [
+      { "title": "全面临床评估", "description": "与专科医生详细讨论您的病史、症状和健康问题。" },
+      { "title": "核心健康指标", "description": "审查关键生命体征、生理指标和诊断指标。" },
+      { "title": "个性化行动计划", "description": "量身定制的医疗建议总结、生活方式指导和必要处方。" }
+    ],
+    "defaultSteps": [
+      { "title": "便捷在线预约", "description": "只需不到两分钟，即可选择您偏好的日期、时间段和临床专家。" },
+      { "title": "面对面或虚拟就诊", "description": "在支持性环境中直接咨询我们经验丰富的医疗团队。" },
+      { "title": "随访与持续护理", "description": "访问您的数字咨询记录并获得持续的临床支持。" }
+    ],
+    "defaultWhosItFor": [
+      "常规健康检查", "预防性护理", "症状诊断", "日常临床护理"
+    ]
+  },
+  "Chatbot": {
+    "headerTitle": "WeCare AI 智能助手",
+    "headerSubtitle": "在线 • 24/7 全天候医疗服务",
+    "poweredBy": "WECARE AI 驱动",
+    "floatingTrigger": "AI 智能助手",
+    "welcomeTitle": "今天有什么可以帮您？",
+    "welcomeSub": "请选择下方快捷选项或直接输入您的消息以获取即时解答。",
+    "bookAppt": "预约挂号",
+    "bookApptDesc": "快捷预约专科医生门诊",
+    "findDoctor": "寻找医生",
+    "findDoctorDesc": "浏览诊所医疗专家团队",
+    "clinicServices": "诊所医疗服务",
+    "clinicServicesDesc": "了解诊所全方位诊疗项目",
+    "clinicTimings": "营业时间",
+    "clinicTimingsDesc": "查看诊所开诊与停诊时间",
+    "consultationFee": "诊疗收费",
+    "consultationFeeDesc": "查看医生门诊与检查费用",
+    "emergencyContact": "紧急联系电话",
+    "emergencyDesc": "获取 24 小时紧急医疗救助",
+    "inputPlaceholder": "请输入您的健康咨询或疑问...",
+    "submitApptBtn": "提交预约表格",
+    "apptSuccessMsg": "🎉 成功！您的预约表格已提交并得到WeCare诊所确认。正在跳转到确认页面..."
+  },
+  "DoctorProfilePage": {
+    "returnToDirectory": "返回团队目录",
+    "medicalSpecialist": "医学专家",
+    "yearsExperience": "{years}年经验",
+    "defaultBio": "致力于为患者提供卓越的、基于证据的护理的专业医疗人员。",
+    "languagesSpoken": "精通语言",
+    "availability": "出诊时间",
+    "bookWith": "预约 {name}",
+    "patientReviews": "患者评价",
+    "verifiedPatient": "认证患者",
+    "clinicalCarePatient": "临床护理患者",
+    "reviewQuote1": "{lastName} 医生提供了卓越的诊疗服务，以极高的同理心耐心解释了我的诊断与治疗计划。",
+    "reviewQuote2": "预约流程非常顺畅，医疗专业水平极高。强烈推荐！"
+  },
+  "CTABanner": {
+    "title": "准备好把健康放在首位了吗？",
+    "description": "立即预约我们的专家进行咨询。",
+    "buttonText": "预约挂号"
+  },
+  "LocationModal": {
+    "title": "诊所位置与地图",
+    "subtitle": "LuminaHealth 医疗中心",
+    "addressLabel": "地址",
+    "addressText": "LuminaHealth 诊所，健康园区",
+    "coordinates": "坐标：31.487555, 73.076189",
+    "timingsLabel": "营业时间",
+    "timingsText": "周一至周六：上午 9:00 – 晚上 9:00",
+    "closedText": "周日：休息",
+    "copyAddress": "复制位置信息",
+    "addressCopied": "已复制地址！",
+    "openDirections": "在 Google 地图中打开导航"
+  },
+  "BookAppointmentPage": {
+    "title": "预约挂号",
+    "subtitle": "只需不到一分钟即可与我们经验丰富的医疗团队预约门诊。",
+    "step1Title": "1. 门诊详情",
+    "selectService": "选择诊疗服务",
+    "selectServiceReq": "请选择一项服务",
+    "chooseService": "请选择服务项目",
+    "selectDoctor": "选择医生（可选）",
+    "anyDoctor": "任意值班医生",
+    "step2Title": "2. 日期与时间",
+    "preferredDate": "希望就诊日期",
+    "selectDateReq": "请选择就诊日期",
+    "availableSlots": "可选就诊时间段",
+    "selectTimeReq": "请选择有号的时间段",
+    "checkingSchedule": "正在查询医生排班信息...",
+    "fetchingSlots": "正在加载医生排班可预约号源...",
+    "noSlotsAvailable": "该医生在所选日期暂无排班号源，请选择其他日期或医生。",
+    "bookedTag": "(已约满)",
+    "step3Title": "3. 患者个人信息",
+    "fullName": "患者姓名",
+    "fullNameReq": "请输入患者姓名",
+    "emailAddress": "电子邮箱",
+    "emailReq": "请输入电子邮箱",
+    "emailInvalid": "请输入有效的电子邮箱",
+    "phoneNumber": "联系电话",
+    "phoneReq": "请输入联系电话",
+    "phoneInvalid": "请输入有效的电话号码",
+    "additionalNotes": "备注说明（可选）",
+    "notesPlaceholder": "请填写您的症状描述、过往病史或特殊要求...",
+    "confirmAppt": "确认提交预约"
+  },
+  "FAQsPage": {
+    "title": "常见问题解答",
+    "subtitle": "查找有关门诊预约、医保报销及诊所服务的常见解答，助您做出明智的健康决策。",
+    "searchPlaceholder": "搜索常见问题或主题...",
+    "noResultsTitle": "未找到匹配的问题",
+    "noResultsDesc": "没有找到与您的搜索词匹配的常见问题。建议尝试搜索“预约”、“收费”或“时间”。",
+    "stillHaveQuestionsTitle": "仍有其他疑问？",
+    "stillHaveQuestionsDesc": "我们的专业客服团队将竭诚为您解答所有疑问。",
+    "contactUsBtn": "联系我们"
+  },
+  "BlogPage": {
+    "title": "健康资讯与新闻",
+    "subtitle": "了解最新权威医学建议、诊所动态及为您全家量身定制的健康养生指南。",
+    "featuredBadge": "重磅推荐",
+    "readArticle": "阅读全文",
+    "readMore": "查看更多",
+    "loadMore": "加载更多文章",
+    "byAuthor": "作者：{author}",
+    "noArticlesTitle": "暂无相关文章",
+    "noArticlesDesc": "该分类下暂无已发布的文章，敬请期待更新！"
+  },
+  "ContactPage": {
+    "title": "联系我们",
+    "subtitle": "我们时刻倾听您的健康需求。如有任何问题、疑问或就诊预约需求，欢迎随时与我们联系。",
+    "sendMessageTitle": "发送在线留言",
+    "messageSuccessTitle": "留言已成功发送！",
+    "messageSuccessDesc": "感谢您的来信！诊所客服专员将尽快审核您的留言并与您取得联系。",
+    "sendAnotherMsg": "发送另一条留言",
+    "subjectGeneral": "综合咨询",
+    "subjectAppointments": "门诊预约",
+    "subjectBilling": "费用账单",
+    "subjectFeedback": "意见与反馈",
+    "yourMessage": "留言内容",
+    "messagePlaceholder": "请描述您需要帮助的具体事项...",
+    "sendingBtn": "发送中...",
+    "sendMsgBtn": "确认发送留言",
+    "clinicInfoTitle": "诊所基本信息",
+    "workingHoursTitle": "工作时间安排",
+    "clickForMap": "点击打开地图导航与路线",
+    "enlargeBtn": "放大查看"
   }
 }

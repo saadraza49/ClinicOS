@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 interface CTABannerProps {
   title?: string;
@@ -9,12 +10,18 @@ interface CTABannerProps {
 }
 
 export default function CTABanner({
-  title = "Ready to prioritize your health?",
-  description = "Schedule a consultation with one of our specialists today.",
-  buttonText = "Book an Appointment",
+  title,
+  description,
+  buttonText,
   buttonHref = "/book-appointment",
   variant = "primary",
 }: CTABannerProps) {
+  const t = useTranslations("CTABanner");
+
+  const displayTitle = title || t("title");
+  const displayDescription = description || t("description");
+  const displayButtonText = buttonText || t("buttonText");
+
   const containerClasses =
     variant === "secondary"
       ? "bg-secondary-container rounded-2xl p-8 md:p-12 shadow-lg flex flex-col md:flex-row items-center justify-between text-center md:text-left border border-outline-variant/10 relative overflow-hidden"
@@ -37,14 +44,14 @@ export default function CTABanner({
       )}
       <div className="mb-6 md:mb-0 md:mr-8 relative z-10">
         <h2 className={`text-headline-md mb-2 font-bold ${textClasses}`}>
-          {title}
+          {displayTitle}
         </h2>
         <p className={`text-body-md ${variant === "secondary" ? "text-on-secondary-container/80" : "text-on-primary-container/80"}`}>
-          {description}
+          {displayDescription}
         </p>
       </div>
       <Link href={buttonHref} className={`${buttonClasses} relative z-10`}>
-        {buttonText}
+        {displayButtonText}
       </Link>
     </div>
   );

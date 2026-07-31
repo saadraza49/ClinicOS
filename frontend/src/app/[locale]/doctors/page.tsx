@@ -89,7 +89,7 @@ export default function DoctorsPage() {
                 <DoctorCard
                   name={doctor.full_name}
                   specialty={doctor.specialty}
-                  credentials={doctor.qualifications || "Medical Specialist"}
+                  credentials={doctor.qualifications || t("medicalSpecialist", { fallback: "Medical Specialist" })}
                   image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
                   slug={doctor.slug}
                 />

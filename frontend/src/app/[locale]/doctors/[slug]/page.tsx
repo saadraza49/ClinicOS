@@ -7,6 +7,14 @@ import TestimonialCard from "@/components/testimonial-card";
 import Button from "@/components/button";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useTranslations, useLocale } from "next-intl";
+import {
+  getLocalizedSpecialty,
+  getLocalizedQualification,
+  getLocalizedDoctorBio,
+  getLocalizedLanguage,
+  getLocalizedDay
+} from "@/lib/translations";
 
 interface DoctorProfilePageProps {
   params: Promise<{ slug: string }>;
@@ -15,6 +23,8 @@ interface DoctorProfilePageProps {
 export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
+  const t = useTranslations("DoctorProfilePage");
+  const locale = useLocale();
 
   const [doctor, setDoctor] = useState<DoctorData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +71,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
           We couldn't find a profile for the requested doctor. They may have relocated or changed specialties.
         </p>
         <Link href="/doctors">
-          <Button variant="primary">Return to Team Directory</Button>
+          <Button variant="primary">{t("returnToDirectory")}</Button>
         </Link>
       </div>
     );
@@ -147,19 +157,19 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                 <span className="material-symbols-outlined text-[16px] mr-1">
                   stethoscope
                 </span>
-                {doctor.specialty}
+                {getLocalizedSpecialty(doctor.specialty, locale)}
               </span>
               <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
                 <span className="material-symbols-outlined text-[18px] text-primary">
                   workspace_premium
                 </span>
-                {doctor.qualifications || "Medical Specialist"}
+                {getLocalizedQualification(doctor.qualifications, locale) || t("medicalSpecialist")}
               </span>
               <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
                 <span className="material-symbols-outlined text-[18px] text-primary">
                   history
                 </span>
-                {doctor.experience_years} Years Experience
+                {t("yearsExperience", { years: doctor.experience_years })}
               </span>
             </div>
 
@@ -170,7 +180,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
 
             {/* Bio */}
             <p className="text-body-lg text-on-surface-variant mb-8 leading-relaxed">
-              {doctor.bio || "Dedicated healthcare professional focused on delivering exceptional, evidence-based care to patients."}
+              {getLocalizedDoctorBio(doctor.full_name, doctor.bio || "", locale) || t("defaultBio")}
             </p>
 
             {/* Langs and Availability tags */}
@@ -180,7 +190,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   <span className="material-symbols-outlined text-secondary text-lg">
                     language
                   </span>
-                  Languages Spoken
+                  {t("languagesSpoken")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {languagesList.map((lang) => (
@@ -188,7 +198,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                       key={lang}
                       className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-medium"
                     >
-                      {lang}
+                      {getLocalizedLanguage(lang, locale)}
                     </span>
                   ))}
                 </div>
@@ -199,7 +209,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   <span className="material-symbols-outlined text-primary text-lg">
                     calendar_month
                   </span>
-                  Availability
+                  {t("availability")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {availableDays.map((day) => (
@@ -207,7 +217,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                       key={day}
                       className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-semibold"
                     >
-                      {day}
+                      {getLocalizedDay(day, locale)}
                     </span>
                   ))}
                 </div>
@@ -218,11 +228,11 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
             </div>
 
             {/* Book CTA button */}
-            <div className="pt-4 border-t border-outline-variant/10">
-              <Link href={`/book-appointment?doctor=${doctor.id}`} className="inline-block w-full sm:w-auto">
-                <Button variant="primary" className="w-full sm:w-auto">
-                  Book with {doctor.full_name}
-                  <span className="material-symbols-outlined">arrow_forward</span>
+            <div className="mt-8">
+              <Link href={`/book-appointment?doctor=${encodeURIComponent(doctor.full_name)}&service=${encodeURIComponent(doctor.specialty)}`} className="inline-block w-full sm:w-auto">
+                <Button variant="primary" className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                  {t("bookWith", { name: doctor.full_name })}
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Button>
               </Link>
             </div>
@@ -231,28 +241,11 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
       </section>
 
       {/* Patient Reviews Section */}
-      <section className="bg-surface-container-low py-16 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
-            <div>
-              <h2 className="text-headline-md text-on-surface mb-2 font-bold">Patient Reviews</h2>
-              <div className="flex items-center gap-2">
-                <div className="flex text-secondary">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <span
-                      key={index}
-                      className="material-symbols-outlined text-lg"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      star
-                    </span>
-                  ))}
-                </div>
-                <span className="text-label-md text-on-surface-variant font-bold">
-                  {doctor.rating} ({doctor.review_count} reviews)
-                </span>
-              </div>
-            </div>
+      <section className="bg-surface-container-lowest py-20 border-t border-outline-variant/10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex items-center gap-3 mb-10">
+            <span className="material-symbols-outlined text-primary text-3xl">reviews</span>
+            <h2 className="text-headline-md font-bold text-on-surface">{t("patientReviews")}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -263,22 +256,22 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
               transition={{ duration: 0.4 }}
             >
               <TestimonialCard
-                quote={`Dr. ${doctor.full_name.split(" ").slice(-1)[0]} provided exceptional care, thoroughly explaining my diagnosis and treatment plan with great empathy.`}
-                author="Verified Patient"
-                role="Clinical Care Patient"
+                quote={t("reviewQuote1", { lastName: doctor.full_name.split(" ").slice(-1)[0] })}
+                author={t("verifiedPatient")}
+                role={t("clinicalCarePatient")}
                 rating={5}
               />
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
               <TestimonialCard
-                quote="Seamless appointment process and top-notch medical professionalism. Highly recommended!"
+                quote={t("reviewQuote2")}
                 author="Sarah M."
-                role="Verified Patient"
+                role={t("verifiedPatient")}
                 rating={5}
               />
             </motion.div>

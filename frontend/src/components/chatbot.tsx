@@ -13,6 +13,7 @@ interface Message {
   timestamp: string;
   isReviewAction?: boolean;
   appointmentDetails?: Record<string, string>;
+  isBookingSuccessMsg?: boolean;
 }
 
 const DEFAULT_QUICK_REPLIES = [
@@ -190,7 +191,7 @@ const DOCTORS_DATABASE = [
   }
 ];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = "http://127.0.0.1:8002/api/v1";
 
 // 6-Hour session expiration constants
 const SIX_HOURS_SEC = 6 * 60 * 60;
@@ -317,7 +318,7 @@ export default function Chatbot() {
     const lastBotText = lastBotMsg ? lastBotMsg.text.toLowerCase() : "";
     const lastUserText = lastUserMsg ? lastUserMsg.text.toLowerCase() : "";
 
-    const isBookingCompleted = lastMsg && lastMsg.sender === "bot" && lastMsg.text.includes("Success! Your appointment form has been submitted");
+    const isBookingCompleted = lastMsg && lastMsg.sender === "bot" && (lastMsg.isBookingSuccessMsg || lastMsg.text.includes("Success! Your appointment form has been submitted"));
 
     if (isBookingCompleted) {
       setIsBookingFlowActive(false);
@@ -1038,14 +1039,15 @@ export default function Chatbot() {
                                       {
                                         id: Math.random().toString(),
                                         sender: "user",
-                                        text: "✅ Submit Appointment Form",
+                                        text: `✅ ${t("submitApptBtn")}`,
                                         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                                       },
                                       {
                                         id: Math.random().toString(),
                                         sender: "bot",
-                                        text: "🎉 Success! Your appointment form has been submitted and confirmed by WeCare Clinic. Redirecting you to the confirmation page...",
-                                        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                        text: t("apptSuccessMsg"),
+                                        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                                        isBookingSuccessMsg: true
                                       }
                                     ]);
                                     setQuickReplies(["Back to Menu", "Clinic Services"]);

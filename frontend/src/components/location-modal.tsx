@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocationModal } from "@/context/LocationContext";
+import { useTranslations } from "next-intl";
 
 const MAP_EMBED_URL = "https://maps.google.com/maps?q=31.487555,73.076189&hl=en&z=16&output=embed";
 const MAP_DIRECT_URL = "https://maps.app.goo.gl/MRgu6Fdbd9PhaGmu7";
@@ -11,6 +12,7 @@ const CLINIC_ADDRESS = "LuminaHealth Medical Center (31.487555, 73.076189)";
 export default function LocationModal() {
   const { isLocationModalOpen, closeLocationModal } = useLocationModal();
   const [copied, setCopied] = useState(false);
+  const t = useTranslations("LocationModal");
 
   // Lock body scroll when modal is active
   useEffect(() => {
@@ -72,8 +74,8 @@ export default function LocationModal() {
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-title-lg font-bold text-on-surface">Clinic Location & Map</h3>
-                  <p className="text-body-xs text-on-surface-variant">LuminaHealth Medical Center</p>
+                  <h3 className="text-title-lg font-bold text-on-surface">{t("title")}</h3>
+                  <p className="text-body-xs text-on-surface-variant">{t("subtitle")}</p>
                 </div>
               </div>
 
@@ -112,12 +114,12 @@ export default function LocationModal() {
                       place
                     </span>
                     <div>
-                      <h4 className="text-label-md font-semibold text-on-surface-variant">Address</h4>
+                      <h4 className="text-label-md font-semibold text-on-surface-variant">{t("addressLabel")}</h4>
                       <p className="text-body-md font-medium text-on-surface">
-                        LuminaHealth Clinic, Wellness District
+                        {t("addressText")}
                       </p>
                       <p className="text-body-xs text-on-surface-variant font-mono mt-0.5">
-                        Coordinates: 31.487555, 73.076189
+                        {t("coordinates")}
                       </p>
                     </div>
                   </div>
@@ -127,11 +129,11 @@ export default function LocationModal() {
                       schedule
                     </span>
                     <div>
-                      <h4 className="text-label-md font-semibold text-on-surface-variant">Timings</h4>
+                      <h4 className="text-label-md font-semibold text-on-surface-variant">{t("timingsLabel")}</h4>
                       <p className="text-body-sm text-on-surface">
-                        Monday – Saturday: 9:00 AM – 9:00 PM
+                        {t("timingsText")}
                       </p>
-                      <p className="text-body-xs text-error font-medium">Sunday: Closed</p>
+                      <p className="text-body-xs text-error font-medium">{t("closedText")}</p>
                     </div>
                   </div>
                 </div>
@@ -145,7 +147,7 @@ export default function LocationModal() {
                     <span className="material-symbols-outlined text-lg text-primary">
                       {copied ? "check" : "content_copy"}
                     </span>
-                    <span>{copied ? "Address Copied!" : "Copy Location Info"}</span>
+                    <span>{copied ? t("addressCopied") : t("copyAddress")}</span>
                   </button>
 
                   <a
@@ -154,7 +156,7 @@ export default function LocationModal() {
                     rel="noopener noreferrer"
                     className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-md group"
                   >
-                    <span>Open Directions in Google Maps</span>
+                    <span>{t("openDirections")}</span>
                     <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">
                       open_in_new
                     </span>
