@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { motion } from "framer-motion";
 import { ArrowRight, Pill, Stethoscope, Smartphone, User, TestTube, Calendar, Award, Receipt, ShieldCheck } from "lucide-react";
 import ServiceCard from "@/components/service-card";
@@ -36,8 +37,37 @@ const features = [
 ];
 
 export default function Home() {
+  const t = useTranslations("Hero");
+  const tHome = useTranslations("Home");
   const [servicesList, setServicesList] = useState<ServiceData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const features = [
+    {
+      titleKey: "sameDayTitle",
+      descKey: "sameDayDesc",
+      Icon: Calendar,
+      bg: "bg-[#eecbd8]",
+    },
+    {
+      titleKey: "expDocTitle",
+      descKey: "expDocDesc",
+      Icon: Award,
+      bg: "bg-[#f4df82]",
+    },
+    {
+      titleKey: "pricingTitle",
+      descKey: "pricingDesc",
+      Icon: Receipt,
+      bg: "bg-[#bce4cd]",
+    },
+    {
+      titleKey: "modernTitle",
+      descKey: "modernDesc",
+      Icon: ShieldCheck,
+      bg: "bg-[#a9c7fb]",
+    },
+  ];
 
   useEffect(() => {
     async function loadHomeServices() {
@@ -79,17 +109,17 @@ export default function Home() {
         <div className="relative z-20 w-full max-w-[1400px] mx-auto px-4 md:px-8 py-16 md:py-24 flex items-center min-h-[580px] md:min-h-[640px] lg:min-h-[700px]">
           <div className="max-w-2xl text-left flex flex-col items-start">
             <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-5 drop-shadow-md">
-              World-Class <br className="hidden sm:inline" />Medical Care
+              {t("title")}
             </h1>
 
             <p className="text-white/90 text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 max-w-xl drop-shadow-sm">
-              Expert doctors, personalized care, and same-day appointments when you need them most.
+              {t("subtitle")}
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
               <Link href="/book-appointment" className="w-full sm:w-auto">
                 <button className="w-full sm:w-auto bg-[#f3d2de] text-[#2c336b] px-7 py-4 rounded-full font-bold text-[15px] sm:text-base flex items-center justify-center gap-4 hover:scale-[1.03] active:scale-95 transition-all duration-200 shadow-xl cursor-pointer group">
-                  <span>Book Appointment</span>
+                  <span>{t("bookCta")}</span>
                   <div className="bg-white rounded-full p-1.5 border border-black/5 group-hover:translate-x-0.5 transition-transform">
                     <ArrowRight className="w-4 h-4 text-[#2c336b]" strokeWidth={3} />
                   </div>
@@ -98,7 +128,7 @@ export default function Home() {
 
               <Link href="/services" className="w-full sm:w-auto">
                 <button className="w-full sm:w-auto bg-white/10 hover:bg-white/20 border border-white/30 hover:border-white/60 text-white backdrop-blur-md px-7 py-4 rounded-full font-bold text-[15px] sm:text-base flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer">
-                  <span>Explore Our Services</span>
+                  <span>{t("servicesCta")}</span>
                 </button>
               </Link>
             </div>
@@ -111,8 +141,8 @@ export default function Home() {
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           <Link href="/services" className="bg-[#eecbd8] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
-               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">24/7<br/>Medicines</h3>
-               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Essentials at your doorstep</p>
+               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">{tHome("card1Title")}</h3>
+               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">{tHome("card1Desc")}</p>
              </div>
              <div className="absolute bottom-4 right-4 opacity-[0.15] group-hover:scale-110 group-hover:opacity-[0.25] transition-all duration-500 origin-bottom-right">
                <Pill className="w-36 h-36 text-[#2c336b] -rotate-45" strokeWidth={1} />
@@ -124,8 +154,8 @@ export default function Home() {
           
           <Link href="/book-appointment" className="bg-[#f4df82] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
-               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">Instant Video<br/>Consultation</h3>
-               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Connect within 60 seconds</p>
+               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">{tHome("card2Title")}</h3>
+               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">{tHome("card2Desc")}</p>
              </div>
              <div className="absolute bottom-4 right-4 opacity-[0.15] group-hover:scale-110 group-hover:opacity-[0.25] transition-all duration-500 origin-bottom-right flex items-end">
                <Smartphone className="w-20 h-20 text-[#2c336b]" strokeWidth={1} />
@@ -138,8 +168,8 @@ export default function Home() {
 
           <Link href="/doctors" className="bg-[#bce4cd] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
-               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">Find Doctors<br/>near you</h3>
-               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Confirmed appointments</p>
+               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">{tHome("card3Title")}</h3>
+               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">{tHome("card3Desc")}</p>
              </div>
              <div className="absolute -bottom-6 right-2 opacity-[0.15] group-hover:scale-110 group-hover:opacity-[0.25] transition-all duration-500 origin-bottom-right">
                <User className="w-40 h-40 text-[#2c336b]" strokeWidth={1} />
@@ -151,8 +181,8 @@ export default function Home() {
 
           <Link href="/services" className="bg-[#a9c7fb] rounded-[2rem] p-8 relative overflow-hidden h-[280px] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform shadow-sm">
              <div className="relative z-10 mt-2">
-               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">Lab<br/>Tests</h3>
-               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">Sample pickup at your home</p>
+               <h3 className="text-[#2c336b] text-[26px] font-extrabold mb-3 leading-tight">{tHome("card4Title")}</h3>
+               <p className="text-[#2c336b]/80 text-[15px] font-medium leading-relaxed">{tHome("card4Desc")}</p>
              </div>
              <div className="absolute -bottom-4 right-2 opacity-[0.15] group-hover:scale-110 group-hover:opacity-[0.25] transition-all duration-500 origin-bottom-right">
                <TestTube className="w-40 h-40 text-[#2c336b] rotate-12" strokeWidth={1} />
@@ -171,9 +201,9 @@ export default function Home() {
         {/* Why Choose Us Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-[#2c336b] mb-4">Why Choose LuminaHealth</h2>
+            <h2 className="text-3xl font-extrabold text-[#2c336b] mb-4">{tHome("whyTitle")}</h2>
             <p className="text-gray-500 max-w-2xl mx-auto font-medium text-base">
-              We blend cutting-edge medical expertise with genuine human warmth to provide an unparalleled healthcare experience.
+              {tHome("whySubtitle")}
             </p>
           </div>
 
@@ -182,7 +212,7 @@ export default function Home() {
               const { Icon } = feature;
               return (
                 <motion.div
-                  key={feature.title}
+                  key={feature.titleKey}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -192,8 +222,8 @@ export default function Home() {
                   <div className={`w-14 h-14 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="w-7 h-7 text-[#2c336b]" strokeWidth={2} />
                   </div>
-                  <h3 className="text-xl text-[#2c336b] mb-3 font-extrabold">{feature.title}</h3>
-                  <p className="text-gray-500 text-sm font-medium leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl text-[#2c336b] mb-3 font-extrabold">{tHome(feature.titleKey as any)}</h3>
+                  <p className="text-gray-500 text-sm font-medium leading-relaxed">{tHome(feature.descKey as any)}</p>
                 </motion.div>
               );
             })}
@@ -203,9 +233,9 @@ export default function Home() {
         {/* Services Preview Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#2c336b] mb-4">Comprehensive Services</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#2c336b] mb-4">{tHome("servicesTitle")}</h2>
             <p className="text-gray-500 max-w-2xl mx-auto font-medium text-base">
-              From routine check-ups to specialized diagnostic care, we offer a full spectrum of health services tailored to your unique needs.
+              {tHome("servicesSubtitle")}
             </p>
           </div>
 
@@ -235,7 +265,7 @@ export default function Home() {
           <div className="flex justify-center mt-12">
             <Link href="/services">
               <button className="bg-[#f3d2de] text-[#2c336b] px-8 py-4 rounded-full font-bold text-[15px] flex items-center gap-4 hover:scale-105 transition shadow-lg cursor-pointer">
-                <span>View All Services</span>
+                <span>{tHome("viewAllServices")}</span>
                 <div className="bg-white rounded-full p-1.5 border border-black/5">
                   <ArrowRight className="w-4 h-4 text-[#2c336b]" strokeWidth={3} />
                 </div>

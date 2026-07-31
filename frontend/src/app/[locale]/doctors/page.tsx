@@ -6,7 +6,10 @@ import { getDoctors, DoctorData } from "@/lib/api";
 import DoctorCard from "@/components/doctor-card";
 import CTABanner from "@/components/cta-banner";
 
+import { useTranslations } from "next-intl";
+
 export default function DoctorsPage() {
+  const t = useTranslations("DoctorsPage");
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +41,7 @@ export default function DoctorsPage() {
             transition={{ duration: 0.6 }}
             className="text-display-lg-mobile md:text-display-lg text-on-surface mb-4 font-bold"
           >
-            Meet Our Clinical Team
+            {t("title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 15 }}
@@ -46,7 +49,7 @@ export default function DoctorsPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
           >
-            A diverse group of world-class healthcare professionals dedicated to providing you with compassionate, personalized, and exceptional care.
+            {t("subtitle")}
           </motion.p>
         </div>
       </section>

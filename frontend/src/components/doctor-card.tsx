@@ -1,5 +1,9 @@
-import Link from "next/link";
+"use client";
+
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
+import { getLocalizedSpecialty } from "@/lib/translations";
 
 interface DoctorCardProps {
   name: string;
@@ -16,6 +20,10 @@ export default function DoctorCard({
   image,
   slug,
 }: DoctorCardProps) {
+  const locale = useLocale();
+  const t = useTranslations("Common");
+  const displaySpecialty = getLocalizedSpecialty(specialty, locale);
+
   return (
     <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-ambient border border-transparent hover:-translate-y-1 hover:shadow-ambient-hover hover:border-secondary-container transition-all duration-300 flex flex-col items-center group">
       {/* Avatar Container */}
@@ -31,7 +39,7 @@ export default function DoctorCard({
 
       {/* Specialty Badge */}
       <div className="bg-primary/10 text-primary font-label-sm text-label-sm px-3 py-1 rounded-full mb-3 font-semibold">
-        {specialty}
+        {displaySpecialty}
       </div>
 
       {/* Name and Credentials */}
@@ -47,7 +55,7 @@ export default function DoctorCard({
         href={`/doctors/${slug}`}
         className="w-full mt-auto py-2.5 rounded-full border border-outline-variant font-label-md text-label-md text-primary text-center group-hover:bg-primary group-hover:text-on-primary group-hover:border-primary transition-all duration-300 font-medium active:scale-98"
       >
-        View Profile
+        {t("learnMore")}
       </Link>
     </div>
   );

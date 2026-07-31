@@ -1,0 +1,113 @@
+{
+  "Navbar": {
+    "home": "Accueil",
+    "services": "Services",
+    "doctors": "Médecins",
+    "fees": "Tarifs",
+    "faqs": "FAQ",
+    "blog": "Blog",
+    "contact": "Contact",
+    "ourLocation": "Notre Emplacement",
+    "loginRegister": "Connexion / Inscription",
+    "bookAppointment": "Prendre Rendez-vous"
+  },
+  "Common": {
+    "emergencyLine": "Ligne d'Urgence",
+    "clinicTimings": "Heures d'Ouverture",
+    "monSat": "Lun - Sam (9h - 21h)",
+    "learnMore": "En Savoir Plus",
+    "viewAll": "Tout Voir",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "search": "Rechercher"
+  },
+  "Hero": {
+    "title": "Soins Médicaux d'Excellence",
+    "subtitle": "Médecins experts, soins personnalisés et rendez-vous le jour même quand vous en avez le plus besoin.",
+    "bookCta": "Prendre Rendez-vous",
+    "servicesCta": "Explorer Nos Services"
+  },
+  "TrustBar": {
+    "iso": "Certifié ISO",
+    "board": "Conseil Médical National",
+    "award": "Prix des Soins de Premier Ordre"
+  },
+  "Home": {
+    "card1Title": "Médicaments 24/7",
+    "card1Desc": "Vos essentiels livrés chez vous",
+    "card2Title": "Consultation Vidéo Instantanée",
+    "card2Desc": "Connecté en 60 secondes",
+    "card3Title": "Trouver des Médecins Proches",
+    "card3Desc": "Rendez-vous confirmés",
+    "card4Title": "Analyses de Laboratoire",
+    "card4Desc": "Prélèvement à domicile",
+    "whyTitle": "Pourquoi Choisir WeCare",
+    "whySubtitle": "Nous allions expertise médicale de pointe et chaleur humaine pour une expérience de soin exceptionnelle.",
+    "sameDayTitle": "Soins Le Jour Même",
+    "sameDayDesc": "Parce que votre santé n'attend pas. Nous traitons vos urgences en priorité.",
+    "expDocTitle": "Médecins Expérimentés",
+    "expDocDesc": "Des professionnels certifiés dédiés à votre suivi médical.",
+    "pricingTitle": "Tarification Transparente",
+    "pricingDesc": "Pas de frais cachés. Une transparence totale avant tout soin.",
+    "modernTitle": "Équipements Modernes",
+    "modernDesc": "Équipé des dernières technologies dans un environnement apaisant.",
+    "servicesTitle": "Services Complets",
+    "servicesSubtitle": "Du contrôle de routine aux soins spécialisés, nous proposons une gamme complète adaptée à vos besoins.",
+    "viewAllServices": "Voir Tous Les Services"
+  },
+  "DoctorsPage": {
+    "title": "Découvrez Notre Équipe Médicale",
+    "subtitle": "Un groupe diversifié de professionnels de santé dédiés à vous fournir des soins attentionnés et personnalisés."
+  },
+  "FeesPage": {
+    "title": "Tarification Transparente",
+    "subtitle": "Des soins de haute qualité sans frais cachés. Nous proposons des tarifs clairs pour vous concentrer sur l'essentiel : votre santé.",
+    "infoNote": "Les tarifs peuvent varier selon la complexité des soins — ",
+    "contactLink": "contactez-nous",
+    "forQuote": " pour un devis personnalisé.",
+    "planSectionTitle": "Formules d'Abonnement Santé",
+    "planSectionSub": "Choisissez une formule adaptée aux besoins de votre famille."
+  },
+  "Footer": {
+    "aboutText": "Des soins modernes et bienveillants pour vous et votre famille. Votre santé est notre priorité.",
+    "quickLinks": "Liens Rapides",
+    "ourServices": "Nos Services",
+    "meetTeam": "Découvrir l'Équipe",
+    "privacyPolicy": "Politique de Confidentialité",
+    "termsOfService": "Conditions d'Utilisation",
+    "contactHeader": "Contact",
+    "clinicName": "Clinique WeCare",
+    "viewMap": "Voir la Carte & Itinéraire",
+    "hoursHeader": "Horaires",
+    "monFri": "Lun - Ven",
+    "monFriHours": "8h00 - 18h00",
+    "saturday": "Samedi",
+    "satHours": "9h00 - 14h00",
+    "sunday": "Dimanche",
+    "closed": "Fermé",
+    "rights": "Tous droits réservés."
+  },
+  "Chatbot": {
+    "headerTitle": "Assistant Virtuel WeCare",
+    "headerSubtitle": "Assistance Médicale En Ligne 24/7",
+    "floatingTrigger": "Assistance WeCare AI",
+    "poweredBy": "PROPULSÉ PAR WECARE",
+    "inputPlaceholder": "Écrivez votre message ici...",
+    "bookAppt": "📅 Prendre Rendez-vous",
+    "findDoctor": "👨‍⚕️ Trouver un Médecin",
+    "clinicServices": "🩺 Services Cliniques",
+    "clinicTimings": "⏰ Heures d'Ouverture",
+    "clinicLocation": "📍 Emplacement Clinique",
+    "consultationFee": "💳 Tarif Consultation",
+    "emergencyContact": "📞 Contact d'Urgence",
+    "askAnything": "💬 Poser une Question",
+    "welcomeTitle": "Bonjour ! Comment pouvons-nous vous aider aujourd'hui ?",
+    "welcomeSub": "Choisissez un sujet ci-dessous ou tapez votre question.",
+    "bookApptDesc": "Prendre rendez-vous avec un spécialiste",
+    "findDoctorDesc": "Trouver selon vos symptômes",
+    "clinicServicesDesc": "Explorer nos spécialités",
+    "clinicTimingsDesc": "Lun - Sam (9h - 21h)",
+    "consultationFeeDesc": "Consulter les tarifs",
+    "emergencyDesc": "Ligne d'urgence 24/7"
+  }
+}

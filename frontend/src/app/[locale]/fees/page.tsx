@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { getServices, ServiceData } from "@/lib/api";
 import PricingTierCard, { PricingFeature } from "@/components/pricing-tier-card";
 import CTABanner from "@/components/cta-banner";
@@ -78,6 +79,7 @@ const plans = [
 ];
 
 export default function FeesPage() {
+  const t = useTranslations("FeesPage");
   const [servicesList, setServicesList] = useState<ServiceData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -109,7 +111,7 @@ export default function FeesPage() {
           transition={{ duration: 0.6 }}
           className="text-display-lg-mobile md:text-display-lg text-on-surface mb-6 font-bold"
         >
-          Transparent Pricing
+          {t("title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 15 }}
@@ -117,7 +119,7 @@ export default function FeesPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
         >
-          High-quality care with no hidden costs. We believe in providing clear, upfront pricing so you can focus on what matters most—your health.
+          {t("subtitle")}
         </motion.p>
       </section>
 
@@ -133,11 +135,11 @@ export default function FeesPage() {
             info
           </span>
           <p className="text-body-md text-on-surface leading-relaxed">
-            Prices may vary based on consultation complexity —{" "}
+            {t("infoNote")}
             <Link href="/contact" className="text-primary font-bold hover:underline">
-              contact us
+              {t("contactLink")}
             </Link>{" "}
-            for a personalized quote.
+            {t("forQuote")}
           </p>
         </motion.div>
       </div>

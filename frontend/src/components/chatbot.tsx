@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/routing";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocationModal } from "@/context/LocationContext";
 
@@ -28,48 +29,48 @@ const DEFAULT_QUICK_REPLIES = [
 const WELCOME_CARDS = [
   {
     icon: "calendar_month",
-    title: "Book Appointment",
-    desc: "Schedule a specialist",
+    titleKey: "bookAppt",
+    descKey: "bookApptDesc",
     text: "📅 Book Appointment",
     bgClass: "bg-[#eecbd8]/35 hover:bg-[#eecbd8]/65 border-[#eecbd8]/40 text-[#2c336b]",
     iconClass: "text-[#2c336b]"
   },
   {
     icon: "stethoscope",
-    title: "Find a Doctor",
-    desc: "Match your symptoms",
+    titleKey: "findDoctor",
+    descKey: "findDoctorDesc",
     text: "👨‍⚕️ Find a Doctor",
     bgClass: "bg-[#f4df82]/35 hover:bg-[#f4df82]/65 border-[#f4df82]/40 text-[#2c336b]",
     iconClass: "text-[#2c336b]"
   },
   {
     icon: "medical_services",
-    title: "Clinic Services",
-    desc: "Explore specialties",
+    titleKey: "clinicServices",
+    descKey: "clinicServicesDesc",
     text: "🩺 Clinic Services",
     bgClass: "bg-[#bce4cd]/35 hover:bg-[#bce4cd]/65 border-[#bce4cd]/40 text-[#2c336b]",
     iconClass: "text-[#2c336b]"
   },
   {
     icon: "schedule",
-    title: "Clinic Timings",
-    desc: "Mon - Sat (9am - 9pm)",
+    titleKey: "clinicTimings",
+    descKey: "clinicTimingsDesc",
     text: "⏰ Clinic Timings",
     bgClass: "bg-[#a9c7fb]/35 hover:bg-[#a9c7fb]/65 border-[#a9c7fb]/40 text-[#2c336b]",
     iconClass: "text-[#2c336b]"
   },
   {
     icon: "payments",
-    title: "Consultation Fee",
-    desc: "View pricing details",
+    titleKey: "consultationFee",
+    descKey: "consultationFeeDesc",
     text: "💳 Consultation Fee",
     bgClass: "bg-[#f3d2de]/35 hover:bg-[#f3d2de]/65 border-[#f3d2de]/40 text-[#2c336b]",
     iconClass: "text-[#2c336b]"
   },
   {
     icon: "call",
-    title: "Emergency Line",
-    desc: "24/7 hotline care",
+    titleKey: "emergencyContact",
+    descKey: "emergencyDesc",
     text: "📞 Emergency Contact",
     bgClass: "bg-red-50/60 hover:bg-red-100/70 border-red-100 text-red-700",
     iconClass: "text-red-600"
@@ -210,6 +211,8 @@ function getCookie(name: string): string | null {
 }
 
 export default function Chatbot() {
+  const t = useTranslations("Chatbot");
+  const locale = useLocale();
   const { openLocationModal } = useLocationModal();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -233,11 +236,19 @@ export default function Chatbot() {
   useEffect(() => {
     const cookieHistory = getCookie("lumina_chat_history");
     const storedTimestamp = localStorage.getItem("lumina_chat_timestamp");
+    const storedLocale = getCookie("lumina_chat_locale");
     const now = Date.now();
 
     const isExpired = !storedTimestamp || (now - parseInt(storedTimestamp, 10) > SIX_HOURS_MS);
+    const localeChanged = storedLocale !== locale;
 
-    if (cookieHistory && !isExpired) {
+    if (localeChanged || isExpired) {
+      resetFreshSession(now);
+      setCookie("lumina_chat_locale", locale, SIX_HOURS_SEC);
+      return;
+    }
+
+    if (cookieHistory) {
       try {
         const parsed = JSON.parse(cookieHistory);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -253,14 +264,14 @@ export default function Chatbot() {
     }
 
     const cookieReplies = getCookie("lumina_quick_replies");
-    if (cookieReplies && !isExpired) {
+    if (cookieReplies && !isExpired && !localeChanged) {
       try {
         setQuickReplies(JSON.parse(cookieReplies));
       } catch (e) {
         setQuickReplies(DEFAULT_QUICK_REPLIES);
       }
     }
-  }, []);
+  }, [locale]);
 
   const resetFreshSession = (timestampMs: number) => {
     setMessages([]); // Empty session initially to trigger clean welcome hero screen
@@ -508,6 +519,7 @@ export default function Chatbot() {
     setQuickReplies([]);
 
     try {
+      console.log("SENDING LOCALE TO BACKEND:", locale);
       const res = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: {
@@ -518,7 +530,8 @@ export default function Chatbot() {
           history: messages.map((m) => ({
             role: m.sender === "user" ? "user" : "assistant",
             content: m.text
-          }))
+          })),
+          locale: locale
         })
       });
 
@@ -849,7 +862,7 @@ export default function Chatbot() {
 
                 {/* Middle-Bottom: Vertically rotated text */}
                 <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180 select-none pb-2">
-                  powered by LuminaHealth
+                  {t("poweredBy")}
                 </div>
 
                 {/* Bottom: Circular Brand Logo/Mark */}
@@ -865,8 +878,8 @@ export default function Chatbot() {
                   <div className="flex items-center gap-2.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white animate-pulse"></div>
                     <div>
-                      <h3 className="text-sm font-extrabold text-slate-900 leading-tight tracking-tight">New Chat</h3>
-                      <p className="text-[10px] text-slate-500 font-bold">WeCare AI Support</p>
+                      <h3 className="text-sm font-extrabold text-slate-900 leading-tight tracking-tight">{t("headerTitle")}</h3>
+                      <p className="text-[10px] text-slate-500 font-bold">{t("headerSubtitle")}</p>
                     </div>
                   </div>
 
@@ -905,9 +918,9 @@ export default function Chatbot() {
                             support_agent
                           </span>
                         </div>
-                        <h4 className="text-base font-extrabold text-[#2c336b] tracking-tight">How can we help today?</h4>
+                        <h4 className="text-base font-extrabold text-[#2c336b] tracking-tight">{t("welcomeTitle")}</h4>
                         <p className="text-xs text-gray-500 mt-2 max-w-[280px] mx-auto leading-relaxed font-semibold">
-                          Ask any health query, explore clinic services, or book an appointment in under 2 minutes.
+                          {t("welcomeSub")}
                         </p>
                       </div>
 
@@ -915,8 +928,8 @@ export default function Chatbot() {
                       <div className="grid grid-cols-2 gap-2 mt-2">
                         {WELCOME_CARDS.map((card) => (
                           <button
-                            key={card.title}
-                            onClick={() => handleSendMessage(card.text)}
+                            key={card.titleKey}
+                            onClick={() => handleSendMessage(t(card.titleKey as any))}
                             className={`px-3.5 py-3 rounded-2xl border transition-all text-left group cursor-pointer active:scale-95 flex flex-col justify-between h-[76px] shadow-2xs hover:shadow-xs ${card.bgClass}`}
                           >
                             <div className="flex items-center justify-between w-full">
@@ -929,10 +942,10 @@ export default function Chatbot() {
                             </div>
                             <div>
                               <p className="text-[11px] font-extrabold tracking-tight leading-tight">
-                                {card.title}
+                                {t(card.titleKey as any)}
                               </p>
                               <p className="text-[9px] opacity-85 font-semibold mt-0.5 line-clamp-1">
-                                {card.desc}
+                                {t(card.descKey as any)}
                               </p>
                             </div>
                           </button>
@@ -1134,7 +1147,7 @@ export default function Chatbot() {
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Type your question here..."
+                      placeholder={t("inputPlaceholder")}
                       className="flex-1 px-4 py-3 bg-transparent border-none outline-none text-xs sm:text-[13px] text-slate-800 font-semibold placeholder-slate-400"
                     />
                     <button
@@ -1268,7 +1281,7 @@ export default function Chatbot() {
           >
             {/* Vertical rotated text */}
             <div className="font-extrabold tracking-[0.15em] text-[10px] uppercase [writing-mode:vertical-lr] rotate-180 select-none pb-1.5 text-white/90 group-hover:text-white whitespace-nowrap">
-              WeCare AI Support
+              {t("floatingTrigger")}
             </div>
 
             {/* Circle icon at bottom */}

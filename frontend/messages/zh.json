@@ -1,0 +1,113 @@
+{
+  "Navbar": {
+    "home": "首页",
+    "services": "医疗服务",
+    "doctors": "医生团队",
+    "fees": "收费标准",
+    "faqs": "常见问题",
+    "blog": "健康博客",
+    "contact": "联系我们",
+    "ourLocation": "诊所位置",
+    "loginRegister": "登录 / 注册",
+    "bookAppointment": "预约就诊"
+  },
+  "Common": {
+    "emergencyLine": "急诊热线",
+    "clinicTimings": "门诊时间",
+    "monSat": "周一至周六 (上午9点 - 晚上9点)",
+    "learnMore": "了解更多",
+    "viewAll": "查看全部",
+    "submit": "提交",
+    "cancel": "取消",
+    "search": "搜索"
+  },
+  "Hero": {
+    "title": "卓越医疗 值得信赖",
+    "subtitle": "资深专家团队、个性化健康管理与当日预约服务，倾心守护您与家人的健康。",
+    "bookCta": "预约就诊",
+    "servicesCta": "浏览医疗服务"
+  },
+  "TrustBar": {
+    "iso": "ISO 国际认证",
+    "board": "国家医疗委员会认证",
+    "award": "顶尖医疗护理奖"
+  },
+  "Home": {
+    "card1Title": "24/7 药品服务",
+    "card1Desc": "必备药品送货上门",
+    "card2Title": "即时视频问诊",
+    "card2Desc": "60秒内快速连线",
+    "card3Title": "查找身边医生",
+    "card3Desc": "快速预约确认",
+    "card4Title": "体检采样",
+    "card4Desc": "上门采样服务",
+    "whyTitle": "为什么选择 WeCare",
+    "whySubtitle": "我们将前沿医疗技术与贴心关怀相结合，提供卓越的医疗就诊体验。",
+    "sameDayTitle": "当日就诊",
+    "sameDayDesc": "健康无需等待，我们优先满足您的紧急就诊需求。",
+    "expDocTitle": "资深专家团队",
+    "expDocDesc": "拥有丰富临床经验与专业资质的专家团队。",
+    "pricingTitle": "透明收费",
+    "pricingDesc": "公开透明，就诊前清晰告知所有费用。",
+    "modernTitle": "现代医疗设施",
+    "modernDesc": "配备前沿诊疗设备，提供舒适、整洁的就诊环境。",
+    "servicesTitle": "全方位医疗服务",
+    "servicesSubtitle": "从日常体检到专科诊疗，我们提供全方位的个性化健康保障。",
+    "viewAllServices": "查看全部医疗服务"
+  },
+  "DoctorsPage": {
+    "title": "认识我们的专家团队",
+    "subtitle": "汇聚各领域资深医疗专家，倾心为您提供专业、温馨且个性化的诊疗服务。"
+  },
+  "FeesPage": {
+    "title": "透明公开的收费标准",
+    "subtitle": "优质医疗保障，绝无隐形消费。我们坚持明确透明的诊疗定价，让您安心关注健康。",
+    "infoNote": "实际费用可能根据复杂程度有所变动 — ",
+    "contactLink": "联系我们",
+    "forQuote": " 获取个性化报价。",
+    "planSectionTitle": "健康会员计划",
+    "planSectionSub": "为个人及家庭量身打造的灵活健康保障方案。"
+  },
+  "Footer": {
+    "aboutText": "为您和您的家人提供贴心、现代化的医疗服务。您的健康是我们的首要任务。",
+    "quickLinks": "快速链接",
+    "ourServices": "医疗服务",
+    "meetTeam": "医生团队",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "contactHeader": "联系方式",
+    "clinicName": "WeCare 诊所",
+    "viewMap": "查看地图与路线",
+    "hoursHeader": "营业时间",
+    "monFri": "周一至周五",
+    "monFriHours": "上午 8:00 - 下午 6:00",
+    "saturday": "周六",
+    "satHours": "上午 9:00 - 下午 2:00",
+    "sunday": "周日",
+    "closed": "休息",
+    "rights": "保留所有权利。"
+  },
+  "Chatbot": {
+    "headerTitle": "WeCare AI 智能助手",
+    "headerSubtitle": "24/7 在线医疗咨询",
+    "floatingTrigger": "WeCare AI 智能支持",
+    "poweredBy": "由 WECARE 提供技术支持",
+    "inputPlaceholder": "请输入您的问题...",
+    "bookAppt": "📅 预约门诊",
+    "findDoctor": "👨‍⚕️ 查找医生",
+    "clinicServices": "🩺 诊所服务",
+    "clinicTimings": "⏰ 门诊时间",
+    "clinicLocation": "📍 诊所位置",
+    "consultationFee": "💳 咨询费用",
+    "emergencyContact": "📞 紧急联系",
+    "askAnything": "💬 随意提问",
+    "welcomeTitle": "您好！今天有什么可以帮您？",
+    "welcomeSub": "请选择下方快捷主题或直接输入您的问题。",
+    "bookApptDesc": "预约专家门诊",
+    "findDoctorDesc": "根据症状匹配医生",
+    "clinicServicesDesc": "了解专科服务",
+    "clinicTimingsDesc": "周一至周六 (9am - 9pm)",
+    "consultationFeeDesc": "查看价格详情",
+    "emergencyDesc": "24/7 紧急热线"
+  }
+}

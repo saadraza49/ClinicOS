@@ -1,0 +1,113 @@
+{
+  "Navbar": {
+    "home": "Home",
+    "services": "Services",
+    "doctors": "Doctors",
+    "fees": "Fees",
+    "faqs": "FAQs",
+    "blog": "Blog",
+    "contact": "Contact",
+    "ourLocation": "Our Location",
+    "loginRegister": "Login / Register",
+    "bookAppointment": "Book Appointment"
+  },
+  "Common": {
+    "emergencyLine": "Emergency Line",
+    "clinicTimings": "Clinic Timings",
+    "monSat": "Mon - Sat (9am - 9pm)",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "search": "Search"
+  },
+  "Hero": {
+    "title": "World-Class Medical Care",
+    "subtitle": "Expert doctors, personalized care, and same-day appointments when you need them most.",
+    "bookCta": "Book Appointment",
+    "servicesCta": "Explore Our Services"
+  },
+  "TrustBar": {
+    "iso": "ISO Certified",
+    "board": "National Medical Board",
+    "award": "Top Tier Care Award"
+  },
+  "Home": {
+    "card1Title": "24/7 Medicines",
+    "card1Desc": "Essentials at your doorstep",
+    "card2Title": "Instant Video Consultation",
+    "card2Desc": "Connect within 60 seconds",
+    "card3Title": "Find Doctors near you",
+    "card3Desc": "Confirmed appointments",
+    "card4Title": "Lab Tests",
+    "card4Desc": "Sample pickup at your home",
+    "whyTitle": "Why Choose WeCare",
+    "whySubtitle": "We blend cutting-edge medical expertise with genuine human warmth to provide an unparalleled healthcare experience.",
+    "sameDayTitle": "Same-day Care",
+    "sameDayDesc": "Because your health can't always wait. We prioritize urgent needs.",
+    "expDocTitle": "Experienced Doctors",
+    "expDocDesc": "Board-certified professionals dedicated to continuous learning.",
+    "pricingTitle": "Transparent Pricing",
+    "pricingDesc": "No hidden fees. Clear communication about costs before treatment.",
+    "modernTitle": "Modern Facility",
+    "modernDesc": "Equipped with the latest technology in a calming, clean environment.",
+    "servicesTitle": "Comprehensive Services",
+    "servicesSubtitle": "From routine check-ups to specialized diagnostic care, we offer a full spectrum of health services tailored to your unique needs.",
+    "viewAllServices": "View All Services"
+  },
+  "DoctorsPage": {
+    "title": "Meet Our Clinical Team",
+    "subtitle": "A diverse group of world-class healthcare professionals dedicated to providing you with compassionate, personalized, and exceptional care."
+  },
+  "FeesPage": {
+    "title": "Transparent Pricing",
+    "subtitle": "High-quality care with no hidden costs. We believe in providing clear, upfront pricing so you can focus on what matters most—your health.",
+    "infoNote": "Prices may vary based on consultation complexity — ",
+    "contactLink": "contact us",
+    "forQuote": " for a personalized quote.",
+    "planSectionTitle": "Healthcare Membership Plans",
+    "planSectionSub": "Choose a flexible membership plan tailored for individuals and families."
+  },
+  "Footer": {
+    "aboutText": "Compassionate, modern care for you and your family. Your health is our priority.",
+    "quickLinks": "Quick Links",
+    "ourServices": "Our Services",
+    "meetTeam": "Meet the Team",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "contactHeader": "Contact",
+    "clinicName": "WeCare Clinic",
+    "viewMap": "View Map & Directions",
+    "hoursHeader": "Hours",
+    "monFri": "Mon - Fri",
+    "monFriHours": "8:00 AM - 6:00 PM",
+    "saturday": "Saturday",
+    "satHours": "9:00 AM - 2:00 PM",
+    "sunday": "Sunday",
+    "closed": "Closed",
+    "rights": "All rights reserved."
+  },
+  "Chatbot": {
+    "headerTitle": "WeCare AI Assistant",
+    "headerSubtitle": "Online 24/7 Medical Care",
+    "floatingTrigger": "WeCare AI Support",
+    "poweredBy": "POWERED BY WECARE",
+    "inputPlaceholder": "Type your question here...",
+    "bookAppt": "📅 Book Appointment",
+    "findDoctor": "👨‍⚕️ Find a Doctor",
+    "clinicServices": "🩺 Clinic Services",
+    "clinicTimings": "⏰ Clinic Timings",
+    "clinicLocation": "📍 Clinic Location",
+    "consultationFee": "💳 Consultation Fee",
+    "emergencyContact": "📞 Emergency Contact",
+    "askAnything": "💬 Ask Anything",
+    "welcomeTitle": "Hello! How can we help your health today?",
+    "welcomeSub": "Select a quick topic below or type your query in the chat.",
+    "bookApptDesc": "Schedule a specialist",
+    "findDoctorDesc": "Match your symptoms",
+    "clinicServicesDesc": "Explore specialties",
+    "clinicTimingsDesc": "Mon - Sat (9am - 9pm)",
+    "consultationFeeDesc": "View pricing details",
+    "emergencyDesc": "24/7 hotline care"
+  }
+}
