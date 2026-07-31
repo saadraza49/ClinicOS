@@ -18,7 +18,7 @@ export default function BlogListingPage() {
   const [visibleCount, setVisibleCount] = useState(3);
 
   const categories = [
-    { id: "all", name: t("categories.all", { fallback: getLocalizedBlogCategory("All Topics", locale) }) },
+    { id: "all", name: t("allTopics") },
     { id: "General Health", name: getLocalizedBlogCategory("General Health", locale) },
     { id: "Nutrition", name: getLocalizedBlogCategory("Nutrition", locale) },
     { id: "Mental Health", name: getLocalizedBlogCategory("Mental Health", locale) },

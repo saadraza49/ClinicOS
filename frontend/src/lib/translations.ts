@@ -216,7 +216,11 @@ const FAQ_CATEGORY_TRANSLATIONS: Record<string, Record<string, string>> = {
   "Appointments": { en: "Appointments", fr: "Rendez-vous", zh: "预约挂号" },
   "Billing & Insurance": { en: "Billing & Insurance", fr: "Facturation & Assurance", zh: "账单与保险" },
   "Emergency Care": { en: "Emergency Care", fr: "Soins d'Urgence", zh: "紧急医疗护理" },
-  "General": { en: "General", fr: "Général", zh: "常规" }
+  "General": { en: "General", fr: "Général", zh: "常规" },
+  "Prescription Refills": { en: "Prescription Refills", fr: "Renouvellement d'Ordonnances", zh: "处方续签与开药" },
+  "Pediatrics": { en: "Pediatrics", fr: "Pédiatrie", zh: "儿科诊疗" },
+  "COVID-19 & Vaccines": { en: "COVID-19 & Vaccines", fr: "COVID-19 & Vaccins", zh: "新冠与疫苗接种" },
+  "Parking & Accessibility": { en: "Parking & Accessibility", fr: "Parking & Accessibilité", zh: "停车与无障碍设施" }
 };
 
 export function getLocalizedFAQCategory(category: string, locale: string): string {
@@ -243,6 +247,26 @@ const FAQ_ITEMS_TRANSLATIONS: Record<string, { question: Record<string, string>;
   "What should I do in an emergency?": {
     question: { en: "What should I do in an emergency?", fr: "Que dois-je faire en cas d'urgence ?", zh: "遇到突发紧急情况应该怎么办？" },
     answer: { en: "In life-threatening situations, please dial emergency services immediately or visit the nearest ER hospital.", fr: "En cas d'urgence vitale, veuillez composer immédiatement les services d'urgence ou vous rendre aux urgences les plus proches.", zh: "如遇生命危险或重大急诊，请立即拨打当地急救电话或前往最近的医院急诊科。" }
+  },
+  "How do I request my medical records?": {
+    question: { en: "How do I request my medical records?", fr: "Comment demander mes dossiers médicaux ?", zh: "如何申请获取我的个人病历与就诊记录？" },
+    answer: { en: "You can request your medical records securely through the patient portal or by contacting our administration desk.", fr: "Vous pouvez demander vos dossiers médicaux en toute sécurité via le portail patient ou en contactant notre accueil.", zh: "您可以登录患者个人中心在线申请，或直接前往诊所行政前台联系工作人员办理。" }
+  },
+  "How do I request a prescription refill?": {
+    question: { en: "How do I request a prescription refill?", fr: "Comment demander un renouvellement d'ordonnance ?", zh: "如何在线申请续开处方药物？" },
+    answer: { en: "Contact your primary doctor via the portal or call our clinic hotline 24 hours in advance.", fr: "Contactez votre médecin traitant via le portail ou appelez notre ligne d'assistance 24h à l'avance.", zh: "您可以通过患者端联系您的主诊医生，或提前 24 小时拨打诊所客服热线申请续药。" }
+  },
+  "At what age should my child see a pediatrician?": {
+    question: { en: "At what age should my child see a pediatrician?", fr: "À quel âge mon enfant doit-il consulter un pédiatre ?", zh: "孩子从几岁开始需要看儿科医生？" },
+    answer: { en: "We recommend initial newborn wellness checkups within the first 3-5 days after birth.", fr: "Nous recommandons des bilans de santé initiaux pour nouveau-nés dans les 3 à 5 premiers jours suivant la naissance.", zh: "我们建议在宝宝出生后的前 3 到 5 天内安排第一次新生儿健康检查与发育评估。" }
+  },
+  "Are walk-in vaccinations available?": {
+    question: { en: "Are walk-in vaccinations available?", fr: "Les vaccinations sans rendez-vous sont-elles disponibles ?", zh: "诊所是否提供无需预约的接种服务？" },
+    answer: { en: "Yes, walk-in flu shots and routine immunizations are available Monday to Saturday during regular hours.", fr: "Oui, les vaccins contre la grippe et les immunisations de routine sans rendez-vous sont disponibles du lundi au samedi.", zh: "是的，周一至周六营业时间内均提供流感疫苗及常规疫苗的随到随接服务。" }
+  },
+  "Is free parking available at the clinic?": {
+    question: { en: "Is free parking available at the clinic?", fr: "Un parking gratuit est-il disponible à la clinique ?", zh: "诊所是否为前来就诊的患者提供免费停车位？" },
+    answer: { en: "Yes, we provide complimentary patient parking directly in front of the main entrance.", fr: "Oui, nous offrons un parking patient gratuit directement devant l'entrée principale.", zh: "是的，我们在诊所大楼正门前方为所有患者提供免费专用停车位。" }
   }
 };
 
@@ -266,7 +290,8 @@ const BLOG_CATEGORY_TRANSLATIONS: Record<string, Record<string, string>> = {
   "Nutrition": { en: "Nutrition", fr: "Nutrition", zh: "营养饮食" },
   "Mental Health": { en: "Mental Health", fr: "Santé Mentale", zh: "心理健康" },
   "Vaccinations": { en: "Vaccinations", fr: "Vaccinations", zh: "疫苗接种" },
-  "Clinic News": { en: "Clinic News", fr: "Actualités de la Clinique", zh: "诊所动态" }
+  "Clinic News": { en: "Clinic News", fr: "Actualités de la Clinique", zh: "诊所动态" },
+  "Wellness": { en: "Wellness", fr: "Bien-être", zh: "健康养生" }
 };
 
 export function getLocalizedBlogCategory(category: string, locale: string): string {
@@ -278,6 +303,10 @@ export function getLocalizedBlogCategory(category: string, locale: string): stri
 }
 
 const BLOG_POST_TRANSLATIONS: Record<string, { title: Record<string, string>; excerpt: Record<string, string> }> = {
+  "LuminaHealth Unveils Wellness Suite": {
+    title: { en: "LuminaHealth Unveils Wellness Suite", fr: "LuminaHealth Dévoile le Centre de Bien-Être", zh: "LuminaHealth 隆重推出全新综合健康诊疗中心" },
+    excerpt: { en: "LuminaHealth has officially opened its new wellness diagnostic annex, bringing state-of-the-art ultrasound and imaging suites closer to our local community.", fr: "LuminaHealth a officiellement ouvert sa nouvelle annexe de diagnostic de bien-être, offrant des salles d'échographie et d'imagerie de pointe.", zh: "LuminaHealth 官方全新健康诊断翼楼现已正式启用，将先进的超声波与影像诊疗设备带到广大社区患者身边。" }
+  },
   "The Importance of Annual Check-ups": {
     title: { en: "The Importance of Annual Check-ups", fr: "L'Importance des Bilans de Santé Annuels", zh: "年度全面体检的重要性" },
     excerpt: { en: "Regular health screenings are vital for early detection of potential issues. Learn why scheduling your yearly physical is the most crucial step you can take for long-term wellness.", fr: "Les dépistages réguliers sont essentiels pour la détection précoce des problèmes potentiels. Découvrez pourquoi le bilan annuel est l'étape la plus importante pour votre bien-être à long terme.", zh: "定期体检是早期发现疾病隐患的关键。了解为什么每年安排一次全面体检是保障长期健康的重中之重。" }
@@ -308,4 +337,87 @@ export function getLocalizedBlogExcerpt(excerpt: string, title: string, locale: 
   const found = BLOG_POST_TRANSLATIONS[title];
   if (found && found.excerpt[normLocale]) return found.excerpt[normLocale];
   return excerpt;
+}
+
+const AUTHOR_ROLE_MAP: Record<string, Record<string, string>> = {
+  "Consultant Physician": { en: "Consultant Physician", fr: "Médecin Consultant", zh: "资深全科门诊专家" },
+  "Chief Nutritional Lead": { en: "Chief Nutritional Lead", fr: "Nutritionniste en Chef", zh: "首席临床营养专家" },
+  "Lead Clinical Psychologist": { en: "Lead Clinical Psychologist", fr: "Psychologue Clinique Principal", zh: "资深临床心理学专家" },
+  "Lumina Care Coordination": { en: "Lumina Care Coordination", fr: "Coordination des Soins Lumina", zh: "Lumina 护理协调团队" },
+  "Clinic Operations": { en: "Clinic Operations", fr: "Opérations Cliniques", zh: "诊所运营团队" },
+  "Chief of General Medicine": { en: "Chief of General Medicine", fr: "Chef de la Médecine Générale", zh: "全科医学科主任" },
+};
+
+export function getLocalizedAuthorRole(role: string, locale: string): string {
+  const normLocale = (locale || "en").toLowerCase();
+  const found = AUTHOR_ROLE_MAP[role];
+  if (found && found[normLocale]) return found[normLocale];
+  return role;
+}
+
+const DEPARTMENT_TRANSLATIONS: Record<string, Record<string, string>> = {
+  "Dermatology": { en: "Dermatology", fr: "Dermatologie", zh: "皮肤科" },
+  "Cardiology": { en: "Cardiology", fr: "Cardiologie", zh: "心血管内科" },
+  "Pediatrics": { en: "Pediatrics", fr: "Pédiatrie", zh: "儿科" },
+  "Ophthalmology": { en: "Ophthalmology", fr: "Ophtalmologie", zh: "眼科" },
+  "Dentistry": { en: "Dentistry", fr: "Dentisterie", zh: "口腔科" },
+  "Neurology": { en: "Neurology", fr: "Neurologie", zh: "神经内科" },
+  "Orthopedics": { en: "Orthopedics", fr: "Orthopédie", zh: "骨科" },
+  "Primary Care": { en: "Primary Care", fr: "Soins Primaires", zh: "全科医学" },
+  "General Care": { en: "General Care", fr: "Soins Généraux", zh: "基础门诊" },
+};
+
+export function getLocalizedDepartmentName(dept: string, locale: string): string {
+  if (!dept) return "";
+  const normLocale = (locale || "en").toLowerCase();
+  const found = DEPARTMENT_TRANSLATIONS[dept];
+  if (found && found[normLocale]) return found[normLocale];
+  return dept;
+}
+
+const PRICING_PLAN_TRANSLATIONS: Record<string, { name: Record<string, string>; desc: Record<string, string> }> = {
+  "Basic": {
+    name: { en: "Basic", fr: "Formule de Base", zh: "基础版套餐" },
+    desc: { en: "Essential care for proactive individuals.", fr: "Soins essentiels pour personnes prévoyantes.", zh: "适合追求个人健康预防管理的用户。" }
+  },
+  "Standard": {
+    name: { en: "Standard", fr: "Formule Standard", zh: "标准版套餐" },
+    desc: { en: "Comprehensive care for growing families.", fr: "Soins complets pour familles grandissantes.", zh: "适合注重全家长期健康保障的家庭。" }
+  },
+  "Premium": {
+    name: { en: "Premium", fr: "Formule Premium", zh: "尊享版套餐" },
+    desc: { en: "Ultimate care and immediate clinical access.", fr: "Soins ultimes et accès clinique immédiat.", zh: "适合享有最高优先级就诊与全面保障的用户。" }
+  }
+};
+
+export function getLocalizedPlanName(name: string, locale: string): string {
+  const normLocale = (locale || "en").toLowerCase();
+  const found = PRICING_PLAN_TRANSLATIONS[name];
+  if (found && found.name[normLocale]) return found.name[normLocale];
+  return name;
+}
+
+export function getLocalizedPlanDesc(desc: string, planName: string, locale: string): string {
+  const normLocale = (locale || "en").toLowerCase();
+  const found = PRICING_PLAN_TRANSLATIONS[planName];
+  if (found && found.desc[normLocale]) return found.desc[normLocale];
+  return desc;
+}
+
+const FEATURE_TRANSLATIONS: Record<string, Record<string, string>> = {
+  "1 Free Consultation/yr": { en: "1 Free Consultation/yr", fr: "1 Consultation Gratuite/an", zh: "每年 1 次免费全科门诊咨询" },
+  "3 Free Consultations/yr": { en: "3 Free Consultations/yr", fr: "3 Consultations Gratuites/an", zh: "每年 3 次免费全科门诊咨询" },
+  "Unlimited Consultations": { en: "Unlimited Consultations", fr: "Consultations Illimitées", zh: "无限制免费全科门诊" },
+  "10% off Diagnostics": { en: "10% off Diagnostics", fr: "10% de réduction sur Diagnostics", zh: "医学检验项目 9 折优惠" },
+  "20% off Diagnostics": { en: "20% off Diagnostics", fr: "20% de réduction sur Diagnostics", zh: "医学检验项目 8 折优惠" },
+  "50% off Diagnostics": { en: "50% off Diagnostics", fr: "50% de réduction sur Diagnostics", zh: "医学检验项目 5 折半价优惠" },
+  "Telehealth Access": { en: "Telehealth Access", fr: "Accès Télépréservation", zh: "支持远程问诊与在线咨询" },
+  "Priority Booking slots": { en: "Priority Booking slots", fr: "Créneaux Prioritaires", zh: "尊享优先预约绿色通道" }
+};
+
+export function getLocalizedFeatureText(text: string, locale: string): string {
+  const normLocale = (locale || "en").toLowerCase();
+  const found = FEATURE_TRANSLATIONS[text];
+  if (found && found[normLocale]) return found[normLocale];
+  return text;
 }

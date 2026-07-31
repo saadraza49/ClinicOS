@@ -61,13 +61,29 @@
     "medicalSpecialist": "Medical Specialist"
   },
   "FeesPage": {
-    "title": "Transparent Pricing",
-    "subtitle": "High-quality care with no hidden costs. We believe in providing clear, upfront pricing so you can focus on what matters most—your health.",
-    "infoNote": "Prices may vary based on consultation complexity — ",
+    "title": "Transparent & Upfront Pricing",
+    "subtitle": "High-quality healthcare shouldn't come with hidden surprises. We maintain transparent pricing so you can focus on your well-being.",
+    "infoNote": "Actual fees may vary based on treatment complexity — ",
     "contactLink": "contact us",
-    "forQuote": " for a personalized quote.",
-    "planSectionTitle": "Healthcare Membership Plans",
-    "planSectionSub": "Choose a flexible membership plan tailored for individuals and families."
+    "forQuote": "for a personalized quote.",
+    "generalTitle": "General Consultations",
+    "generalDesc": "Standard checkups, routine health screenings, and preventative care consultations.",
+    "diagnosticsTitle": "Diagnostics & Labs",
+    "diagnosticsDesc": "Laboratory blood tests, modern digital x-ray imaging, and ultrasounds.",
+    "vaccinationsTitle": "Vaccinations",
+    "vaccinationsDesc": "Pediatric schedules, travel immunizations, and annual influenza vaccines.",
+    "specialistTitle": "Specialist Care",
+    "specialistDesc": "Specialized evaluations with senior clinical consultants.",
+    "detailedFeesTitle": "Detailed Service Fees",
+    "serviceNameHeader": "Service Name",
+    "departmentHeader": "Department",
+    "durationHeader": "Duration",
+    "standardFeeHeader": "Standard Fee",
+    "minsUnit": "mins",
+    "membershipPlansTitle": "Membership Plans",
+    "membershipPlansSubtitle": "Choose a plan that fits your healthcare needs and enjoy premium benefits.",
+    "choosePlan": "Choose Plan",
+    "mostPopular": "Most Popular"
   },
   "Footer": {
     "aboutText": "Compassionate, modern care for you and your family. Your health is our priority.",
@@ -255,6 +271,7 @@
   "BlogPage": {
     "title": "Health Tips & News",
     "subtitle": "Stay informed with expert medical advice, clinic updates, and wellness strategies for you and your family.",
+    "allTopics": "All Topics",
     "featuredBadge": "Featured",
     "readArticle": "Read Article",
     "readMore": "Read More",
@@ -263,6 +280,18 @@
     "noArticlesTitle": "No articles found",
     "noArticlesDesc": "We don't have any articles published under this category yet. Check back soon for updates!"
   },
+  "BlogDetailPage": {
+    "homeBreadcrumb": "Home",
+    "blogBreadcrumb": "Blog",
+    "articleNotFoundTitle": "Article Not Found",
+    "articleNotFoundDesc": "We couldn't find the requested blog article. It may have been renamed or deleted.",
+    "returnToBlog": "Return to Blog",
+    "minRead": "{mins} min read",
+    "enjoyedTitle": "Enjoyed this article?",
+    "enjoyedDesc": "Take the next step in your health journey. Book a consultation with one of our specialists today to discuss your personalized wellness plan.",
+    "bookConsultation": "Book a Consultation",
+    "relatedArticlesTitle": "Related Articles"
+  },
   "ContactPage": {
     "title": "Get in Touch",
     "subtitle": "We're here to help you on your health journey. Reach out with any questions, concerns, or to schedule a visit.",
@@ -270,6 +299,10 @@
     "messageSuccessTitle": "Message Sent Successfully!",
     "messageSuccessDesc": "Thank you for reaching out. A clinic care coordinator will review your request and contact you shortly.",
     "sendAnotherMsg": "Send another message",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "subjectLabel": "Subject",
     "subjectGeneral": "General Inquiry",
     "subjectAppointments": "Appointments",
     "subjectBilling": "Billing",
@@ -279,7 +312,12 @@
     "sendingBtn": "Sending...",
     "sendMsgBtn": "Send Message",
     "clinicInfoTitle": "Clinic Information",
+    "addressLabel": "Address",
     "workingHoursTitle": "Working Hours",
+    "monFri": "Mon - Fri",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "closed": "Closed",
     "clickForMap": "Click to open interactive map & directions",
     "enlargeBtn": "Enlarge"
   }

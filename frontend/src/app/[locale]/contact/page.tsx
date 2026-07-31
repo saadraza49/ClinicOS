@@ -183,7 +183,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="name">
-                        Full Name <span className="text-error">*</span>
+                        {t("fullName")} <span className="text-error">*</span>
                       </label>
                       <input
                         id="name"
@@ -203,7 +203,7 @@ export default function ContactPage() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="email">
-                        Email Address <span className="text-error">*</span>
+                        {t("emailAddress")} <span className="text-error">*</span>
                       </label>
                       <input
                         id="email"
@@ -225,7 +225,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="phone">
-                        Phone Number <span className="text-error">*</span>
+                        {t("phoneNumber")} <span className="text-error">*</span>
                       </label>
                       <input
                         id="phone"
@@ -245,7 +245,7 @@ export default function ContactPage() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="subject">
-                        Subject
+                        {t("subjectLabel")}
                       </label>
                       <div className="relative">
                         <select
@@ -326,7 +326,7 @@ export default function ContactPage() {
                   <span className="material-symbols-outlined text-[24px]">location_on</span>
                 </div>
                 <div>
-                  <p className="text-label-sm font-semibold text-on-surface-variant mb-1">Address</p>
+                  <p className="text-label-sm font-semibold text-on-surface-variant mb-1">{t("addressLabel")}</p>
                   <p className="text-body-md text-on-surface font-medium leading-relaxed">
                     123 Healing Way
                     <br />
@@ -342,9 +342,9 @@ export default function ContactPage() {
                 <div className="w-full">
                   <p className="text-label-sm font-semibold text-on-surface-variant mb-2">{t("workingHoursTitle")}</p>
                   <div className="grid grid-cols-2 gap-y-2 text-body-md text-on-surface font-semibold max-w-[280px]">
-                    <span>Mon - Fri</span> <span className="text-right text-primary">8:00 AM - 6:00 PM</span>
-                    <span>Saturday</span> <span className="text-right text-primary">9:00 AM - 2:00 PM</span>
-                    <span>Sunday</span> <span className="text-right text-on-surface-variant font-normal">Closed</span>
+                    <span>{t("monFri")}</span> <span className="text-right text-primary">8:00 AM - 6:00 PM</span>
+                    <span>{t("saturday")}</span> <span className="text-right text-primary">9:00 AM - 2:00 PM</span>
+                    <span>{t("sunday")}</span> <span className="text-right text-on-surface-variant font-normal">{t("closed")}</span>
                   </div>
                 </div>
               </div>
