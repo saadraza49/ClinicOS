@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 
 interface DateSelectorProps {
   value: string; // YYYY-MM-DD
@@ -11,6 +11,7 @@ interface DateSelectorProps {
 
 export default function DateSelector({ value, minDate, onChange, error }: DateSelectorProps) {
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const [showManualInput, setShowManualInput] = useState(false);
 
   // Helper to parse YYYY-MM-DD string to local Date object without timezone shift
   const parseDateStr = (str: string): Date => {
@@ -30,7 +31,6 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
   const currentDateObj = parseDateStr(value);
   const minDateObj = parseDateStr(minDate);
 
-  // Compare if current value is today (or <= minDate)
   const isToday = value === minDate;
   const isPrevDisabled = value <= minDate;
 
@@ -59,19 +59,20 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
     onChange(formatDateToStr(next));
   };
 
-  const handleOpenCalendar = () => {
+  const handleOpenCalendar = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     const el = dateInputRef.current;
-    if (!el) return;
-    const inputEl = el as HTMLInputElement & { showPicker?: () => void };
-    if (typeof inputEl.showPicker === "function") {
+    
+    if (el && typeof el.showPicker === "function") {
       try {
-        inputEl.showPicker();
-      } catch {
-        inputEl.focus();
+        el.showPicker();
+        return;
+      } catch (err) {
+        console.warn("showPicker failed, showing fallback input:", err);
       }
-    } else {
-      inputEl.focus();
     }
+    // Fallback: toggle manual date input picker
+    setShowManualInput((prev) => !prev);
   };
 
   // Generate quick chips (Today, Tomorrow, Day after)
@@ -111,7 +112,11 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
         </button>
 
         {/* Center Display: Day & Date */}
-        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1.5 text-center py-1 select-none">
+        <div
+          onClick={handleOpenCalendar}
+          className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1.5 text-center py-1 select-none cursor-pointer hover:opacity-80 transition-opacity"
+          title="Click to open calendar picker"
+        >
           <div className="flex items-center justify-center gap-2">
             {isToday ? (
               <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-primary/15 text-primary rounded-full">
@@ -139,28 +144,57 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
           <span className="material-symbols-outlined text-2xl font-bold select-none">chevron_right</span>
         </button>
 
-        {/* Calendar Picker Option */}
+        {/* Calendar Button */}
         <div className="relative flex items-center">
           <button
             type="button"
             onClick={handleOpenCalendar}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-xl transition-all active:scale-95 cursor-pointer"
-            title="Choose from calendar"
+            title="Choose date from calendar"
           >
             <span className="material-symbols-outlined text-lg select-none">calendar_month</span>
             <span className="hidden sm:inline">Calendar</span>
           </button>
+
+          {/* Hidden native date input for showPicker API */}
           <input
             ref={dateInputRef}
             type="date"
             min={minDate}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 opacity-0 pointer-events-auto cursor-pointer w-full h-full"
+            onChange={(e) => {
+              if (e.target.value) {
+                onChange(e.target.value);
+                setShowManualInput(false);
+              }
+            }}
+            className="absolute opacity-0 w-px h-px pointer-events-none left-0 bottom-0"
             aria-label="Select date from calendar"
           />
         </div>
       </div>
+
+      {/* Manual / Fallback Date Picker if toggled or showPicker unsupported */}
+      {showManualInput && (
+        <div className="p-3 bg-surface-container-high border border-primary/30 rounded-xl flex items-center justify-between gap-3 animate-fadeIn">
+          <label htmlFor="manual-date-picker" className="text-xs font-semibold text-on-surface-variant">
+            Pick Specific Date:
+          </label>
+          <input
+            id="manual-date-picker"
+            type="date"
+            min={minDate}
+            value={value}
+            onChange={(e) => {
+              if (e.target.value) {
+                onChange(e.target.value);
+                setShowManualInput(false);
+              }
+            }}
+            className="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      )}
 
       {/* Quick Day Chips */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
@@ -171,7 +205,10 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
             <button
               key={qd.dateStr}
               type="button"
-              onClick={() => onChange(qd.dateStr)}
+              onClick={() => {
+                onChange(qd.dateStr);
+                setShowManualInput(false);
+              }}
               className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap transition-all cursor-pointer ${
                 isSelected
                   ? "bg-primary text-on-primary shadow-2xs scale-102"
