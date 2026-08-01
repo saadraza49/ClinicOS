@@ -9,7 +9,6 @@ import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
 import SearchableSelect from "@/components/searchable-select";
 import Image from "next/image";
-import { getTodayLocalString } from "@/lib/date-utils";
 
 function BookingForm() {
   const router = useRouter();
@@ -53,11 +52,20 @@ function BookingForm() {
     }
   }, [user]);
 
-  // Set min date to today
+  // Helper to compute local browser date in YYYY-MM-DD format
+  const getLocalTodayStr = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Set min date to local today
   useEffect(() => {
-    const today = getTodayLocalString();
+    const today = getLocalTodayStr();
     setMinDate(today);
-    setDate(today);
+    setDate((prev) => (!prev || prev < today ? today : prev));
   }, []);
 
   // Fetch initial doctors & services from DB
@@ -240,12 +248,54 @@ function BookingForm() {
     })),
   ];
 
+  // Helper to check if slot time is in the past for selected date
+  const isSlotPastLocal = (slotVal: string, targetDateStr: string): boolean => {
+    const todayStr = getLocalTodayStr();
+    if (targetDateStr < todayStr) return true;
+    if (targetDateStr > todayStr) return false;
+
+    const now = new Date();
+    try {
+      const clean = slotVal.trim().toUpperCase();
+      let hours = 0;
+      let minutes = 0;
+
+      if (clean.includes("AM") || clean.includes("PM")) {
+        const [timePart, ampm] = clean.split(" ");
+        const [hStr, mStr] = timePart.split(":");
+        hours = parseInt(hStr, 10);
+        minutes = parseInt(mStr, 10) || 0;
+        if (ampm === "PM" && hours < 12) hours += 12;
+        if (ampm === "AM" && hours === 12) hours = 0;
+      } else {
+        const [hStr, mStr] = clean.split(":");
+        hours = parseInt(hStr, 10);
+        minutes = parseInt(mStr, 10) || 0;
+      }
+
+      const slotDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+      return slotDateTime <= now;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // Map slots to include real-time past disabling
+  const processedAvailableSlots = availableSlots.map((s) => {
+    const isPast = isSlotPastLocal(s.value, date);
+    return {
+      ...s,
+      disabled: s.disabled || isPast,
+      isPast,
+    };
+  });
+
   // Split time slots into Morning & Afternoon/Evening for clean UX
-  const morningSlots = availableSlots.filter((s) => {
+  const morningSlots = processedAvailableSlots.filter((s) => {
     const val = s.value.toLowerCase();
     return val.includes("am") || val.startsWith("09:") || val.startsWith("10:") || val.startsWith("11:");
   });
-  const afternoonSlots = availableSlots.filter((s) => !morningSlots.includes(s));
+  const afternoonSlots = processedAvailableSlots.filter((s) => !morningSlots.includes(s));
 
   const stepsList = [
     { number: 1, title: "Service & Doctor", icon: "medical_services" },
@@ -482,7 +532,7 @@ function BookingForm() {
                                     : "border-outline-variant/60 text-on-surface-variant hover:border-primary hover:bg-primary/5"
                                 }`}
                               >
-                                {slot.label} {slot.disabled ? "(Booked)" : ""}
+                                {slot.label} {slot.disabled ? (slot.isPast ? "(Past)" : "(Booked)") : ""}
                               </button>
                             ))}
                           </div>
@@ -513,7 +563,7 @@ function BookingForm() {
                                     : "border-outline-variant/60 text-on-surface-variant hover:border-primary hover:bg-primary/5"
                                 }`}
                               >
-                                {slot.label} {slot.disabled ? "(Booked)" : ""}
+                                {slot.label} {slot.disabled ? (slot.isPast ? "(Past)" : "(Booked)") : ""}
                               </button>
                             ))}
                           </div>

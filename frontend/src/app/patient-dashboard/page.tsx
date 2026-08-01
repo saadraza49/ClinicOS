@@ -20,7 +20,6 @@ import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
 import { downloadAppointmentPDF } from "@/lib/pdf-generator";
 import ReviewModal from "@/components/review-modal";
-import { getTodayLocalString } from "@/lib/date-utils";
 
 export default function PatientDashboardPage() {
   const router = useRouter();
@@ -75,7 +74,7 @@ export default function PatientDashboardPage() {
   const [todayMinDate, setTodayMinDate] = useState<string>("");
 
   useEffect(() => {
-    const today = getTodayLocalString();
+    const today = new Date().toISOString().split("T")[0];
     setTodayMinDate(today);
   }, []);
 
@@ -101,7 +100,7 @@ export default function PatientDashboardPage() {
   }, [reschedulingAppt, rescheduleDate]);
 
   const handleOpenRescheduleModal = (appt: AppointmentData) => {
-    const today = getTodayLocalString();
+    const today = new Date().toISOString().split("T")[0];
     const initialDate = String(appt.appointment_date) >= today ? String(appt.appointment_date) : today;
     setReschedulingAppt(appt);
     setRescheduleDate(initialDate);

@@ -31,6 +31,13 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
   const currentDateObj = parseDateStr(value);
   const minDateObj = parseDateStr(minDate);
 
+  // Auto-correct any value that is before minDate
+  React.useEffect(() => {
+    if (minDate && value && value < minDate) {
+      onChange(minDate);
+    }
+  }, [value, minDate, onChange]);
+
   const isToday = value === minDate;
   const isPrevDisabled = value <= minDate;
 

@@ -173,11 +173,12 @@ def create_appointment(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    # 1. Reject past dates
-    if payload.appointment_date < date.today():
+    # 1. Reject past dates and past time slots
+    app_datetime = get_appointment_datetime(payload.appointment_date, payload.appointment_time)
+    if app_datetime <= datetime.now():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot book an appointment for a past date."
+            detail="Cannot book an appointment for a past date or time slot. Please select a future date and time."
         )
 
     # 2. Resolve Doctor
