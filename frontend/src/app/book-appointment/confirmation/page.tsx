@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Button from "@/components/button";
+import { downloadAppointmentPDF } from "@/lib/pdf-generator";
 
 function ConfirmationDetails() {
   const searchParams = useSearchParams();
@@ -149,18 +150,35 @@ function ConfirmationDetails() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
           <Button
-            variant="outline"
-            onClick={() => alert("Added to calendar!")}
-            className="flex items-center justify-center gap-2 bg-surface-container-lowest"
+            variant="primary"
+            onClick={() => {
+              downloadAppointmentPDF({
+                id: searchParams.get("id") || `APT-${Date.now().toString().slice(-6)}`,
+                patient_name: name,
+                patient_phone: searchParams.get("phone") || "+92 300 0000000",
+                patient_email: searchParams.get("email") || undefined,
+                doctor_name: doctor,
+                service_name: service,
+                appointment_date: dateRaw,
+                appointment_time: time,
+                status: "CONFIRMED",
+              });
+            }}
+            className="flex items-center justify-center gap-2 text-sm font-bold py-3"
           >
-            <span className="material-symbols-outlined">edit_calendar</span>
-            Add to Calendar
+            <span className="material-symbols-outlined text-lg select-none">download_for_offline</span>
+            Download PDF Slip
           </Button>
+          <Link href="/patient-dashboard" className="inline-block">
+            <Button variant="outline" className="w-full text-sm py-3">
+              Go to Patient Dashboard
+            </Button>
+          </Link>
           <Link href="/" className="inline-block">
-            <Button variant="primary" className="w-full">
-              Return to Home
+            <Button variant="secondary" className="w-full text-sm py-3">
+              Return Home
             </Button>
           </Link>
         </div>

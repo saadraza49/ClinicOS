@@ -18,6 +18,7 @@ import {
 } from "@/lib/api";
 import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
+import { downloadAppointmentPDF } from "@/lib/pdf-generator";
 
 export default function PatientDashboardPage() {
   const router = useRouter();
@@ -691,41 +692,58 @@ export default function PatientDashboardPage() {
                       </div>
 
                       <div className="flex flex-col items-end gap-2 w-full md:w-auto">
-                        {isUpcoming && (
-                          cannotCancel ? (
-                            <div className="text-right">
-                              <button
-                                disabled
-                                className="text-xs py-2 px-4 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-medium cursor-not-allowed"
-                                title="Cancellation locked within 2 hours of appointment time"
-                              >
-                                Cancellation Locked (&lt;2h)
-                              </button>
-                              <p className="text-[11px] text-gray-500 mt-1">
-                                Call support: +92 300 1234567
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="secondary"
-                                onClick={() => handleOpenRescheduleModal(appt)}
-                                className="text-xs py-2 px-4 text-primary border border-primary/30 hover:bg-primary/10 flex items-center gap-1.5"
-                              >
-                                <span className="material-symbols-outlined text-base select-none">edit_calendar</span>
-                                Reschedule
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => handleCancelAppointment(appt.id)}
-                                isLoading={cancellingId === appt.id}
-                                className="text-xs py-2 px-4 text-error border-error/30 hover:bg-error/10"
-                              >
-                                Cancel Visit
-                              </Button>
-                            </div>
-                          )
-                        )}
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              downloadAppointmentPDF({
+                                id: appt.id,
+                                patient_name: appt.patient_name || user?.full_name || "Patient",
+                                patient_phone: appt.patient_phone || user?.phone || "+92 300 0000000",
+                                patient_email: appt.patient_email || user?.email || undefined,
+                                doctor_name: appt.doctor?.full_name || "Assigned Specialist",
+                                doctor_specialty: appt.doctor?.specialty,
+                                service_name: appt.service?.name || "Medical Consultation",
+                                appointment_date: String(appt.appointment_date),
+                                appointment_time: appt.appointment_time,
+                                consultation_fee: appt.service?.price || appt.doctor?.consultation_fee,
+                                status: appt.status.toUpperCase(),
+                              });
+                            }}
+                            className="text-xs py-2 px-3 text-on-surface-variant border-outline-variant/40 hover:bg-surface-container-high flex items-center gap-1"
+                            title="Download PDF Appointment Slip"
+                          >
+                            <span className="material-symbols-outlined text-base select-none">picture_as_pdf</span>
+                            PDF Slip
+                          </Button>
+
+                          {isUpcoming && (
+                            cannotCancel ? (
+                              <span className="text-[11px] py-1.5 px-3 bg-gray-100 text-gray-500 rounded-xl font-medium border border-gray-200">
+                                Locked (&lt;2h)
+                              </span>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => handleOpenRescheduleModal(appt)}
+                                  className="text-xs py-2 px-3 text-primary border border-primary/30 hover:bg-primary/10 flex items-center gap-1"
+                                >
+                                  <span className="material-symbols-outlined text-base select-none">edit_calendar</span>
+                                  Reschedule
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleCancelAppointment(appt.id)}
+                                  isLoading={cancellingId === appt.id}
+                                  className="text-xs py-2 px-3 text-error border-error/30 hover:bg-error/10"
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            )
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
