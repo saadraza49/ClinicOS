@@ -68,12 +68,54 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
   }
 
   const languagesList = doctor.languages ? doctor.languages.split(",").map(s => s.trim()) : ["English"];
-  const availableDays = doctor.schedules && doctor.schedules.length > 0
-    ? doctor.schedules.map(s => s.day_of_week)
-    : ["Monday", "Wednesday", "Friday"];
-  const scheduleTime = doctor.schedules && doctor.schedules.length > 0
-    ? `${doctor.schedules[0].start_time} - ${doctor.schedules[0].end_time}`
-    : "09:00 AM - 05:00 PM";
+
+  const ALL_DAYS = [
+    { full: "Monday", short: "Mon" },
+    { full: "Tuesday", short: "Tue" },
+    { full: "Wednesday", short: "Wed" },
+    { full: "Thursday", short: "Thu" },
+    { full: "Friday", short: "Fri" },
+    { full: "Saturday", short: "Sat" },
+    { full: "Sunday", short: "Sun" },
+  ];
+
+  const weeklySchedule = ALL_DAYS.map((dObj) => {
+    if (!doctor.schedules || doctor.schedules.length === 0) {
+      const isDefaultWork = ["Mon", "Wed", "Fri"].includes(dObj.short);
+      return {
+        ...dObj,
+        isWorking: isDefaultWork,
+        startTime: isDefaultWork ? "09:00 AM" : null,
+        endTime: isDefaultWork ? "05:00 PM" : null,
+        slotDuration: 30,
+      };
+    }
+
+    const match = doctor.schedules.find(
+      (s) =>
+        s.is_active &&
+        (s.day_of_week.toLowerCase().includes(dObj.short.toLowerCase()) ||
+          s.day_of_week.toLowerCase().includes(dObj.full.toLowerCase()))
+    );
+
+    if (match) {
+      return {
+        ...dObj,
+        isWorking: true,
+        startTime: match.start_time,
+        endTime: match.end_time,
+        slotDuration: match.slot_duration_minutes || 30,
+      };
+    }
+
+    return {
+      ...dObj,
+      isWorking: false,
+      startTime: null,
+      endTime: null,
+      slotDuration: null,
+    };
+  });
 
   return (
     <div className="overflow-x-hidden">
@@ -112,16 +154,16 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
         </div>
       </div>
 
-      {/* Doctor Profile Section */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
+      {/* Doctor Profile Header Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
-          {/* Left Column: Photo */}
-          <div className="md:col-span-5 lg:col-span-4 flex flex-col items-center md:items-start">
+          {/* Left Column: Photo & Quick Highlights */}
+          <div className="md:col-span-5 lg:col-span-4 flex flex-col items-center md:items-start space-y-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="relative w-full max-w-sm aspect-[4/5] rounded-2xl overflow-hidden shadow-ambient bg-surface-container-lowest border border-outline-variant/10"
+              className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-md bg-surface-container-lowest border border-outline-variant/15"
             >
               <Image
                 src={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
@@ -132,101 +174,152 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                 className="object-cover"
               />
             </motion.div>
+
+            {/* Consultation Fee & Booking Card */}
+            <div className="w-full max-w-sm bg-surface-container-low p-5 rounded-3xl border border-outline-variant/15 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant font-medium">Consultation Fee:</span>
+                <span className="text-headline-sm font-bold text-primary">${doctor.consultation_fee} USD</span>
+              </div>
+              <div className="flex items-center justify-between text-xs border-t border-outline-variant/10 pt-2 text-on-surface-variant">
+                <span className="flex items-center gap-1 font-medium">
+                  <span className="material-symbols-outlined text-sm text-amber-500 select-none" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  Patient Rating:
+                </span>
+                <span className="font-bold text-on-surface">{doctor.rating.toFixed(1)} / 5.0 ({doctor.review_count} reviews)</span>
+              </div>
+              <Link href={`/book-appointment?doctor=${doctor.id}`} className="block pt-1">
+                <Button variant="primary" className="w-full justify-center text-sm py-3">
+                  Book Appointment Now
+                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* Right Column: Details */}
+          {/* Right Column: Doctor Info & Biography */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="md:col-span-7 lg:col-span-8 flex flex-col"
+            className="md:col-span-7 lg:col-span-8 flex flex-col space-y-6"
           >
-            {/* Badges and Quick Stats */}
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
-                <span className="material-symbols-outlined text-[16px] mr-1">
-                  stethoscope
-                </span>
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                <span className="material-symbols-outlined text-base mr-1 select-none">stethoscope</span>
                 {doctor.specialty}
               </span>
-              <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
-                <span className="material-symbols-outlined text-[18px] text-primary">
-                  workspace_premium
-                </span>
-                {doctor.qualifications || "Medical Specialist"}
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/15 text-secondary-900 text-xs font-bold">
+                <span className="material-symbols-outlined text-base mr-1 select-none">workspace_premium</span>
+                {doctor.qualifications || "Board Certified"}
               </span>
-              <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
-                <span className="material-symbols-outlined text-[18px] text-primary">
-                  history
-                </span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-bold">
+                <span className="material-symbols-outlined text-base mr-1 select-none">history</span>
                 {doctor.experience_years} Years Experience
               </span>
             </div>
 
             {/* Doctor Name */}
-            <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface mb-4 font-bold leading-tight">
-              {doctor.full_name}
-            </h1>
+            <div>
+              <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface font-bold leading-tight">
+                {doctor.full_name}
+              </h1>
+              {doctor.department && (
+                <p className="text-body-md text-primary font-semibold mt-1">
+                  Department of {doctor.department.name}
+                </p>
+              )}
+            </div>
 
             {/* Bio */}
-            <p className="text-body-lg text-on-surface-variant mb-8 leading-relaxed">
-              {doctor.bio || "Dedicated healthcare professional focused on delivering exceptional, evidence-based care to patients."}
-            </p>
-
-            {/* Langs and Availability tags */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10 border-t border-outline-variant/10 pt-6">
-              <div>
-                <h3 className="text-label-md font-bold text-on-surface mb-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary text-lg">
-                    language
-                  </span>
-                  Languages Spoken
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {languagesList.map((lang) => (
-                    <span
-                      key={lang}
-                      className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-medium"
-                    >
-                      {lang}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-label-md font-bold text-on-surface mb-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-lg">
-                    calendar_month
-                  </span>
-                  Availability
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableDays.map((day) => (
-                    <span
-                      key={day}
-                      className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-semibold"
-                    >
-                      {day}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-label-sm text-on-surface-variant mt-2 pl-7 text-xs">
-                  {scheduleTime}
-                </p>
-              </div>
+            <div className="bg-white p-6 rounded-3xl border border-outline-variant/15 space-y-2">
+              <h3 className="text-headline-sm font-bold text-on-surface flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">person</span> About Dr. {doctor.full_name.split(" ").slice(-1)[0]}
+              </h3>
+              <p className="text-body-md text-on-surface-variant leading-relaxed">
+                {doctor.bio || "Dedicated healthcare professional focused on delivering exceptional, evidence-based care to patients with empathy and medical excellence."}
+              </p>
             </div>
 
-            {/* Book CTA button */}
-            <div className="pt-4 border-t border-outline-variant/10">
-              <Link href={`/book-appointment?doctor=${doctor.id}`} className="inline-block w-full sm:w-auto">
-                <Button variant="primary" className="w-full sm:w-auto">
-                  Book with {doctor.full_name}
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </Button>
-              </Link>
+            {/* Languages */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1">
+                <span className="material-symbols-outlined text-secondary text-base select-none">language</span> Languages:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {languagesList.map((lang) => (
+                  <span
+                    key={lang}
+                    className="px-3 py-0.5 bg-surface-container border border-outline-variant/20 rounded-full text-xs text-on-surface-variant font-semibold"
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </div>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Clear Weekly Schedule Matrix Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-6 pb-12">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-outline-variant/15 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-container-high pb-4">
+            <div>
+              <h2 className="text-headline-md font-bold text-on-surface flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-2xl select-none">calendar_month</span>
+                Weekly OPD &amp; Consultation Schedule
+              </h2>
+              <p className="text-xs text-on-surface-variant mt-0.5">
+                Exact day-by-day working hours and slot durations for Dr. {doctor.full_name}
+              </p>
+            </div>
+            <span className="text-xs font-bold px-3 py-1.5 bg-emerald-100/80 text-emerald-900 rounded-full self-start sm:self-auto flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Schedule
+            </span>
+          </div>
+
+          {/* 7-Day Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {weeklySchedule.map((item) => (
+              <div
+                key={item.full}
+                className={`p-4 rounded-2xl border text-center flex flex-col justify-between transition-all ${
+                  item.isWorking
+                    ? "bg-emerald-50/60 border-emerald-200 shadow-2xs hover:border-emerald-400"
+                    : "bg-surface-container-low border-outline-variant/15 opacity-60"
+                }`}
+              >
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block mb-1.5">
+                    {item.full}
+                  </span>
+                  {item.isWorking ? (
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-emerald-950 block">
+                        {item.startTime}
+                      </span>
+                      <span className="text-[11px] font-semibold text-emerald-700 block">
+                        to {item.endTime}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-xs font-semibold text-on-surface-variant/70 block py-1.5">
+                      Off / Closed
+                    </span>
+                  )}
+                </div>
+
+                {item.isWorking && (
+                  <span className="mt-3 text-[10px] font-bold text-emerald-800 bg-emerald-100 py-1 px-2 rounded-lg border border-emerald-200">
+                    {item.slotDuration} min slots
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

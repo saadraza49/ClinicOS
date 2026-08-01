@@ -75,23 +75,35 @@ export default function DoctorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {doctorsList.map((doctor, index) => (
-              <motion.div
-                key={doctor.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-              >
-                <DoctorCard
-                  name={doctor.full_name}
-                  specialty={doctor.specialty}
-                  credentials={doctor.qualifications || "Medical Specialist"}
-                  image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
-                  slug={doctor.slug}
-                />
-              </motion.div>
-            ))}
+            {doctorsList.map((doctor, index) => {
+              const workingDays = doctor.schedules && doctor.schedules.length > 0
+                ? doctor.schedules.map((s) => s.day_of_week)
+                : ["Mon", "Wed", "Fri"];
+
+              return (
+                <motion.div
+                  key={doctor.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                >
+                  <DoctorCard
+                    id={doctor.id}
+                    name={doctor.full_name}
+                    specialty={doctor.specialty}
+                    credentials={doctor.qualifications || "Medical Specialist"}
+                    image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
+                    slug={doctor.slug}
+                    experience_years={doctor.experience_years}
+                    consultation_fee={doctor.consultation_fee}
+                    rating={doctor.rating}
+                    review_count={doctor.review_count}
+                    working_days={workingDays}
+                  />
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </section>
