@@ -97,6 +97,8 @@ export interface AppointmentData {
   appointment_time: string;
   status: string;
   reason_for_visit?: string;
+  cancellation_reason?: string;
+  notes?: string;
   booking_source: string;
   doctor?: DoctorData;
   service?: ServiceData;

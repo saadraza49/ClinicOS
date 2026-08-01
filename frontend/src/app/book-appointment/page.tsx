@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { getDoctors, getServices, getAvailableSlots, bookAppointment, DoctorData, ServiceData, TimeSlotData } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/button";
+import DateSelector from "@/components/date-selector";
 import Image from "next/image";
 
 function BookingForm() {
@@ -265,24 +266,18 @@ function BookingForm() {
           2. Date &amp; Time
         </h2>
         <div className="flex flex-col gap-1">
-          <label className="text-label-sm text-on-surface-variant" htmlFor="date">
+          <label className="text-label-sm text-on-surface-variant">
             Preferred Date <span className="text-error">*</span>
           </label>
-          <input
-            id="date"
-            name="date"
-            type="date"
-            min={minDate}
+          <DateSelector
             value={date}
-            onChange={(e) => {
-              setDate(e.target.value);
+            minDate={minDate}
+            onChange={(newDate) => {
+              setDate(newDate);
               if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
             }}
-            className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all ${
-              errors.date ? "border-error focus:ring-error" : "border-outline-variant"
-            }`}
+            error={errors.date}
           />
-          {errors.date && <p className="text-error text-xs mt-1">{errors.date}</p>}
         </div>
 
         {/* Time Slots */}
