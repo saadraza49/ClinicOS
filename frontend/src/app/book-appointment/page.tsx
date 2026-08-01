@@ -9,6 +9,7 @@ import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
 import SearchableSelect from "@/components/searchable-select";
 import Image from "next/image";
+import { getTodayLocalString } from "@/lib/date-utils";
 
 function BookingForm() {
   const router = useRouter();
@@ -54,7 +55,7 @@ function BookingForm() {
 
   // Set min date to today
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayLocalString();
     setMinDate(today);
     setDate(today);
   }, []);
