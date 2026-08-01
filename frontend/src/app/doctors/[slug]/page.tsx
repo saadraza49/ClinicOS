@@ -2,11 +2,13 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { getDoctorBySlug, DoctorData } from "@/lib/api";
+import { getDoctorBySlug, getDoctorReviews, DoctorData, ReviewData } from "@/lib/api";
 import TestimonialCard from "@/components/testimonial-card";
+import ReviewModal from "@/components/review-modal";
 import Button from "@/components/button";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 interface DoctorProfilePageProps {
   params: Promise<{ slug: string }>;
@@ -15,22 +17,30 @@ interface DoctorProfilePageProps {
 export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
+  const { user } = useAuth();
 
   const [doctor, setDoctor] = useState<DoctorData | null>(null);
+  const [reviews, setReviews] = useState<ReviewData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  const loadDoctorData = async () => {
+    try {
+      const data = await getDoctorBySlug(slug);
+      setDoctor(data);
+      if (data?.id) {
+        const revs = await getDoctorReviews(data.id);
+        setReviews(revs);
+      }
+    } catch (err) {
+      console.error("Failed to load doctor by slug:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadDoctor() {
-      try {
-        const data = await getDoctorBySlug(slug);
-        setDoctor(data);
-      } catch (err) {
-        console.error("Failed to load doctor by slug:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDoctor();
+    loadDoctorData();
   }, [slug]);
 
   if (loading) {
@@ -98,155 +108,127 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
           s.day_of_week.toLowerCase().includes(dObj.full.toLowerCase()))
     );
 
-    if (match) {
-      return {
-        ...dObj,
-        isWorking: true,
-        startTime: match.start_time,
-        endTime: match.end_time,
-        slotDuration: match.slot_duration_minutes || 30,
-      };
-    }
-
     return {
       ...dObj,
-      isWorking: false,
-      startTime: null,
-      endTime: null,
-      slotDuration: null,
+      isWorking: !!match,
+      startTime: match ? match.start_time : null,
+      endTime: match ? match.end_time : null,
+      slotDuration: match ? match.slot_duration_minutes : 30,
     };
   });
 
   return (
-    <div className="overflow-x-hidden">
-      {/* Breadcrumbs Banner */}
-      <div className="bg-surface-container-low border-b border-outline-variant/10">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
-          <nav aria-label="Breadcrumb" className="flex text-sm text-on-surface-variant">
-            <ol className="inline-flex items-center space-x-1 md:space-x-2">
-              <li className="inline-flex items-center">
-                <Link href="/" className="hover:text-primary transition-colors text-label-sm font-semibold">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <div className="flex items-center">
-                  <span className="material-symbols-outlined text-[16px] mx-1 text-on-surface-variant/50 select-none">
-                    chevron_right
-                  </span>
-                  <Link href="/doctors" className="hover:text-primary transition-colors text-label-sm font-semibold">
-                    Doctors
-                  </Link>
-                </div>
-              </li>
-              <li aria-current="page">
-                <div className="flex items-center">
-                  <span className="material-symbols-outlined text-[16px] mx-1 text-on-surface-variant/50 select-none">
-                    chevron_right
-                  </span>
-                  <span className="text-on-surface font-semibold text-label-sm">
-                    {doctor.full_name}
-                  </span>
-                </div>
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
-
-      {/* Doctor Profile Header Section */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
-          {/* Left Column: Photo & Quick Highlights */}
-          <div className="md:col-span-5 lg:col-span-4 flex flex-col items-center md:items-start space-y-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-md bg-surface-container-lowest border border-outline-variant/15"
-            >
-              <Image
-                src={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
-                alt={`Portrait of ${doctor.full_name}`}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover"
-              />
-            </motion.div>
-
-            {/* Consultation Fee & Booking Card */}
-            <div className="w-full max-w-sm bg-surface-container-low p-5 rounded-3xl border border-outline-variant/15 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-on-surface-variant font-medium">Consultation Fee:</span>
-                <span className="text-headline-sm font-bold text-primary">${doctor.consultation_fee} USD</span>
-              </div>
-              <div className="flex items-center justify-between text-xs border-t border-outline-variant/10 pt-2 text-on-surface-variant">
-                <span className="flex items-center gap-1 font-medium">
-                  <span className="material-symbols-outlined text-sm text-amber-500 select-none" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  Patient Rating:
-                </span>
-                <span className="font-bold text-on-surface">{doctor.rating.toFixed(1)} / 5.0 ({doctor.review_count} reviews)</span>
-              </div>
-              <Link href={`/book-appointment?doctor=${doctor.id}`} className="block pt-1">
-                <Button variant="primary" className="w-full justify-center text-sm py-3">
-                  Book Appointment Now
-                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Right Column: Doctor Info & Biography */}
+    <div className="bg-background min-h-screen">
+      {/* Hero Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          {/* Left: Doctor Photo */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="md:col-span-7 lg:col-span-8 flex flex-col space-y-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="md:col-span-5 relative"
           >
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                <span className="material-symbols-outlined text-base mr-1 select-none">stethoscope</span>
-                {doctor.specialty}
-              </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/15 text-secondary-900 text-xs font-bold">
-                <span className="material-symbols-outlined text-base mr-1 select-none">workspace_premium</span>
-                {doctor.qualifications || "Board Certified"}
-              </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-bold">
-                <span className="material-symbols-outlined text-base mr-1 select-none">history</span>
-                {doctor.experience_years} Years Experience
-              </span>
+            <div className="relative aspect-[3/4] w-full rounded-3xl overflow-hidden shadow-ambient border border-outline-variant/10">
+              <Image
+                src={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800"}
+                alt={doctor.full_name}
+                fill
+                sizes="(max-width: 768px) 100vw, 40vw"
+                className="object-cover"
+                priority
+              />
+              <div className="absolute top-4 left-4 bg-surface-container-lowest/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-outline-variant/20 shadow-sm flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-secondary text-sm">verified</span>
+                <span className="text-xs font-bold text-on-surface">Verified Practitioner</span>
+              </div>
             </div>
+          </motion.div>
 
-            {/* Doctor Name */}
+          {/* Right: Doctor Info */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="md:col-span-7 space-y-6"
+          >
             <div>
-              <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface font-bold leading-tight">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-label-md text-secondary font-bold uppercase tracking-wider bg-secondary/10 px-3 py-1 rounded-full">
+                  {doctor.specialty}
+                </span>
+                {doctor.department && (
+                  <span className="text-label-md text-on-surface-variant font-medium bg-surface-container px-3 py-1 rounded-full">
+                    {doctor.department.name}
+                  </span>
+                )}
+              </div>
+              <h1 className="text-display-md md:text-display-lg font-bold text-on-surface mb-2">
                 {doctor.full_name}
               </h1>
-              {doctor.department && (
-                <p className="text-body-md text-primary font-semibold mt-1">
-                  Department of {doctor.department.name}
-                </p>
-              )}
+              <p className="text-body-lg text-on-surface-variant font-medium">
+                {doctor.qualifications || "Medical Specialist"} • {doctor.experience_years} Years Experience
+              </p>
             </div>
 
-            {/* Bio */}
-            <div className="bg-white p-6 rounded-3xl border border-outline-variant/15 space-y-2">
-              <h3 className="text-headline-sm font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">person</span> About Dr. {doctor.full_name.split(" ").slice(-1)[0]}
-              </h3>
+            {/* Real-time Rating Badge */}
+            <div className="flex items-center gap-4 py-3 px-4 bg-surface-container-low rounded-2xl border border-outline-variant/15 w-fit">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-amber-500 text-xl font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  star
+                </span>
+                <span className="text-headline-sm font-extrabold text-on-surface">{doctor.rating.toFixed(1)}</span>
+              </div>
+              <div className="h-6 w-px bg-outline-variant/30"></div>
+              <div>
+                <p className="text-xs font-bold text-on-surface">{doctor.review_count} Verified Reviews</p>
+                <p className="text-[11px] text-emerald-700 font-bold">100% Real-time Patient Feedback</p>
+              </div>
+            </div>
+
+            {/* Fee & Booking CTA */}
+            <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/20 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-label-sm text-on-surface-variant uppercase tracking-wider text-xs">Consultation Fee</p>
+                  <p className="text-headline-md font-bold text-primary">${doctor.consultation_fee} USD</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-label-sm text-on-surface-variant uppercase tracking-wider text-xs">Status</p>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full inline-block mt-1">
+                    Accepting Patients
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Link href={`/book-appointment?doctor=${doctor.id}`} className="flex-1">
+                  <Button variant="primary" className="w-full py-3.5 text-base font-bold shadow-md">
+                    Book Appointment Now
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsReviewModalOpen(true)}
+                  className="py-3.5 px-4 text-xs font-bold flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-base">rate_review</span>
+                  Write Review
+                </Button>
+              </div>
+            </div>
+
+            {/* Biography */}
+            <div className="space-y-2">
+              <h3 className="text-headline-sm font-bold text-on-surface">About Dr. {doctor.full_name.split(" ").slice(-1)[0]}</h3>
               <p className="text-body-md text-on-surface-variant leading-relaxed">
-                {doctor.bio || "Dedicated healthcare professional focused on delivering exceptional, evidence-based care to patients with empathy and medical excellence."}
+                {doctor.bio || `${doctor.full_name} is a dedicated ${doctor.specialty} specialist with ${doctor.experience_years} years of clinical excellence, committed to providing compassionate, evidence-based patient care.`}
               </p>
             </div>
 
             {/* Languages */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1">
-                <span className="material-symbols-outlined text-secondary text-base select-none">language</span> Languages:
-              </span>
+            <div className="space-y-2">
+              <h4 className="text-label-lg font-bold text-on-surface uppercase tracking-wider text-xs">Languages Spoken</h4>
               <div className="flex flex-wrap gap-2">
                 {languagesList.map((lang) => (
                   <span
@@ -262,33 +244,32 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
         </div>
       </section>
 
-      {/* Clear Weekly Schedule Matrix Section */}
+      {/* Weekly Schedule Matrix */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 pb-12">
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-outline-variant/15 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-container-high pb-4">
             <div>
               <h2 className="text-headline-md font-bold text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-2xl select-none">calendar_month</span>
-                Weekly OPD &amp; Consultation Schedule
+                Weekly OPD Schedule
               </h2>
               <p className="text-xs text-on-surface-variant mt-0.5">
-                Exact day-by-day working hours and slot durations for Dr. {doctor.full_name}
+                Working hours &amp; slot durations for {doctor.full_name}
               </p>
             </div>
-            <span className="text-xs font-bold px-3 py-1.5 bg-emerald-100/80 text-emerald-900 rounded-full self-start sm:self-auto flex items-center gap-1">
+            <span className="text-xs font-bold px-3 py-1.5 bg-emerald-100/80 text-emerald-900 rounded-full flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Live Schedule
             </span>
           </div>
 
-          {/* 7-Day Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {weeklySchedule.map((item) => (
               <div
                 key={item.full}
                 className={`p-4 rounded-2xl border text-center flex flex-col justify-between transition-all ${
                   item.isWorking
-                    ? "bg-emerald-50/60 border-emerald-200 shadow-2xs hover:border-emerald-400"
+                    ? "bg-emerald-50/60 border-emerald-200 shadow-2xs"
                     : "bg-surface-container-low border-outline-variant/15 opacity-60"
                 }`}
               >
@@ -311,26 +292,25 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                     </span>
                   )}
                 </div>
-
-                {item.isWorking && (
-                  <span className="mt-3 text-[10px] font-bold text-emerald-800 bg-emerald-100 py-1 px-2 rounded-lg border border-emerald-200">
-                    {item.slotDuration} min slots
-                  </span>
-                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Patient Reviews Section */}
+      {/* Real-time Patient Reviews Section */}
       <section className="bg-surface-container-low py-16 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-outline-variant/20 pb-6">
             <div>
-              <h2 className="text-headline-md text-on-surface mb-2 font-bold">Patient Reviews</h2>
-              <div className="flex items-center gap-2">
-                <div className="flex text-secondary">
+              <span className="px-3 py-1 bg-amber-100 text-amber-900 text-xs font-extrabold rounded-full">
+                VERIFIED PATIENT FEEDBACK
+              </span>
+              <h2 className="text-headline-md text-on-surface font-bold mt-2">
+                Real-Time Ratings &amp; Reviews
+              </h2>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex text-amber-500">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <span
                       key={index}
@@ -341,43 +321,65 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                     </span>
                   ))}
                 </div>
-                <span className="text-label-md text-on-surface-variant font-bold">
-                  {doctor.rating} ({doctor.review_count} reviews)
+                <span className="text-label-md text-on-surface font-extrabold">
+                  {doctor.rating.toFixed(1)} / 5.0 ({doctor.review_count} reviews)
                 </span>
               </div>
             </div>
+
+            <Button
+              variant="primary"
+              onClick={() => setIsReviewModalOpen(true)}
+              className="py-3 px-6 text-xs font-bold shadow-md flex items-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-base">rate_review</span>
+              Leave a Review
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-            >
-              <TestimonialCard
-                quote={`Dr. ${doctor.full_name.split(" ").slice(-1)[0]} provided exceptional care, thoroughly explaining my diagnosis and treatment plan with great empathy.`}
-                author="Verified Patient"
-                role="Clinical Care Patient"
-                rating={5}
-              />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <TestimonialCard
-                quote="Seamless appointment process and top-notch medical professionalism. Highly recommended!"
-                author="Sarah M."
-                role="Verified Patient"
-                rating={5}
-              />
-            </motion.div>
-          </div>
+          {/* Real Reviews Cards */}
+          {reviews.length === 0 ? (
+            <div className="p-8 bg-white rounded-3xl text-center space-y-3 border border-outline-variant/15">
+              <span className="material-symbols-outlined text-amber-500 text-4xl">grade</span>
+              <h4 className="font-bold text-on-surface text-base">Be the First to Review!</h4>
+              <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
+                No reviews recorded for {doctor.full_name} yet. Click above to submit your rating!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.map((rev) => (
+                <motion.div
+                  key={rev.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <TestimonialCard
+                    quote={rev.review_text || "Excellent clinical treatment and professional diagnosis."}
+                    author={rev.reviewer_name || "Verified Patient"}
+                    role={`Rating: ${rev.rating} ★`}
+                    rating={rev.rating}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        doctorId={doctor.id}
+        doctorName={doctor.full_name}
+        defaultReviewerName={user?.full_name || ""}
+        onReviewSubmitted={() => {
+          loadDoctorData();
+        }}
+      />
     </div>
   );
 }

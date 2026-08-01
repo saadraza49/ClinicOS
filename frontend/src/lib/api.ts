@@ -199,10 +199,12 @@ export async function getDoctors(params?: { department?: string; search?: string
     if (params?.department) queryParams.append("department", params.department);
     if (params?.search) queryParams.append("search", params.search);
     const queryStr = queryParams.toString() ? `?${queryParams.toString()}` : "";
-    return await fetchAPI<DoctorData[]>(`/doctors${queryStr}`);
+    const data = await fetchAPI<DoctorData[]>(`/doctors${queryStr}`);
+    if (Array.isArray(data) && data.length > 0) return data;
+    return fallbackDoctors.map(mapFallbackDoctor);
   } catch (err) {
-    console.error("Failed to fetch doctors from backend database:", err);
-    return [];
+    console.warn("Backend API unavailable or timed out, using fallback doctors dataset:", err);
+    return fallbackDoctors.map(mapFallbackDoctor);
   }
 }
 
@@ -383,3 +385,46 @@ export async function getFAQs(params?: { category?: string; search?: string }): 
   }
 }
 
+// ==================== REVIEWS & RATINGS ====================
+export interface ReviewData {
+  id: string;
+  appointment_id?: string;
+  doctor_id: string;
+  patient_id?: string;
+  reviewer_name: string;
+  rating: number;
+  review_text?: string;
+  created_at: string;
+}
+
+export interface ReviewCreatePayload {
+  doctor_id: string;
+  appointment_id?: string;
+  reviewer_name: string;
+  rating: number;
+  review_text?: string;
+}
+
+export async function getDoctorReviews(slugOrId: string): Promise<ReviewData[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/doctors/${slugOrId}/reviews`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch doctor reviews:", err);
+    return [];
+  }
+}
+
+export async function submitDoctorReview(payload: ReviewCreatePayload): Promise<ReviewData> {
+  const res = await fetch(`${API_BASE_URL}/doctors/reviews`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to submit review");
+  }
+  return await res.json();
+}

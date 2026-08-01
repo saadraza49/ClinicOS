@@ -19,6 +19,7 @@ import {
 import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
 import { downloadAppointmentPDF } from "@/lib/pdf-generator";
+import ReviewModal from "@/components/review-modal";
 
 export default function PatientDashboardPage() {
   const router = useRouter();
@@ -49,6 +50,18 @@ export default function PatientDashboardPage() {
   const [loadingAppts, setLoadingAppts] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [apptSuccessMsg, setApptSuccessMsg] = useState<string | null>(null);
+
+  // Review Modal State
+  const [reviewModalData, setReviewModalData] = useState<{
+    isOpen: boolean;
+    doctorId: string;
+    doctorName: string;
+    appointmentId?: string;
+  }>({
+    isOpen: false,
+    doctorId: "",
+    doctorName: "",
+  });
 
   // Reschedule Modal State
   const [reschedulingAppt, setReschedulingAppt] = useState<AppointmentData | null>(null);
@@ -131,50 +144,46 @@ export default function PatientDashboardPage() {
   };
 
   // Load Patient Profile & Appointments
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-      return;
-    }
+  const loadData = async () => {
+    try {
+      setLoadingProfile(true);
+      setLoadingAppts(true);
+      const [fullProfile, apptsList] = await Promise.all([
+        getPatientProfile().catch(() => null),
+        getMyAppointments().catch(() => []),
+      ]);
 
-    if (user) {
-      setFullName(user.full_name || "");
-      setPhone(user.phone || "");
-
-      async function loadData() {
-        try {
-          setLoadingProfile(true);
-          setLoadingAppts(true);
-
-          const [fullProfile, apptsList] = await Promise.all([
-            getPatientProfile().catch(() => null),
-            getMyAppointments().catch(() => [])
-          ]);
-
-          if (fullProfile) {
-            setProfileData(fullProfile);
-            if (fullProfile.user.full_name) setFullName(fullProfile.user.full_name);
-            if (fullProfile.user.phone) setPhone(fullProfile.user.phone);
-            if (fullProfile.profile) {
-              if (fullProfile.profile.age !== undefined && fullProfile.profile.age !== null) {
-                setAge(String(fullProfile.profile.age));
-              }
-              if (fullProfile.profile.gender) setGender(fullProfile.profile.gender);
-              if (fullProfile.profile.blood_group) setBloodGroup(fullProfile.profile.blood_group);
-              if (fullProfile.profile.emergency_contact_name) setEmergencyName(fullProfile.profile.emergency_contact_name);
-              if (fullProfile.profile.emergency_contact_phone) setEmergencyPhone(fullProfile.profile.emergency_contact_phone);
-              if (fullProfile.profile.medical_history) setMedicalHistory(fullProfile.profile.medical_history);
-              if (fullProfile.profile.allergies) setAllergies(fullProfile.profile.allergies);
-            }
+      if (fullProfile) {
+        setProfileData(fullProfile);
+        if (fullProfile.user.full_name) setFullName(fullProfile.user.full_name);
+        if (fullProfile.user.phone) setPhone(fullProfile.user.phone);
+        if (fullProfile.profile) {
+          if (fullProfile.profile.age !== undefined && fullProfile.profile.age !== null) {
+            setAge(String(fullProfile.profile.age));
           }
-
-          setAppointments(apptsList);
-        } catch (err) {
-          console.error("Error loading patient dashboard data:", err);
-        } finally {
-          setLoadingProfile(false);
-          setLoadingAppts(false);
+          if (fullProfile.profile.gender) setGender(fullProfile.profile.gender);
+          if (fullProfile.profile.blood_group) setBloodGroup(fullProfile.profile.blood_group);
+          if (fullProfile.profile.emergency_contact_name) setEmergencyName(fullProfile.profile.emergency_contact_name);
+          if (fullProfile.profile.emergency_contact_phone) setEmergencyPhone(fullProfile.profile.emergency_contact_phone);
+          if (fullProfile.profile.medical_history) setMedicalHistory(fullProfile.profile.medical_history);
+          if (fullProfile.profile.allergies) setAllergies(fullProfile.profile.allergies);
         }
+      }
+
+      setAppointments(apptsList);
+    } catch (err) {
+      console.error("Error loading patient dashboard data:", err);
+    } finally {
+      setLoadingProfile(false);
+      setLoadingAppts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        router.push("/login");
+        return;
       }
       loadData();
     }
@@ -717,6 +726,24 @@ export default function PatientDashboardPage() {
                             PDF Slip
                           </Button>
 
+                          {!isUpcoming && appt.doctor_id && (
+                            <Button
+                              variant="primary"
+                              onClick={() => {
+                                setReviewModalData({
+                                  isOpen: true,
+                                  doctorId: appt.doctor_id,
+                                  doctorName: appt.doctor?.full_name || "Doctor",
+                                  appointmentId: appt.id,
+                                });
+                              }}
+                              className="text-xs py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 border-none shadow-2xs"
+                            >
+                              <span className="material-symbols-outlined text-base select-none">star</span>
+                              Rate Doctor
+                            </Button>
+                          )}
+
                           {isUpcoming && (
                             cannotCancel ? (
                               <span className="text-[11px] py-1.5 px-3 bg-gray-100 text-gray-500 rounded-xl font-medium border border-gray-200">
@@ -924,6 +951,19 @@ export default function PatientDashboardPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Real-time Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalData.isOpen}
+        onClose={() => setReviewModalData((prev) => ({ ...prev, isOpen: false }))}
+        doctorId={reviewModalData.doctorId}
+        doctorName={reviewModalData.doctorName}
+        appointmentId={reviewModalData.appointmentId}
+        defaultReviewerName={user?.full_name || ""}
+        onReviewSubmitted={() => {
+          loadData();
+        }}
+      />
 
       </div>
     </div>

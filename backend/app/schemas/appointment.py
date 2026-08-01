@@ -57,3 +57,26 @@ class AppointmentResponse(BaseModel):
     service: Optional[ServiceResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+from datetime import datetime
+
+class ReviewCreate(BaseModel):
+    doctor_id: str
+    appointment_id: Optional[str] = None
+    reviewer_name: str
+    rating: int
+    review_text: Optional[str] = None
+
+class ReviewResponse(BaseModel):
+    id: str
+    appointment_id: Optional[str] = None
+    doctor_id: str
+    patient_id: Optional[str] = None
+    reviewer_name: str
+    rating: int
+    review_text: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
