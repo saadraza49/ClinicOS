@@ -21,13 +21,26 @@ def parse_time_str(time_str: str) -> datetime:
     return datetime.strptime("09:00 AM", "%I:%M %p")
 
 def get_optional_user(request: Request, db: Session) -> Optional[User]:
+    # 1. Check Authorization Header (Bearer token from frontend)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            user = db.query(User).filter(User.id == payload["sub"]).first()
+            if user:
+                return user
+
+    # 2. Check Cookie
     token = request.cookies.get("access_token")
-    if not token:
-        return None
-    payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
-        return None
-    return db.query(User).filter(User.id == payload["sub"]).first()
+    if token:
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            user = db.query(User).filter(User.id == payload["sub"]).first()
+            if user:
+                return user
+
+    return None
 
 def get_appointment_datetime(app_date: date, app_time_str: str) -> datetime:
     parsed_t = parse_time_str(app_time_str)
@@ -221,10 +234,38 @@ def create_appointment(
             detail=f"The slot '{payload.appointment_time}' on {payload.appointment_date} for Dr. {doctor.full_name} is already booked. Please select a different time slot."
         )
 
-    # 5. Determine Patient & Department
+    # 5. Determine Patient, Profile Metadata & Reason for Visit
     department_id = payload.department_id or doctor.department_id
     optional_user = get_optional_user(request, db)
     patient_id = optional_user.id if optional_user else None
+
+    # Fallback: Find registered user by patient_email if patient_id not set
+    if not patient_id and payload.patient_email:
+        existing_user = db.query(User).filter(User.email.ilike(payload.patient_email.strip())).first()
+        if existing_user:
+            patient_id = existing_user.id
+            optional_user = existing_user
+
+    # Auto-fill patient_age and patient_gender from PatientProfile if missing in payload
+    final_age = payload.patient_age
+    final_gender = payload.patient_gender
+
+    if optional_user:
+        profile = db.query(PatientProfile).filter(PatientProfile.user_id == optional_user.id).first()
+        if profile:
+            if final_age is None and profile.age is not None:
+                final_age = profile.age
+            if not final_gender and profile.gender:
+                final_gender = profile.gender
+
+    # Resolve reason_for_visit (Service Name + Patient Chief Complaint/Notes)
+    service_obj = db.query(Service).filter(Service.id == payload.service_id).first() if payload.service_id else None
+    service_name = service_obj.name if service_obj else "General Consultation"
+
+    if payload.reason_for_visit and payload.reason_for_visit.strip():
+        final_reason = payload.reason_for_visit.strip()
+    else:
+        final_reason = f"Consultation for {service_name}"
 
     # 6. Create Appointment
     appointment = Appointment(
@@ -235,12 +276,12 @@ def create_appointment(
         patient_name=payload.patient_name,
         patient_phone=payload.patient_phone,
         patient_email=payload.patient_email,
-        patient_age=payload.patient_age,
-        patient_gender=payload.patient_gender,
+        patient_age=final_age,
+        patient_gender=final_gender,
         appointment_date=payload.appointment_date,
         appointment_time=payload.appointment_time,
         status="confirmed",
-        reason_for_visit=payload.reason_for_visit,
+        reason_for_visit=final_reason,
         booking_source="web"
     )
 

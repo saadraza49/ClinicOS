@@ -36,6 +36,8 @@ function BookingForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
   const [notes, setNotes] = useState("");
 
   // Loading & Validation States
@@ -49,6 +51,8 @@ function BookingForm() {
       if (user.full_name && !name) setName(user.full_name);
       if (user.email && !email) setEmail(user.email);
       if (user.phone && !phone) setPhone(user.phone);
+      if ((user as any).age && !age) setAge(String((user as any).age));
+      if ((user as any).gender && !gender) setGender((user as any).gender);
     }
   }, [user]);
 
@@ -175,18 +179,25 @@ function BookingForm() {
     setIsLoading(true);
 
     try {
+      const selectedServiceObj = servicesList.find((s) => s.id === service);
+
       const createdAppt = await bookAppointment({
         doctor_id: doctor,
         service_id: service || undefined,
         patient_name: name,
         patient_phone: phone,
         patient_email: email,
+        patient_age: age ? parseInt(age, 10) : undefined,
+        patient_gender: gender || undefined,
         appointment_date: date,
         appointment_time: selectedTime,
-        reason_for_visit: notes || undefined,
+        reason_for_visit: notes
+          ? `${selectedServiceObj?.name || "Consultation"} - ${notes}`
+          : selectedServiceObj
+          ? `Consultation for ${selectedServiceObj.name}`
+          : undefined,
       });
 
-      const selectedServiceObj = servicesList.find((s) => s.id === service);
       const serviceName = selectedServiceObj ? selectedServiceObj.name : "Consultation";
 
       const selectedDoctorObj = doctorsList.find((d) => d.id === doctor);
@@ -642,6 +653,43 @@ function BookingForm() {
                       type="tel"
                     />
                     {errors.phone && <p className="text-error text-xs font-semibold mt-0.5">{errors.phone}</p>}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-on-surface flex items-center gap-1" htmlFor="age">
+                      <span className="material-symbols-outlined text-sm text-primary">cake</span>
+                      Patient Age (Optional)
+                    </label>
+                    <input
+                      id="age"
+                      name="age"
+                      placeholder="e.g. 28"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      className="w-full bg-surface border border-outline-variant/60 rounded-2xl px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all"
+                      type="number"
+                      min="1"
+                      max="120"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-on-surface flex items-center gap-1" htmlFor="gender">
+                      <span className="material-symbols-outlined text-sm text-primary">wc</span>
+                      Gender (Optional)
+                    </label>
+                    <select
+                      id="gender"
+                      name="gender"
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="w-full bg-surface border border-outline-variant/60 rounded-2xl px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
 
                   <div className="flex flex-col gap-1.5 md:col-span-2">
