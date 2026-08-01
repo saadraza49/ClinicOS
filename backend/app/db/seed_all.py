@@ -168,14 +168,73 @@ def seed_master_data():
                 db.commit()
                 db.refresh(profile)
 
-                # Add Schedules per doctor (Mon - Sat)
+                # Unique Doctor Schedules Specification
+                doc_sched_spec = {
+                    "elena-rodriguez": [
+                        {"day": "Mon", "start": "09:00 AM", "end": "02:00 PM", "slot": 30},
+                        {"day": "Wed", "start": "09:00 AM", "end": "02:00 PM", "slot": 30},
+                        {"day": "Fri", "start": "09:00 AM", "end": "02:00 PM", "slot": 30},
+                    ],
+                    "robert-miller": [
+                        {"day": "Tue", "start": "11:00 AM", "end": "05:00 PM", "slot": 45},
+                        {"day": "Thu", "start": "11:00 AM", "end": "05:00 PM", "slot": 45},
+                        {"day": "Sat", "start": "10:00 AM", "end": "03:00 PM", "slot": 30},
+                    ],
+                    "marcus-vance": [
+                        {"day": "Mon", "start": "08:00 AM", "end": "01:00 PM", "slot": 30},
+                        {"day": "Tue", "start": "08:00 AM", "end": "01:00 PM", "slot": 30},
+                        {"day": "Thu", "start": "08:00 AM", "end": "01:00 PM", "slot": 30},
+                    ],
+                    "sarah-jenkins": [
+                        {"day": "Wed", "start": "02:00 PM", "end": "08:00 PM", "slot": 30},
+                        {"day": "Fri", "start": "02:00 PM", "end": "08:00 PM", "slot": 30},
+                        {"day": "Sat", "start": "02:00 PM", "end": "07:00 PM", "slot": 30},
+                    ],
+                    "omar-al-fayed": [
+                        {"day": "Mon", "start": "10:00 AM", "end": "04:00 PM", "slot": 20},
+                        {"day": "Thu", "start": "10:00 AM", "end": "04:00 PM", "slot": 20},
+                    ],
+                    "sophia-carter": [
+                        {"day": "Tue", "start": "01:00 PM", "end": "06:00 PM", "slot": 30},
+                        {"day": "Fri", "start": "01:00 PM", "end": "06:00 PM", "slot": 30},
+                    ],
+                    "james-wilson": [
+                        {"day": "Mon", "start": "09:00 AM", "end": "03:00 PM", "slot": 30},
+                        {"day": "Tue", "start": "09:00 AM", "end": "03:00 PM", "slot": 30},
+                        {"day": "Wed", "start": "09:00 AM", "end": "03:00 PM", "slot": 30},
+                        {"day": "Thu", "start": "09:00 AM", "end": "03:00 PM", "slot": 30},
+                    ],
+                    "fatima-ali": [
+                        {"day": "Wed", "start": "03:00 PM", "end": "09:00 PM", "slot": 30},
+                        {"day": "Fri", "start": "03:00 PM", "end": "09:00 PM", "slot": 30},
+                        {"day": "Sat", "start": "01:00 PM", "end": "07:00 PM", "slot": 30},
+                    ],
+                    "bilal-ahmed": [
+                        {"day": "Tue", "start": "10:00 AM", "end": "03:00 PM", "slot": 40},
+                        {"day": "Wed", "start": "10:00 AM", "end": "03:00 PM", "slot": 40},
+                        {"day": "Sat", "start": "10:00 AM", "end": "03:00 PM", "slot": 40},
+                    ],
+                    "priya-patel": [
+                        {"day": "Thu", "start": "12:00 PM", "end": "06:00 PM", "slot": 30},
+                        {"day": "Fri", "start": "12:00 PM", "end": "06:00 PM", "slot": 30},
+                    ]
+                }
+
+                doctor_slug = doc["slug"]
+                sched_items = doc_sched_spec.get(doctor_slug, [
+                    {"day": "Mon", "start": "09:00 AM", "end": "05:00 PM", "slot": 30},
+                    {"day": "Wed", "start": "09:00 AM", "end": "05:00 PM", "slot": 30},
+                    {"day": "Fri", "start": "09:00 AM", "end": "05:00 PM", "slot": 30},
+                ])
+
                 schedules_to_add = [
-                    DoctorSchedule(doctor_id=profile.id, day_of_week="Mon", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
-                    DoctorSchedule(doctor_id=profile.id, day_of_week="Tue", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
-                    DoctorSchedule(doctor_id=profile.id, day_of_week="Wed", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
-                    DoctorSchedule(doctor_id=profile.id, day_of_week="Thu", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
-                    DoctorSchedule(doctor_id=profile.id, day_of_week="Fri", start_time="09:00 AM", end_time="05:00 PM", slot_duration_minutes=30),
-                    DoctorSchedule(doctor_id=profile.id, day_of_week="Sat", start_time="09:00 AM", end_time="01:00 PM", slot_duration_minutes=30),
+                    DoctorSchedule(
+                        doctor_id=profile.id,
+                        day_of_week=item["day"],
+                        start_time=item["start"],
+                        end_time=item["end"],
+                        slot_duration_minutes=item["slot"]
+                    ) for item in sched_items
                 ]
                 db.add_all(schedules_to_add)
                 db.commit()

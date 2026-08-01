@@ -54,7 +54,7 @@ class DoctorSchedule(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     doctor_id = Column(String(36), ForeignKey("doctors_profile.id", ondelete="CASCADE"), nullable=False)
-    day_of_week = Column(String(20), nullable=False)
+    day_of_week = Column(String(100), nullable=False)
     start_time = Column(String(20), nullable=False)
     end_time = Column(String(20), nullable=False)
     slot_duration_minutes = Column(Integer, default=30)

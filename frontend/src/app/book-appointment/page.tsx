@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { getDoctors, getServices, getAvailableSlots, bookAppointment, DoctorData, ServiceData, TimeSlotData } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/button";
 import Image from "next/image";
 
@@ -12,6 +13,7 @@ function BookingForm() {
   const searchParams = useSearchParams();
   const doctorQuery = searchParams.get("doctor");
   const serviceQuery = searchParams.get("service");
+  const { user } = useAuth();
 
   // Dynamic Options from DB
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
@@ -33,6 +35,15 @@ function BookingForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [minDate, setMinDate] = useState("");
+
+  // Auto-fill details from logged-in user profile while keeping them fully editable
+  useEffect(() => {
+    if (user) {
+      if (user.full_name && !name) setName(user.full_name);
+      if (user.email && !email) setEmail(user.email);
+      if (user.phone && !phone) setPhone(user.phone);
+    }
+  }, [user]);
 
   // Set min date to today
   useEffect(() => {
@@ -284,10 +295,13 @@ function BookingForm() {
             <div className="p-4 bg-surface-container rounded-xl text-center text-sm font-medium text-primary animate-pulse">
               Fetching available time slots from doctor schedule...
             </div>
-          ) : availableSlots.length === 0 ? (
-            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-sm font-medium flex items-center gap-2">
-              <span className="material-symbols-outlined text-amber-600 text-lg select-none">event_busy</span>
-              <span>No working shifts available for this doctor on the selected date. Please pick another date or doctor.</span>
+          ) : (availableSlots.length === 0 || availableSlots.every((s) => s.disabled)) ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-sm font-semibold flex items-center gap-3 shadow-2xs">
+              <span className="material-symbols-outlined text-amber-600 text-2xl select-none">event_busy</span>
+              <div>
+                <p className="font-bold text-amber-950">No slots available today.</p>
+                <p className="text-xs text-amber-800 font-normal mt-0.5">Please try a different day or choose another doctor.</p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -331,9 +345,17 @@ function BookingForm() {
 
       {/* Step 3: Patient Details */}
       <div className="space-y-4 pt-4">
-        <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
-          3. Your Details
-        </h2>
+        <div className="flex items-center justify-between border-b border-surface-container-high pb-2 flex-wrap gap-2">
+          <h2 className="text-headline-md text-on-surface font-bold">
+            3. Your Details
+          </h2>
+          {user && (
+            <span className="text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+              <span className="material-symbols-outlined text-sm text-emerald-600">check_circle</span>
+              Pre-filled from profile (Fully Editable)
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1 md:col-span-2">
             <label className="text-label-sm text-on-surface-variant" htmlFor="name">

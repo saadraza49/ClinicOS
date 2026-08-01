@@ -22,6 +22,14 @@ class AppointmentCreate(BaseModel):
     appointment_time: str
     reason_for_visit: Optional[str] = None
 
+class AppointmentStatusUpdate(BaseModel):
+    status: str
+    cancellation_reason: Optional[str] = None
+    notes: Optional[str] = None
+
+class AppointmentCancelRequest(BaseModel):
+    reason: Optional[str] = None
+
 class AppointmentResponse(BaseModel):
     id: str
     patient_id: Optional[str] = None
@@ -37,6 +45,8 @@ class AppointmentResponse(BaseModel):
     appointment_time: str
     status: str
     reason_for_visit: Optional[str] = None
+    cancellation_reason: Optional[str] = None
+    notes: Optional[str] = None
     booking_source: str
     doctor: Optional[DoctorProfileResponse] = None
     service: Optional[ServiceResponse] = None
