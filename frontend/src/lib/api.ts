@@ -280,26 +280,10 @@ export async function getAvailableSlots(doctorId: string, dateStr: string): Prom
 }
 
 export async function bookAppointment(payload: BookAppointmentPayload): Promise<AppointmentData> {
-  try {
-    return await fetchAPI<AppointmentData>("/appointments/book", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.warn("Backend API offline for booking, simulating successful booking:", err);
-    return {
-      id: `APPT-${Math.floor(100000 + Math.random() * 900000)}`,
-      doctor_id: payload.doctor_id,
-      service_id: payload.service_id,
-      patient_name: payload.patient_name,
-      patient_phone: payload.patient_phone,
-      patient_email: payload.patient_email,
-      appointment_date: payload.appointment_date,
-      appointment_time: payload.appointment_time,
-      status: "confirmed",
-      booking_source: "web",
-    };
-  }
+  return await fetchAPI<AppointmentData>("/appointments/book", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export interface PatientProfileData {

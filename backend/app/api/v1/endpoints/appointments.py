@@ -21,26 +21,13 @@ def parse_time_str(time_str: str) -> datetime:
     return datetime.strptime("09:00 AM", "%I:%M %p")
 
 def get_optional_user(request: Request, db: Session) -> Optional[User]:
-    # 1. Check Authorization Header (Bearer token from frontend)
-    auth_header = request.headers.get("Authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        token = auth_header.split(" ")[1]
-        payload = decode_access_token(token)
-        if payload and "sub" in payload:
-            user = db.query(User).filter(User.id == payload["sub"]).first()
-            if user:
-                return user
-
-    # 2. Check Cookie
     token = request.cookies.get("access_token")
-    if token:
-        payload = decode_access_token(token)
-        if payload and "sub" in payload:
-            user = db.query(User).filter(User.id == payload["sub"]).first()
-            if user:
-                return user
-
-    return None
+    if not token:
+        return None
+    payload = decode_access_token(token)
+    if not payload or "sub" not in payload:
+        return None
+    return db.query(User).filter(User.id == payload["sub"]).first()
 
 def get_appointment_datetime(app_date: date, app_time_str: str) -> datetime:
     parsed_t = parse_time_str(app_time_str)
@@ -195,19 +182,45 @@ def create_appointment(
 
     # 2. Resolve Doctor
     target_doctor_id = payload.doctor_id
+    day_short = payload.appointment_date.strftime("%a")
+    day_full = payload.appointment_date.strftime("%A")
+
     if target_doctor_id == "any" or not target_doctor_id:
-        first_doc = db.query(DoctorProfile).first()
-        if not first_doc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No doctors available in database")
-        target_doctor_id = first_doc.id
+        active_schedules = db.query(DoctorSchedule).filter(
+            DoctorSchedule.is_active == True,
+            (DoctorSchedule.day_of_week.ilike(f"%{day_short}%") | DoctorSchedule.day_of_week.ilike(f"%{day_full}%"))
+        ).all()
+
+        available_doc_ids = list(dict.fromkeys([s.doctor_id for s in active_schedules]))
+        chosen_doc_id = None
+
+        for doc_id in available_doc_ids:
+            conflict = db.query(Appointment).filter(
+                Appointment.doctor_id == doc_id,
+                Appointment.appointment_date == payload.appointment_date,
+                Appointment.appointment_time == payload.appointment_time,
+                Appointment.status != "cancelled"
+            ).first()
+            if not conflict:
+                chosen_doc_id = doc_id
+                break
+
+        if not chosen_doc_id and available_doc_ids:
+            chosen_doc_id = available_doc_ids[0]
+
+        if not chosen_doc_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No doctors are scheduled to work on {day_full}s. Please choose a different date."
+            )
+
+        target_doctor_id = chosen_doc_id
 
     doctor = db.query(DoctorProfile).filter(DoctorProfile.id == target_doctor_id).first()
     if not doctor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Doctor not found")
 
     # 3. Validate Doctor Schedule for the day of week
-    day_short = payload.appointment_date.strftime("%a")
-    day_full = payload.appointment_date.strftime("%A")
     sched = db.query(DoctorSchedule).filter(
         DoctorSchedule.doctor_id == target_doctor_id,
         DoctorSchedule.is_active == True,
@@ -234,38 +247,10 @@ def create_appointment(
             detail=f"The slot '{payload.appointment_time}' on {payload.appointment_date} for Dr. {doctor.full_name} is already booked. Please select a different time slot."
         )
 
-    # 5. Determine Patient, Profile Metadata & Reason for Visit
+    # 5. Determine Patient & Department
     department_id = payload.department_id or doctor.department_id
     optional_user = get_optional_user(request, db)
     patient_id = optional_user.id if optional_user else None
-
-    # Fallback: Find registered user by patient_email if patient_id not set
-    if not patient_id and payload.patient_email:
-        existing_user = db.query(User).filter(User.email.ilike(payload.patient_email.strip())).first()
-        if existing_user:
-            patient_id = existing_user.id
-            optional_user = existing_user
-
-    # Auto-fill patient_age and patient_gender from PatientProfile if missing in payload
-    final_age = payload.patient_age
-    final_gender = payload.patient_gender
-
-    if optional_user:
-        profile = db.query(PatientProfile).filter(PatientProfile.user_id == optional_user.id).first()
-        if profile:
-            if final_age is None and profile.age is not None:
-                final_age = profile.age
-            if not final_gender and profile.gender:
-                final_gender = profile.gender
-
-    # Resolve reason_for_visit (Service Name + Patient Chief Complaint/Notes)
-    service_obj = db.query(Service).filter(Service.id == payload.service_id).first() if payload.service_id else None
-    service_name = service_obj.name if service_obj else "General Consultation"
-
-    if payload.reason_for_visit and payload.reason_for_visit.strip():
-        final_reason = payload.reason_for_visit.strip()
-    else:
-        final_reason = f"Consultation for {service_name}"
 
     # 6. Create Appointment
     appointment = Appointment(
@@ -276,12 +261,12 @@ def create_appointment(
         patient_name=payload.patient_name,
         patient_phone=payload.patient_phone,
         patient_email=payload.patient_email,
-        patient_age=final_age,
-        patient_gender=final_gender,
+        patient_age=payload.patient_age,
+        patient_gender=payload.patient_gender,
         appointment_date=payload.appointment_date,
         appointment_time=payload.appointment_time,
         status="confirmed",
-        reason_for_visit=final_reason,
+        reason_for_visit=payload.reason_for_visit,
         booking_source="web"
     )
 
