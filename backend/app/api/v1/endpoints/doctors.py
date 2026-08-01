@@ -13,13 +13,26 @@ from app.core.security import decode_access_token
 router = APIRouter()
 
 def get_optional_user(request: Request, db: Session) -> Optional[User]:
+    # 1. Check Authorization Header (Bearer token from frontend)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            user = db.query(User).filter(User.id == payload["sub"]).first()
+            if user:
+                return user
+
+    # 2. Check Cookie
     token = request.cookies.get("access_token")
-    if not token:
-        return None
-    payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
-        return None
-    return db.query(User).filter(User.id == payload["sub"]).first()
+    if token:
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            user = db.query(User).filter(User.id == payload["sub"]).first()
+            if user:
+                return user
+
+    return None
 
 def get_realtime_rating_map(db: Session):
     """Returns a dict mapping doctor_id -> (avg_rating, total_reviews) in 1 fast query"""
@@ -114,10 +127,21 @@ def submit_doctor_review(
     patient_id = optional_user.id if optional_user else None
 
     appt_id = payload.appointment_id
-    if not appt_id:
+    if appt_id:
+        appt = db.query(Appointment).filter(Appointment.id == appt_id).first()
+        if appt:
+            if not patient_id and appt.patient_id:
+                patient_id = appt.patient_id
+            if not patient_id and appt.patient_email:
+                user_by_email = db.query(User).filter(User.email.ilike(appt.patient_email.strip())).first()
+                if user_by_email:
+                    patient_id = user_by_email.id
+    else:
         existing_appt = db.query(Appointment).filter(Appointment.doctor_id == payload.doctor_id).first()
         if existing_appt:
             appt_id = existing_appt.id
+            if not patient_id and existing_appt.patient_id:
+                patient_id = existing_appt.patient_id
 
     review = AppointmentReview(
         doctor_id=payload.doctor_id,
