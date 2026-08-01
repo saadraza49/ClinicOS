@@ -7,7 +7,7 @@ from app.core.security import decode_access_token
 from app.models.appointment import Appointment, Service
 from app.models.doctor import DoctorProfile, DoctorSchedule
 from app.models.user import User
-from app.schemas.appointment import TimeSlotResponse, AppointmentCreate, AppointmentResponse, AppointmentStatusUpdate, AppointmentCancelRequest
+from app.schemas.appointment import TimeSlotResponse, AppointmentCreate, AppointmentResponse, AppointmentStatusUpdate, AppointmentCancelRequest, AppointmentRescheduleRequest
 
 router = APIRouter()
 
@@ -342,5 +342,72 @@ def update_appointment_status(
     db.commit()
     db.refresh(appointment)
     return appointment
+
+@router.put("/{appointment_id}/reschedule", response_model=AppointmentResponse)
+def reschedule_appointment(
+    appointment_id: str,
+    reschedule_req: AppointmentRescheduleRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not appointment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+
+    # Authorization Check
+    if appointment.patient_id and appointment.patient_id != current_user.id:
+        if appointment.patient_email != current_user.email:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to reschedule this appointment")
+
+    if appointment.status in ["cancelled", "completed"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot reschedule an appointment that is already {appointment.status}."
+        )
+
+    # 2-Hour Rule Enforcement on current scheduled time
+    app_datetime = get_appointment_datetime(appointment.appointment_date, appointment.appointment_time)
+    now_dt = datetime.now()
+    seconds_left = (app_datetime - now_dt).total_seconds()
+    if seconds_left <= 7200:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Appointments cannot be rescheduled within 2 hours of the scheduled time. Please contact clinic support."
+        )
+
+    # Check if target date is in past
+    if reschedule_req.new_date < date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot reschedule to a past date."
+        )
+
+    # Check slot collision for doctor at new_date and new_time
+    if appointment.doctor_id:
+        existing_conflict = db.query(Appointment).filter(
+            Appointment.doctor_id == appointment.doctor_id,
+            Appointment.appointment_date == reschedule_req.new_date,
+            Appointment.appointment_time == reschedule_req.new_time,
+            Appointment.status.in_(["pending", "confirmed"]),
+            Appointment.id != appointment.id
+        ).first()
+
+        if existing_conflict:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"The time slot {reschedule_req.new_time} on {reschedule_req.new_date} is already booked. Please select another slot."
+            )
+
+    appointment.appointment_date = reschedule_req.new_date
+    appointment.appointment_time = reschedule_req.new_time
+    appointment.status = "confirmed"
+    if reschedule_req.reason:
+        appointment.notes = f"Rescheduled: {reschedule_req.reason}"
+
+    db.add(appointment)
+    db.commit()
+    db.refresh(appointment)
+    return appointment
+
 
 

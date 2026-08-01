@@ -30,6 +30,11 @@ class AppointmentStatusUpdate(BaseModel):
 class AppointmentCancelRequest(BaseModel):
     reason: Optional[str] = None
 
+class AppointmentRescheduleRequest(BaseModel):
+    new_date: date
+    new_time: str
+    reason: Optional[str] = None
+
 class AppointmentResponse(BaseModel):
     id: str
     patient_id: Optional[str] = None

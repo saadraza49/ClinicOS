@@ -339,6 +339,17 @@ export async function cancelAppointment(appointmentId: string): Promise<Appointm
   });
 }
 
+export async function rescheduleAppointment(appointmentId: string, newDate: string, newTime: string, reason?: string): Promise<AppointmentData> {
+  return await fetchAPI<AppointmentData>(`/appointments/${appointmentId}/reschedule`, {
+    method: "PUT",
+    body: JSON.stringify({
+      new_date: newDate,
+      new_time: newTime,
+      reason: reason || undefined,
+    }),
+  });
+}
+
 // ==================== PATIENT PROFILE ====================
 export async function getPatientProfile(): Promise<PatientFullData> {
   return await fetchAPI<PatientFullData>("/patients/me");

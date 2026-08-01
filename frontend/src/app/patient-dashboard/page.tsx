@@ -10,10 +10,14 @@ import {
   updatePatientProfile, 
   getMyAppointments, 
   cancelAppointment, 
+  rescheduleAppointment,
+  getAvailableSlots,
   PatientFullData, 
-  AppointmentData 
+  AppointmentData,
+  TimeSlotData
 } from "@/lib/api";
 import Button from "@/components/button";
+import DateSelector from "@/components/date-selector";
 
 export default function PatientDashboardPage() {
   const router = useRouter();
@@ -44,6 +48,86 @@ export default function PatientDashboardPage() {
   const [loadingAppts, setLoadingAppts] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [apptSuccessMsg, setApptSuccessMsg] = useState<string | null>(null);
+
+  // Reschedule Modal State
+  const [reschedulingAppt, setReschedulingAppt] = useState<AppointmentData | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<string>("");
+  const [rescheduleTime, setRescheduleTime] = useState<string>("");
+  const [rescheduleSlots, setRescheduleSlots] = useState<TimeSlotData[]>([]);
+  const [loadingRescheduleSlots, setLoadingRescheduleSlots] = useState<boolean>(false);
+  const [submittingReschedule, setSubmittingReschedule] = useState<boolean>(false);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [todayMinDate, setTodayMinDate] = useState<string>("");
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setTodayMinDate(today);
+  }, []);
+
+  useEffect(() => {
+    if (!reschedulingAppt || !rescheduleDate) return;
+    const targetDoctorId = reschedulingAppt.doctor_id || "any";
+    async function fetchSlots() {
+      setLoadingRescheduleSlots(true);
+      setRescheduleError(null);
+      try {
+        const slots = await getAvailableSlots(targetDoctorId, rescheduleDate);
+        setRescheduleSlots(slots);
+        if (rescheduleTime && !slots.some((s) => s.value === rescheduleTime && !s.disabled)) {
+          setRescheduleTime("");
+        }
+      } catch (err) {
+        console.error("Error loading reschedule slots:", err);
+      } finally {
+        setLoadingRescheduleSlots(false);
+      }
+    }
+    fetchSlots();
+  }, [reschedulingAppt, rescheduleDate]);
+
+  const handleOpenRescheduleModal = (appt: AppointmentData) => {
+    const today = new Date().toISOString().split("T")[0];
+    const initialDate = String(appt.appointment_date) >= today ? String(appt.appointment_date) : today;
+    setReschedulingAppt(appt);
+    setRescheduleDate(initialDate);
+    setRescheduleTime(appt.appointment_time || "");
+    setRescheduleError(null);
+  };
+
+  const handleConfirmReschedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reschedulingAppt || !rescheduleDate || !rescheduleTime) {
+      setRescheduleError("Please select both a date and an available time slot.");
+      return;
+    }
+
+    setSubmittingReschedule(true);
+    setRescheduleError(null);
+    try {
+      const updated = await rescheduleAppointment(
+        reschedulingAppt.id,
+        rescheduleDate,
+        rescheduleTime
+      );
+
+      setAppointments((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+
+      setApptSuccessMsg(
+        `Appointment successfully rescheduled to ${updated.appointment_date} at ${updated.appointment_time}!`
+      );
+      setReschedulingAppt(null);
+
+      setTimeout(() => {
+        setApptSuccessMsg(null);
+      }, 6000);
+    } catch (err: any) {
+      setRescheduleError(err.message || "Failed to reschedule appointment. Please try another slot.");
+    } finally {
+      setSubmittingReschedule(false);
+    }
+  };
 
   // Load Patient Profile & Appointments
   useEffect(() => {
@@ -622,14 +706,24 @@ export default function PatientDashboardPage() {
                               </p>
                             </div>
                           ) : (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleCancelAppointment(appt.id)}
-                              isLoading={cancellingId === appt.id}
-                              className="text-xs py-2 px-4 text-error border-error/30 hover:bg-error/10"
-                            >
-                              Cancel Visit
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="secondary"
+                                onClick={() => handleOpenRescheduleModal(appt)}
+                                className="text-xs py-2 px-4 text-primary border border-primary/30 hover:bg-primary/10 flex items-center gap-1.5"
+                              >
+                                <span className="material-symbols-outlined text-base select-none">edit_calendar</span>
+                                Reschedule
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => handleCancelAppointment(appt.id)}
+                                isLoading={cancellingId === appt.id}
+                                className="text-xs py-2 px-4 text-error border-error/30 hover:bg-error/10"
+                              >
+                                Cancel Visit
+                              </Button>
+                            </div>
                           )
                         )}
                       </div>
@@ -688,6 +782,130 @@ export default function PatientDashboardPage() {
             </div>
           </motion.div>
         )}
+
+      {/* Reschedule Appointment Modal */}
+      <AnimatePresence>
+        {reschedulingAppt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-outline-variant/20 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-surface-container-high pb-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-2xl select-none">edit_calendar</span>
+                  <h3 className="text-headline-sm font-bold text-on-surface">Reschedule Appointment</h3>
+                </div>
+                <button
+                  onClick={() => setReschedulingAppt(null)}
+                  className="p-1 text-on-surface-variant hover:text-on-surface rounded-full transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-2xl select-none">close</span>
+                </button>
+              </div>
+
+              {rescheduleError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <span className="material-symbols-outlined text-red-500">error</span>
+                  <span>{rescheduleError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleConfirmReschedule} className="space-y-5">
+                {/* Appointment Summary Card */}
+                <div className="bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/20 text-xs space-y-1.5">
+                  <p className="font-bold text-on-surface text-sm">
+                    {reschedulingAppt.service?.name || "Medical Visit"}
+                  </p>
+                  {reschedulingAppt.doctor && (
+                    <p className="text-on-surface-variant font-medium">
+                      Doctor: <span className="text-primary font-semibold">{reschedulingAppt.doctor.full_name}</span> ({reschedulingAppt.doctor.specialty})
+                    </p>
+                  )}
+                  <p className="text-on-surface-variant">
+                    Current Date: <span className="font-semibold text-on-surface">{String(reschedulingAppt.appointment_date)} at {reschedulingAppt.appointment_time}</span>
+                  </p>
+                </div>
+
+                {/* Date Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface">
+                    Select New Date <span className="text-error">*</span>
+                  </label>
+                  <DateSelector
+                    value={rescheduleDate}
+                    minDate={todayMinDate}
+                    onChange={(newD) => setRescheduleDate(newD)}
+                  />
+                </div>
+
+                {/* Available Time Slots */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface flex justify-between items-center">
+                    <span>Select New Time Slot <span className="text-error">*</span></span>
+                    {loadingRescheduleSlots && (
+                      <span className="text-xs text-primary font-medium animate-pulse">Checking doctor schedule...</span>
+                    )}
+                  </label>
+
+                  {loadingRescheduleSlots ? (
+                    <div className="p-4 bg-surface-container rounded-xl text-center text-xs font-medium text-primary animate-pulse">
+                      Checking available time slots for {rescheduleDate}...
+                    </div>
+                  ) : rescheduleSlots.length === 0 || rescheduleSlots.every((s) => s.disabled) ? (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs font-medium flex items-center gap-2">
+                      <span className="material-symbols-outlined text-amber-600 select-none">event_busy</span>
+                      <span>No available slots on this date. Please pick another day.</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1">
+                      {rescheduleSlots.map((slot) => (
+                        <button
+                          key={slot.value}
+                          type="button"
+                          disabled={slot.disabled}
+                          onClick={() => setRescheduleTime(slot.value)}
+                          className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                            slot.disabled
+                              ? "opacity-40 cursor-not-allowed bg-surface-container-low text-on-surface-variant/50 border-outline-variant/30"
+                              : rescheduleTime === slot.value
+                              ? "bg-primary text-on-primary border-primary shadow-xs scale-102"
+                              : "border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary/5"
+                          }`}
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container-high">
+                  <button
+                    type="button"
+                    onClick={() => setReschedulingAppt(null)}
+                    className="px-4 py-2.5 text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    isLoading={submittingReschedule}
+                    disabled={!rescheduleDate || !rescheduleTime || submittingReschedule}
+                    className="text-xs px-5 py-2.5"
+                  >
+                    Confirm Reschedule
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       </div>
     </div>
