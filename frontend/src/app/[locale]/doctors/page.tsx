@@ -6,10 +6,13 @@ import { getDoctors, DoctorData } from "@/lib/api";
 import DoctorCard from "@/components/doctor-card";
 import CTABanner from "@/components/cta-banner";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedSpecialty } from "@/lib/translations";
 
 export default function DoctorsPage() {
   const t = useTranslations("DoctorsPage");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDept, setSelectedDept] = useState<string>("all");
@@ -43,13 +46,13 @@ export default function DoctorsPage() {
   });
 
   const deptFilters = [
-    { id: "all", label: "All Specialists" },
-    { id: "pediatrics", label: "Pediatrics" },
-    { id: "cardiology", label: "Cardiology" },
-    { id: "dermatology", label: "Dermatology" },
-    { id: "primary-care", label: "Primary Care" },
-    { id: "dentistry", label: "Dentistry" },
-    { id: "neurology", label: "Neurology" },
+    { id: "all", label: getLocalizedSpecialty("All Specialists", locale) },
+    { id: "pediatrics", label: getLocalizedSpecialty("Pediatrics", locale) },
+    { id: "cardiology", label: getLocalizedSpecialty("Cardiology", locale) },
+    { id: "dermatology", label: getLocalizedSpecialty("Dermatology", locale) },
+    { id: "primary-care", label: getLocalizedSpecialty("Primary Care", locale) },
+    { id: "dentistry", label: getLocalizedSpecialty("Dentistry", locale) },
+    { id: "neurology", label: getLocalizedSpecialty("Neurology", locale) },
   ];
 
   return (
@@ -75,11 +78,7 @@ export default function DoctorsPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed text-sm"
           >
-<<<<<<< HEAD:frontend/src/app/doctors/page.tsx
-            Explore real-time patient ratings, verified feedback, and 7-day OPD availability for our specialists.
-=======
             {t("subtitle")}
->>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/page.tsx
           </motion.p>
         </div>
       </section>
@@ -107,15 +106,15 @@ export default function DoctorsPage() {
 
           {/* Sort Selector */}
           <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-            <span className="text-xs font-bold text-on-surface-variant whitespace-nowrap">Sort By:</span>
+            <span className="text-xs font-bold text-on-surface-variant whitespace-nowrap">{tCommon("sortBy")}</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-3 py-2 text-xs font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
-              <option value="rating">Highest Rated (★ Real-time)</option>
-              <option value="experience">Most Experienced</option>
-              <option value="fee">Lowest Consultation Fee</option>
+              <option value="rating">{tCommon("highestRated")}</option>
+              <option value="experience">{tCommon("mostExperienced")}</option>
+              <option value="fee">{tCommon("lowestFee")}</option>
             </select>
           </div>
         </div>
@@ -145,7 +144,6 @@ export default function DoctorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-<<<<<<< HEAD:frontend/src/app/doctors/page.tsx
             {sortedDoctors.map((doctor, index) => {
               const workingDays = doctor.schedules && doctor.schedules.length > 0
                 ? doctor.schedules.map((s) => s.day_of_week)
@@ -163,7 +161,7 @@ export default function DoctorsPage() {
                     id={doctor.id}
                     name={doctor.full_name}
                     specialty={doctor.specialty}
-                    credentials={doctor.qualifications || "Medical Specialist"}
+                    credentials={doctor.qualifications || t("medicalSpecialist", { fallback: "Medical Specialist" })}
                     image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
                     slug={doctor.slug}
                     experience_years={doctor.experience_years}
@@ -175,25 +173,6 @@ export default function DoctorsPage() {
                 </motion.div>
               );
             })}
-=======
-            {doctorsList.map((doctor, index) => (
-              <motion.div
-                key={doctor.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-              >
-                <DoctorCard
-                  name={doctor.full_name}
-                  specialty={doctor.specialty}
-                  credentials={doctor.qualifications || t("medicalSpecialist", { fallback: "Medical Specialist" })}
-                  image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
-                  slug={doctor.slug}
-                />
-              </motion.div>
-            ))}
->>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/page.tsx
           </div>
         )}
       </section>

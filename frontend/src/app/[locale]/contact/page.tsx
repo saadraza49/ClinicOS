@@ -195,7 +195,7 @@ export default function ContactPage() {
                         className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                           errors.name ? "border-error focus:ring-error" : "border-outline-variant"
                         }`}
-                        placeholder="Jane Doe"
+                        placeholder={t("placeholderName")}
                         type="text"
                       />
                       {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
@@ -215,7 +215,7 @@ export default function ContactPage() {
                         className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                           errors.email ? "border-error focus:ring-error" : "border-outline-variant"
                         }`}
-                        placeholder="jane@example.com"
+                        placeholder={t("placeholderEmail")}
                         type="email"
                       />
                       {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
@@ -237,7 +237,7 @@ export default function ContactPage() {
                         className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
                           errors.phone ? "border-error focus:ring-error" : "border-outline-variant"
                         }`}
-                        placeholder="(555) 123-4567"
+                        placeholder={t("placeholderPhone")}
                         type="tel"
                       />
                       {errors.phone && <p className="text-error text-xs mt-1">{errors.phone}</p>}

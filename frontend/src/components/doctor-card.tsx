@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { getLocalizedSpecialty, getLocalizedQualification } from "@/lib/translations";
+import { getLocalizedSpecialty, getLocalizedQualification, getLocalizedWorkingDays } from "@/lib/translations";
 
 export interface DoctorCardProps {
   id?: string;
@@ -66,26 +66,16 @@ export default function DoctorCard({
       </div>
 
       {/* Specialty Badge */}
-<<<<<<< HEAD
-      <div className="bg-secondary/15 text-secondary-900 font-label-sm text-xs px-3 py-0.5 rounded-full mb-2 font-bold tracking-wide">
-        {specialty}
-=======
       <div className="bg-primary/10 text-primary font-label-sm text-label-sm px-3 py-1 rounded-full mb-3 font-semibold">
         {displaySpecialty}
->>>>>>> feature_language_module
       </div>
 
       {/* Name and Credentials */}
       <h3 className="text-headline-sm text-on-surface text-center mb-1 font-bold text-lg leading-snug">
         {name}
       </h3>
-<<<<<<< HEAD
       <p className="text-body-md text-on-surface-variant text-center mb-3 text-xs line-clamp-1 font-medium">
-        {credentials}
-=======
-      <p className="text-body-md text-on-surface-variant text-center mb-6 text-sm">
         {getLocalizedQualification(credentials, locale)}
->>>>>>> feature_language_module
       </p>
 
       {/* Experience & Working Days */}
@@ -93,45 +83,36 @@ export default function DoctorCard({
         {experience_years !== undefined && (
           <div className="flex items-center justify-between text-on-surface-variant">
             <span className="font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-sm text-primary">history</span> Experience
+              <span className="material-symbols-outlined text-sm text-primary">history</span> {t("experience")}
             </span>
-            <span className="font-bold text-on-surface">{experience_years}+ Years</span>
+            <span className="font-bold text-on-surface">{experience_years}+ {t("years")}</span>
           </div>
         )}
         <div className="flex items-center justify-between text-on-surface-variant">
           <span className="font-medium flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm text-primary">calendar_today</span> Days
+            <span className="material-symbols-outlined text-sm text-primary">calendar_today</span> {t("days")}
           </span>
           <span className="font-semibold text-primary text-[11px] truncate max-w-[120px]">
-            {working_days.join(", ")}
+            {getLocalizedWorkingDays(working_days, locale)}
           </span>
         </div>
       </div>
 
       {/* View Profile Button Link */}
-<<<<<<< HEAD
       <div className="w-full grid grid-cols-2 gap-2 mt-auto">
         <Link
           href={`/doctors/${slug}`}
-          className="w-full py-2 rounded-xl border border-outline-variant font-label-md text-xs text-on-surface text-center hover:bg-surface-container-high transition-all font-semibold"
+          className="w-full py-2 px-1 rounded-xl border border-outline-variant font-label-md text-xs text-on-surface text-center hover:bg-surface-container-high transition-all font-semibold truncate flex items-center justify-center"
         >
-          View Profile
+          {t("viewProfile")}
         </Link>
         <Link
           href={`/book-appointment?doctor=${slug}`}
-          className="w-full py-2 rounded-xl bg-primary text-on-primary font-label-md text-xs text-center hover:bg-primary/90 transition-all font-bold shadow-2xs"
+          className="w-full py-2 px-1 rounded-xl bg-primary text-on-primary font-label-md text-xs text-center hover:bg-primary/90 transition-all font-bold shadow-2xs truncate flex items-center justify-center"
         >
-          Book Visit
+          {t("bookVisit")}
         </Link>
       </div>
-=======
-      <Link
-        href={`/doctors/${slug}`}
-        className="w-full mt-auto py-2.5 rounded-full border border-outline-variant font-label-md text-label-md text-primary text-center group-hover:bg-primary group-hover:text-on-primary group-hover:border-primary transition-all duration-300 font-medium active:scale-98"
-      >
-        {t("learnMore")}
-      </Link>
->>>>>>> feature_language_module
     </div>
   );
 }

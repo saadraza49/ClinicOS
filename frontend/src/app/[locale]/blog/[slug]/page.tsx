@@ -9,7 +9,7 @@ import CTABanner from "@/components/cta-banner";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import { getLocalizedBlogTitle, getLocalizedBlogExcerpt, getLocalizedBlogCategory, getLocalizedAuthorRole } from "@/lib/translations";
+import { getLocalizedBlogTitle, getLocalizedBlogExcerpt, getLocalizedBlogCategory, getLocalizedAuthorRole, getLocalizedBlogContent, getLocalizedAuthorBio } from "@/lib/translations";
 
 interface BlogDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -205,17 +205,17 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
               {/* Rich Text Body */}
               <div
                 className="blog-content-wrapper font-body-lg text-body-lg text-on-surface-variant leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: getLocalizedBlogContent(post.content, post.title, locale) }}
               />
 
               {/* Mobile share items row */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-6 mt-10 border-t border-b border-outline-variant/10 gap-4">
                 <div className="flex flex-wrap gap-2">
                   <span className="bg-surface-container text-primary-container-on-primary px-3 py-1 rounded-full text-label-sm font-semibold border border-primary/10">
-                    {post.category}
+                    {getLocalizedBlogCategory(post.category, locale)}
                   </span>
                   <span className="bg-surface-container text-primary-container-on-primary px-3 py-1 rounded-full text-label-sm font-semibold border border-primary/10">
-                    Wellness
+                    {getLocalizedBlogCategory("Wellness", locale)}
                   </span>
                 </div>
                 <div className="flex gap-3 lg:hidden">
@@ -251,7 +251,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                     {getLocalizedAuthorRole(authorInfo.role, locale)}
                   </p>
                   <p className="text-body-md text-on-surface-variant text-sm leading-relaxed">
-                    {authorInfo.bio}
+                    {getLocalizedAuthorBio(authorInfo.bio, post.author, locale)}
                   </p>
                 </div>
               </div>

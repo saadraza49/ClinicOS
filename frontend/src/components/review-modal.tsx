@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { submitDoctorReview } from "@/lib/api";
 import Button from "@/components/button";
+import { useLocale } from "next-intl";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -23,6 +24,9 @@ export default function ReviewModal({
   defaultReviewerName = "",
   onReviewSubmitted,
 }: ReviewModalProps) {
+  const locale = useLocale();
+  const namePlaceholder = locale === "fr" ? "ex. Jean Martin" : locale === "zh" ? "例如 张伟" : "e.g. Jane Doe";
+  const textPlaceholder = locale === "fr" ? "Partagez des détails sur le diagnostic ou le soin..." : locale === "zh" ? "请分享关于就诊诊断或服务的具体细节..." : "Share specific details about diagnosis, waiting time, or bedside manner...";
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [reviewerName, setReviewerName] = useState<string>(defaultReviewerName);
@@ -145,7 +149,7 @@ export default function ReviewModal({
                 type="text"
                 value={reviewerName}
                 onChange={(e) => setReviewerName(e.target.value)}
-                placeholder="e.g. Jane Doe"
+                placeholder={namePlaceholder}
                 className="w-full bg-surface border border-outline-variant/60 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
@@ -157,7 +161,7 @@ export default function ReviewModal({
                 rows={3}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Share specific details about diagnosis, waiting time, or bedside manner..."
+                placeholder={textPlaceholder}
                 className="w-full bg-surface border border-outline-variant/60 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>

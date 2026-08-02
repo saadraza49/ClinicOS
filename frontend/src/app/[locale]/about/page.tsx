@@ -6,6 +6,8 @@ import Image from "next/image";
 import TrustBar from "@/components/trust-bar";
 import CTABanner from "@/components/cta-banner";
 
+import { useTranslations } from "next-intl";
+
 function Counter({ target, duration = 1.5 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
@@ -35,29 +37,6 @@ function Counter({ target, duration = 1.5 }: { target: number; duration?: number
   return <span ref={ref}>{count.toLocaleString()}</span>;
 }
 
-const values = [
-  {
-    icon: "favorite",
-    title: "Compassion",
-    description: "We treat every patient with empathy, respect, and deep understanding, recognizing the human behind the health concern.",
-  },
-  {
-    icon: "workspace_premium",
-    title: "Excellence",
-    description: "We are committed to the highest standards of medical care, continuously updating our practices with the latest research.",
-  },
-  {
-    icon: "visibility",
-    title: "Transparency",
-    description: "Clear, honest communication about treatments, costs, and expectations is the foundation of the trust we build with you.",
-  },
-  {
-    icon: "accessible_forward",
-    title: "Accessibility",
-    description: "We strive to make premium healthcare approachable, minimizing barriers to entry and ensuring our facilities are welcoming to all.",
-  },
-];
-
 const galleryImages = [
   {
     src: "https://lh3.googleusercontent.com/aida-public/AB6AXuBfY-3iX2_JLieNItWuu5Tix7uiEz8VvvBRO6DtM9rwftEtUeK4DyJjbLb9sHN1gWwPR9Gthl9kFgv16UaQV5Zmu83m7bfzC4JsKaKRXlwXYzybPKCS8_ML3XfE_03R6Tbj7OokH52RwEj6atvKQW1CcyfI9qFrRPIKCE75f48fybP_tIxmbZZTYc-JfdDF7LfBpvlvPJge9yPYPRm-znxuy9GGFCi7GGFhE1RCmyWi57uwaRH6fzlRyC4VPtCO2GgB9YItJj8aqPPH",
@@ -78,6 +57,31 @@ const galleryImages = [
 ];
 
 export default function AboutPage() {
+  const t = useTranslations("AboutPage");
+
+  const values = [
+    {
+      icon: "favorite",
+      title: t("compassionTitle"),
+      description: t("compassionDesc"),
+    },
+    {
+      icon: "workspace_premium",
+      title: t("excellenceTitle"),
+      description: t("excellenceDesc"),
+    },
+    {
+      icon: "visibility",
+      title: t("transparencyTitle"),
+      description: t("transparencyDesc"),
+    },
+    {
+      icon: "accessible_forward",
+      title: t("accessibilityTitle"),
+      description: t("accessibilityDesc"),
+    },
+  ];
+
   return (
     <div className="overflow-x-hidden">
       {/* Page Header Banner */}
@@ -90,7 +94,7 @@ export default function AboutPage() {
             transition={{ duration: 0.6 }}
             className="text-display-lg-mobile md:text-display-lg text-primary mb-4 font-bold"
           >
-            About LuminaHealth
+            {t("title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 15 }}
@@ -98,7 +102,7 @@ export default function AboutPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
           >
-            Compassionate care rooted in excellence and human connection.
+            {t("subtitle")}
           </motion.p>
         </div>
       </section>
@@ -113,12 +117,12 @@ export default function AboutPage() {
             transition={{ duration: 0.6 }}
             className="order-2 md:order-1"
           >
-            <h2 className="text-headline-md text-primary mb-6 font-bold">Our Story</h2>
+            <h2 className="text-headline-md text-primary mb-6 font-bold">{t("ourStoryTitle")}</h2>
             <p className="text-body-md text-on-surface-variant mb-6 leading-relaxed">
-              Founded with a vision to redefine the healthcare experience, LuminaHealth was born out of a simple belief: healthcare should feel human. We recognize that stepping into a clinic can be daunting, which is why we've purposefully designed an environment that feels more like a welcoming sanctuary than a traditional medical facility.
+              {t("ourStoryP1")}
             </p>
             <p className="text-body-md text-on-surface-variant leading-relaxed">
-              Our mission is to provide accessible, high-quality healthcare that prioritizes your comfort, dignity, and personal health goals. From our state-of-the-art diagnostic tools to our warm, naturally lit waiting areas, every detail is engineered to support your wellness journey in a space where clinical excellence meets genuine compassion.
+              {t("ourStoryP2")}
             </p>
           </motion.div>
           <motion.div
@@ -152,7 +156,7 @@ export default function AboutPage() {
               <Counter target={15} />
             </div>
             <div className="text-label-md text-primary-fixed uppercase tracking-wider text-xs font-semibold">
-              Years of Service
+              {t("yearsOfService")}
             </div>
           </motion.div>
 
@@ -166,7 +170,7 @@ export default function AboutPage() {
               <Counter target={25000} />+
             </div>
             <div className="text-label-md text-primary-fixed uppercase tracking-wider text-xs font-semibold">
-              Patients Treated
+              {t("patientsTreated")}
             </div>
           </motion.div>
 
@@ -180,7 +184,7 @@ export default function AboutPage() {
               <Counter target={12} />
             </div>
             <div className="text-label-md text-primary-fixed uppercase tracking-wider text-xs font-semibold">
-              Expert Doctors
+              {t("expertDoctors")}
             </div>
           </motion.div>
 
@@ -194,7 +198,7 @@ export default function AboutPage() {
               <Counter target={98} />%
             </div>
             <div className="text-label-md text-primary-fixed uppercase tracking-wider text-xs font-semibold">
-              Patient Satisfaction
+              {t("patientSatisfaction")}
             </div>
           </motion.div>
         </div>
@@ -211,7 +215,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="text-headline-md text-primary mb-3 font-bold"
             >
-              Our Core Values
+              {t("valuesTitle")}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -220,7 +224,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-body-md text-on-surface-variant max-w-2xl mx-auto"
             >
-              The principles that guide our everyday interactions and long-term vision.
+              {t("valuesSubtitle")}
             </motion.p>
           </div>
 
@@ -249,8 +253,8 @@ export default function AboutPage() {
       <section className="py-20 px-4 md:px-6 bg-surface-container-lowest border-t border-outline-variant/10">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10">
-            <h2 className="text-headline-md text-primary mb-2 font-bold">Our Healing Environment</h2>
-            <p className="text-body-md text-on-surface-variant">Designed for tranquility and efficiency.</p>
+            <h2 className="text-headline-md text-primary mb-2 font-bold">{t("title")}</h2>
+            <p className="text-body-md text-on-surface-variant">{t("subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -291,12 +295,7 @@ export default function AboutPage() {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
         >
-          <CTABanner
-            title="Come experience care that puts you first"
-            description="Schedule your consultation today and take the first step towards a healthier, brighter future with LuminaHealth."
-            buttonText="Book Appointment"
-            buttonHref="/book-appointment"
-          />
+          <CTABanner />
         </motion.div>
       </section>
     </div>

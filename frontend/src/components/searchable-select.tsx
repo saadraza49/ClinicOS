@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useLocale } from "next-intl";
 
 export interface SelectOption {
   id: string;
@@ -30,6 +31,8 @@ export default function SearchableSelect({
   error,
   iconName = "medical_services",
 }: SearchableSelectProps) {
+  const locale = useLocale();
+  const filterPlaceholder = locale === "fr" ? "Taper pour filtrer..." : locale === "zh" ? "输入关键词筛选..." : "Type to filter...";
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,7 +135,7 @@ export default function SearchableSelect({
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Type to filter..."
+              placeholder={filterPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-outline-variant"

@@ -59,7 +59,8 @@ const SPECIALTY_TRANSLATIONS: Record<string, Record<string, string>> = {
   "Orthopedics": { en: "Orthopedics", fr: "Orthopédie", zh: "骨科" },
   "ENT (Ear, Nose & Throat)": { en: "ENT (Ear, Nose & Throat)", fr: "ORL (Oto-rhino-laryngologie)", zh: "耳鼻喉科" },
   "Psychiatry": { en: "Psychiatry", fr: "Psychiatrie", zh: "精神科" },
-  "All Services": { en: "All Services", fr: "Tous les Services", zh: "所有服务" }
+  "All Services": { en: "All Services", fr: "Tous les Services", zh: "所有服务" },
+  "All Specialists": { en: "All Specialists", fr: "Tous les Spécialistes", zh: "所有专家" }
 };
 
 export function getLocalizedSpecialty(specialty: string, locale: string): string {
@@ -150,6 +151,11 @@ export function getLocalizedDay(day: string, locale: string): string {
   return day;
 }
 
+export function getLocalizedWorkingDays(days: string[], locale: string): string {
+  if (!days || days.length === 0) return "";
+  return days.map((d) => getLocalizedDay(d, locale)).join(", ");
+}
+
 const DOCTOR_BIO_MAP: Record<string, Record<string, string>> = {
   "Dr. Fatima Ali": {
     en: "Dr. Fatima Ali is a board-certified Primary Care specialist with 11 years of experience.",
@@ -220,7 +226,9 @@ const FAQ_CATEGORY_TRANSLATIONS: Record<string, Record<string, string>> = {
   "Prescription Refills": { en: "Prescription Refills", fr: "Renouvellement d'Ordonnances", zh: "处方续签与开药" },
   "Pediatrics": { en: "Pediatrics", fr: "Pédiatrie", zh: "儿科诊疗" },
   "COVID-19 & Vaccines": { en: "COVID-19 & Vaccines", fr: "COVID-19 & Vaccins", zh: "新冠与疫苗接种" },
-  "Parking & Accessibility": { en: "Parking & Accessibility", fr: "Parking & Accessibilité", zh: "停车与无障碍设施" }
+  "Parking & Accessibility": { en: "Parking & Accessibility", fr: "Parking & Accessibilité", zh: "停车与无障碍设施" },
+  "Virtual Consultations": { en: "Virtual Consultations", fr: "Consultations Virtuelles", zh: "在线远程诊疗" },
+  "Medical Records": { en: "Medical Records", fr: "Dossiers Médicaux", zh: "病历与就诊记录" }
 };
 
 export function getLocalizedFAQCategory(category: string, locale: string): string {
@@ -232,6 +240,10 @@ export function getLocalizedFAQCategory(category: string, locale: string): strin
 }
 
 const FAQ_ITEMS_TRANSLATIONS: Record<string, { question: Record<string, string>; answer: Record<string, string> }> = {
+  "Do you offer online telehealth appointments?": {
+    question: { en: "Do you offer online telehealth appointments?", fr: "Proposez-vous des rendez-vous de télémédecine en ligne ?", zh: "诊所是否提供在线远程视频问诊服务？" },
+    answer: { en: "Yes, we offer virtual video consultations for general follow-ups, prescription renewals, and non-emergency advice.", fr: "Oui, nous proposons des consultations vidéo virtuelles pour le suivi général, le renouvellement d'ordonnances et les conseils non urgents.", zh: "是的，我们为复诊病情跟踪、处方续签及非紧急健康咨询提供便捷的高清在线视频问诊服务。" }
+  },
   "What are your opening hours?": {
     question: { en: "What are your opening hours?", fr: "Quels sont vos horaires d'ouverture ?", zh: "诊所的营业时间是什么？" },
     answer: { en: "We are open Monday through Saturday from 9:00 AM to 9:00 PM. We are closed on Sundays.", fr: "Nous sommes ouverts du lundi au samedi de 9h00 à 21h00. Nous sommes fermés le dimanche.", zh: "我们的营业时间为周一至周六上午 9:00 至晚上 9:00，周日休息。" }
@@ -353,6 +365,144 @@ export function getLocalizedAuthorRole(role: string, locale: string): string {
   const found = AUTHOR_ROLE_MAP[role];
   if (found && found[normLocale]) return found[normLocale];
   return role;
+}
+
+const AUTHOR_BIO_MAP: Record<string, Record<string, string>> = {
+  "Dr. Sarah Jenkins": {
+    en: "Dr. Jenkins is a senior physician specializing in preventive health diagnostics and patient-first care maps. She has dedicated 12 years to community health development.",
+    fr: "Le Dr Jenkins est une médecin sénior spécialisée dans le diagnostic de santé préventif et les soins axés sur le patient. Elle a consacré 12 ans au développement de la santé communautaire.",
+    zh: "Jenkins 医生是一位资深全科门诊专家，专长于疾病早期诊断与预防性全周期健康管理，拥有 12 年社区临床医疗服务经验。"
+  },
+  "Dietitian Mark": {
+    en: "Mark focuses on functional nutrition and metabolic support. He designs dietary strategies to help patients manage inflammation, weight, and improve physical performance.",
+    fr: "Mark se concentre sur la nutrition fonctionnelle et le soutien métabolique. Il conçoit des stratégies alimentaires pour aider les patients à gérer l'inflammation, le poids et les performances physiques.",
+    zh: "Mark 致力于临床功能营养与新陈代谢调理，擅长通过科学膳食干预帮助患者控制慢性炎症、管理体重并提升体能素质。"
+  },
+  "Dr. E. Rossi": {
+    en: "Dr. Rossi specializes in cognitive behavioral therapy (CBT) and occupational stress recovery. She has 8+ years helping individuals navigate life changes and stress triggers.",
+    fr: "Le Dr Rossi est spécialisée dans la thérapie cognitivo-comportementale (TCC) et la récupération après un stress professionnel. Elle possède plus de 8 ans d'expérience dans l'accompagnement des patients.",
+    zh: "Rossi 医生专长于认知行为疗法 (CBT) 与职业压力心理康复，拥有 8 年以上帮扶患者应对生活变故与压力源的丰富诊疗经验。"
+  },
+  "Clinic Staff": {
+    en: "Our integrated care coordination team works around the clock to provide timely resources, vaccinations scheduling, and clinical assistance.",
+    fr: "Notre équipe intégrée de coordination des soins travaille 24h/24 et 7j/7 pour fournir des ressources opportunes, la planification des vaccinations et une assistance clinique.",
+    zh: "我们的综合护理协调团队全天候在线，为广大患者提供快捷的门诊资源调配、疫苗接种预约以及临床辅助支持服务。"
+  },
+  "Lumina Management": {
+    en: "The LuminaHealth management team is dedicated to designing premium clinical facilities and offering modern amenities for outstanding patient care.",
+    fr: "L'équipe de direction de LuminaHealth s'engage à concevoir des installations cliniques haut de gamme et à offrir des équipements modernes pour des soins d'exception.",
+    zh: "LuminaHealth 管理团队致力于打造国际化高品质诊疗设施与现代化就医环境，全方位提升患者就诊关怀与满意度。"
+  },
+  "Dr. James Wilson": {
+    en: "Dr. Wilson specializes in preventative care and nutritional wellness. With over 15 years of experience, he is passionate about empowering patients to take charge of their health through holistic, evidence-based approaches.",
+    fr: "Le Dr Wilson est spécialisé dans les soins préventifs et le bien-être nutritionnel. Avec plus de 15 ans d'expérience, il s'assure d'offrir une prise en charge globale et éprouvée.",
+    zh: "Wilson 医生专注于全科预防医学与营养健康管理，拥有 15 年以上的丰富临床经验，擅长运用循证医学方法协助患者管理身体健康。"
+  }
+};
+
+export function getLocalizedAuthorBio(bio: string, author: string, locale: string): string {
+  const normLocale = (locale || "en").toLowerCase();
+  const found = AUTHOR_BIO_MAP[author];
+  if (found && found[normLocale]) return found[normLocale];
+  return bio;
+}
+
+const BLOG_CONTENT_TRANSLATIONS: Record<string, Record<string, string>> = {
+  "The Importance of Annual Check-ups": {
+    fr: `
+      <p>Les examens de santé réguliers sont essentiels pour la détection précoce des problèmes potentiels. Travailler en étroite collaboration avec votre médecin de famille vous permet de maintenir un bien-être optimal et de prévenir les complications.</p>
+      <h3>Pourquoi le bilan annuel est essentiel</h3>
+      <p>De nombreuses maladies chroniques, telles que l'hypertension artérielle et le diabète de type 2, se développent progressivement sans symptômes évidents au début. Lors du bilan annuel, votre médecin surveille vos constantes vitales, votre cholestérol et votre glycémie.</p>
+      <h3>Partenariat de santé</h3>
+      <p>Un bilan annuel offre l'occasion d'établir une relation de confiance durable avec votre professionnel de santé pour aborder vos habitudes de vie, votre sommeil et votre bien-être mental.</p>
+    `,
+    zh: `
+      <p>定期健康体检是早期发现潜在健康隐患的关键。与您的家庭医生保持密切沟通，有助于建立个人健康档案并维持身体最佳状态。安排年度体检是保障长期健康最具前瞻性的一步。</p>
+      <h3>为什么年度体检至关重要</h3>
+      <p>许多慢性疾病（如高血压和 2 型糖尿病）在早期发展阶段往往没有任何明显症状。在年度体检中，医生会全面检测血压、血脂及血糖等核心指标，做到早发现、早干预。</p>
+      <h3>建立长期的健康信任伙伴关系</h3>
+      <p>年度体检不仅是一项例行检查，更是与您的主治医师建立深度信任的良好契机。您可以从容地交流日常生活习惯、睡眠质量、心理压力及家族病史等关切问题。</p>
+    `
+  },
+  "Eating for Immunity This Winter": {
+    fr: `
+      <p>À l'approche des mois d'hiver, notre système immunitaire est confronté aux virus saisonniers et au froid. Bien qu'aucun aliment ne garantisse une immunité totale, une alimentation riche en nutriments renforce naturellement vos défenses.</p>
+      <h3>Piliers nutritionnels de l'immunité</h3>
+      <p>Privilégiez les aliments complets riches en vitamines et minéraux essentiels :</p>
+      <ul>
+        <li><strong>Vitamine C :</strong> Agrumes, poivrons et épinards favorisent la protection cellulaire.</li>
+        <li><strong>Zinc :</strong> Viandes maigres, graines et lentilles soutiennent le développement immunitaire.</li>
+        <li><strong>Probiotiques :</strong> Les aliments fermentés renforcent le microbiote intestinal.</li>
+      </ul>
+    `,
+    zh: `
+      <p>随著冬季气温降低，我们的免疫系统面临严峻的季节性病毒考验。虽然没有某种单一食物能包治百病，但富含维生素与矿物质的均衡营养饮食是维持身体免疫屏障的关键。</p>
+      <h3>免疫支持的四大关键营养要素</h3>
+      <p>为了支持白细胞的正常免疫应答，请优先摄入以下富含关键微量营养素的天然食物：</p>
+      <ul>
+        <li><strong>维生素 C：</strong>柑橘类水果、彩椒及菠菜富含天然抗氧化剂，有效保护细胞免疫。</li>
+        <li><strong>锌元素：</strong>瘦肉、坚果及豆类对免疫细胞的分化与发育至关重要。</li>
+        <li><strong>益生菌：</strong>酸奶及发酵食物能滋养肠道菌群，构筑强健的肠道免疫网络。</li>
+      </ul>
+    `
+  },
+  "Managing Workplace Stress": {
+    fr: `
+      <p>Les exigences professionnelles peuvent facilement déborder sur le temps personnel, entraînant une hausse du taux de cortisol et un stress systémique. À la longue, le stress professionnel chronique peut se manifester par des maux de tête, de la fatigue ou une tension cardiovasculaire. Apprendre à gérer le stress est essentiel pour préserver son bien-être physique et émotionnel.</p>
+      <h3>Reconnaître les signes d'épuisement professionnel</h3>
+      <p>Soyez attentif aux indicateurs émotionnels et comportementaux qui révèlent un surmenage : fatigue persistante, irritabilité envers les collègues, sentiment de détachement et baisse de la productivité globale.</p>
+      <h3>Stratégies d'adaptation concrètes</h3>
+      <p>Incorporez de petites habitudes de bien-être dans votre routine quotidienne pour rester équilibré :</p>
+      <ul>
+        <li><strong>Gestion par blocs de temps :</strong> Définissez des plages horaires strictes et protégez vos pauses déjeuner loin des écrans.</li>
+        <li><strong>Pauses de pleine conscience :</strong> Prenez des pauses de 3 à 5 minutes pour faire des exercices de respiration entre les réunions.</li>
+        <li><strong>Fixer des limites claires :</strong> Éteignez les applications de communication professionnelle après le travail pour permettre une récupération cognitive.</li>
+      </ul>
+    `,
+    zh: `
+      <p>职场生活中的高强度需求极易侵占个人生活时间，导致体内皮质醇水平升高并引发慢性累积性压力。长此以往，慢性职业压力会通过头痛、持续疲劳或心血管负担等生理症状显现。学会科学管理职场压力是维持身心健康的重中之重。</p>
+      <h3>识别职业倦怠预警信号</h3>
+      <p>警惕以下提示超负荷的心理与行为标志：持续性身心俱疲、对同事产生易怒情绪、社交异化与疏离感以及整体工作效率的明显下降。</p>
+      <h3>高效实用的压力应对策略</h3>
+      <p>将以下微健康习惯融入您的日常作息，保持身心动态平衡：</p>
+      <ul>
+        <li><strong>时间块管理：</strong>为各项工作任务设定严格的时间界限，并在午休期间远离电子屏幕。</li>
+        <li><strong>正念小憩：</strong>在连续会议之间安排 3-5 分钟的深呼吸练习与正念冥想。</li>
+        <li><strong>设立清晰的工作边界：</strong>下班后主动关闭工作通讯软件通知，给大脑留出充分的认知恢复时间。</li>
+      </ul>
+    `
+  },
+  "Flu Season 2024 Guidelines": {
+    fr: `
+      <p>La grippe demeure un risque sanitaire majeur pendant la saison froide. Le vaccin antigrippal annuel est recommandé à partir de 6 mois pour réduire la gravité des symptômes et limiter la transmission au sein de la communauté.</p>
+      <h3>Moment idéal pour se faire vacciner</h3>
+      <p>Pour une protection optimale, planifiez votre vaccination dès le début de l'automne, permettant à votre corps de produire les anticorps nécessaires.</p>
+    `,
+    zh: `
+      <p>流行性感冒在秋冬寒冷季节依旧是影响公众健康的重要传染病。建议 6 个月以上的全人群接种年度流感疫苗，以显著降低重症发生率与社区传播风险。</p>
+      <h3>接种疫苗的最佳时机</h3>
+      <p>为在流感高发期来临前获得充足的保护力，权威卫生机构建议在秋季早中期完成接种，以便免疫系统产生足够的抗体屏障。</p>
+    `
+  },
+  "LuminaHealth Unveils Wellness Suite": {
+    fr: `
+      <p>Nous sommes ravis d'annoncer l'inauguration de notre nouveau centre de diagnostic et de bien-être. Cette nouvelle aile clinique marque une étape importante dans notre engagement à fournir des services de diagnostic rapides et performants.</p>
+      <h3>Imagerie de haute précision sur place</h3>
+      <p>L'espace est équipé de radiologie numérique et d'échographie 4D avancée, permettant des résultats d'imagerie immédiats sans déplacement supplémentaire.</p>
+    `,
+    zh: `
+      <p>我们非常荣幸地宣布 LuminaHealth 全新综合健康诊断中心正式启用。这一新建翼楼标志着诊所在一站式提供高效、精准现代化医学影像检查方面的全新里程碑。</p>
+      <h3>院内即时高清影像诊断</h3>
+      <p>诊疗中心配备全数字放射线成像系统与四维彩超设备，患者无需跨院奔波即可在现场完成关键影像检查与报告评估。</p>
+    `
+  }
+};
+
+export function getLocalizedBlogContent(content: string, title: string, locale: string): string {
+  const normLocale = (locale || "en").toLowerCase();
+  const found = BLOG_CONTENT_TRANSLATIONS[title];
+  if (found && found[normLocale]) return found[normLocale];
+  return content;
 }
 
 const DEPARTMENT_TRANSLATIONS: Record<string, Record<string, string>> = {

@@ -7,7 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { getServices, ServiceData } from "@/lib/api";
 import PricingTierCard, { PricingFeature } from "@/components/pricing-tier-card";
 import CTABanner from "@/components/cta-banner";
-import { getLocalizedDepartmentName, getLocalizedPlanName, getLocalizedPlanDesc, getLocalizedFeatureText } from "@/lib/translations";
+import { getLocalizedDepartmentName, getLocalizedServiceTitle, getLocalizedPlanName, getLocalizedPlanDesc, getLocalizedFeatureText } from "@/lib/translations";
 
 
 
@@ -211,7 +211,9 @@ export default function FeesPage() {
                       key={service.id}
                       className="border-b border-outline-variant/10 hover:bg-surface-container-low/20 transition-colors"
                     >
-                      <td className="py-4 px-2 font-semibold text-on-surface">{service.name}</td>
+                      <td className="py-4 px-2 font-semibold text-on-surface">
+                        {getLocalizedServiceTitle(service.name, locale)}
+                      </td>
                       <td className="py-4 px-2 text-on-surface-variant capitalize text-sm">
                         {getLocalizedDepartmentName(service.department?.name || "General Care", locale)}
                       </td>

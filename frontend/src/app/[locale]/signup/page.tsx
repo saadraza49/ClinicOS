@@ -26,9 +26,11 @@ import {
 } from "lucide-react";
 import Button from "@/components/button";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 
 export default function SignupPage() {
   const router = useRouter();
+  const t = useTranslations("ContactPage");
   const { signup } = useAuth();
   const [role, setRole] = useState<"patient" | "doctor">("patient");
   const [fullName, setFullName] = useState("");
@@ -289,7 +291,7 @@ export default function SignupPage() {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="John Doe"
+                      placeholder={t("placeholderName")}
                       className={`w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border rounded-xl outline-none transition-all ${
                         errors.fullName
                           ? "border-red-400 focus:ring-2 focus:ring-red-200"
@@ -321,7 +323,7 @@ export default function SignupPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="john@example.com"
+                        placeholder={t("placeholderEmail")}
                         className={`w-full pl-10 pr-3 py-2.5 text-sm bg-slate-50 border rounded-xl outline-none transition-all ${
                           errors.email
                             ? "border-red-400 focus:ring-2 focus:ring-red-200"
@@ -351,7 +353,7 @@ export default function SignupPage() {
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+1 (555) 000-0000"
+                        placeholder={t("placeholderPhone")}
                         className={`w-full pl-10 pr-3 py-2.5 text-sm bg-slate-50 border rounded-xl outline-none transition-all ${
                           errors.phone
                             ? "border-red-400 focus:ring-2 focus:ring-red-200"

@@ -16,16 +16,13 @@ function BookingForm() {
   const searchParams = useSearchParams();
   const doctorQuery = searchParams.get("doctor");
   const serviceQuery = searchParams.get("service");
-<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
   const { user } = useAuth();
+  const t = useTranslations("BookAppointmentPage");
 
   const stepperTopRef = useRef<HTMLDivElement>(null);
 
   // Step 1: Service & Doctor, Step 2: Date & Time, Step 3: Patient Info, Step 4: Pass Review & Confirm
   const [currentStep, setCurrentStep] = useState<number>(1);
-=======
-  const t = useTranslations("BookAppointmentPage");
->>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
 
   // Dynamic Options from DB
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
@@ -156,14 +153,7 @@ function BookingForm() {
 
   const validateStep3 = () => {
     const newErrors: Record<string, string> = {};
-<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
     if (!name.trim()) newErrors.name = "Full name is required";
-=======
-    if (!service) newErrors.service = t("selectServiceReq");
-    if (!date) newErrors.date = t("selectDateReq");
-    if (!selectedTime) newErrors.time = t("selectTimeReq");
-    if (!name.trim()) newErrors.name = t("fullNameReq");
->>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
     if (!email.trim()) {
       newErrors.email = t("emailReq");
     } else if (!/\S+@\S+\.\S+/.test(email)) {
@@ -327,7 +317,6 @@ function BookingForm() {
               const isActive = currentStep === step.number;
               const isCompleted = currentStep > step.number;
 
-<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
               return (
                 <div key={step.number} className="flex items-center gap-2 min-w-max">
                   <button
@@ -347,7 +336,29 @@ function BookingForm() {
                           : isActive
                           ? "bg-primary text-on-primary ring-2 ring-primary/30 scale-105"
                           : "bg-surface-container-high text-on-surface-variant"
-=======
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <span className="material-symbols-outlined text-base font-bold">check</span>
+                      ) : (
+                        <span className="material-symbols-outlined text-base">{step.icon}</span>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] uppercase tracking-wider font-extrabold text-on-surface-variant/70 leading-none">
+                        Step 0{step.number}
+                      </p>
+                      <p className={`text-xs font-bold whitespace-nowrap leading-tight mt-0.5 ${isActive ? "text-primary" : "text-on-surface"}`}>
+                        {step.title}
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       {/* Step 1: Selection */}
       <div className="space-y-4">
         <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
@@ -484,39 +495,15 @@ function BookingForm() {
                         selectedTime === slot.value
                           ? "bg-primary text-on-primary border-primary shadow-sm scale-102"
                           : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low hover:border-primary"
->>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
                       }`}
                     >
-                      {isCompleted ? (
-                        <span className="material-symbols-outlined text-base font-bold">check</span>
-                      ) : (
-                        <span className="material-symbols-outlined text-base">{step.icon}</span>
-                      )}
-                    </div>
-                    <div className="text-left">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-on-surface-variant/70 block">
-                        Step 0{step.number}
-                      </span>
-                      <span
-                        className={`text-xs font-bold block leading-tight ${
-                          isActive ? "text-primary" : "text-on-surface"
-                        }`}
-                      >
-                        {step.title}
-                      </span>
-                    </div>
-                  </button>
-                  {step.number < 4 && (
-                    <div
-                      className={`w-6 h-0.5 rounded-full transition-all ${
-                        currentStep > step.number ? "bg-emerald-500" : "bg-outline-variant/30"
-                      }`}
-                    />
+                      {slot.label}
+                    </label>
                   )}
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Stepper Progress Bar */}
           <div className="w-full bg-surface-container-high h-2 rounded-full mt-3 overflow-hidden p-0.5">
@@ -561,25 +548,25 @@ function BookingForm() {
                 <div className="space-y-5">
                   {/* Searchable Service Dropdown */}
                   <SearchableSelect
-                    label="1. Select Medical Service *"
+                    label={t("selectService")}
                     options={serviceOptions}
                     value={service}
                     onChange={(val) => {
                       setService(val);
                       if (errors.service) setErrors((prev) => ({ ...prev, service: "" }));
                     }}
-                    placeholder="Search or select from 100+ medical services..."
+                    placeholder={t("searchServicePlaceholder")}
                     error={errors.service}
                     iconName="medical_services"
                   />
 
                   {/* Searchable Doctor Dropdown */}
                   <SearchableSelect
-                    label="2. Choose Doctor / Specialist (Optional)"
+                    label={t("selectDoctor")}
                     options={doctorOptions}
                     value={doctor}
                     onChange={(val) => setDoctor(val)}
-                    placeholder="Search doctor by name, specialty, or rating..."
+                    placeholder={t("searchDoctorPlaceholder")}
                     iconName="stethoscope"
                   />
                 </div>
@@ -788,7 +775,7 @@ function BookingForm() {
                     <input
                       id="name"
                       name="name"
-                      placeholder="Jane Doe"
+                      placeholder={t("patientNamePlaceholder")}
                       value={name}
                       onChange={(e) => {
                         setName(e.target.value);
@@ -805,12 +792,12 @@ function BookingForm() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-on-surface flex items-center gap-1" htmlFor="email">
                       <span className="material-symbols-outlined text-sm text-primary">mail</span>
-                      Email Address <span className="text-error">*</span>
+                      {t("emailAddress")} <span className="text-error">*</span>
                     </label>
                     <input
                       id="email"
                       name="email"
-                      placeholder="jane@example.com"
+                      placeholder={t("patientEmailPlaceholder")}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -827,12 +814,12 @@ function BookingForm() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-on-surface flex items-center gap-1" htmlFor="phone">
                       <span className="material-symbols-outlined text-sm text-primary">call</span>
-                      Phone Number <span className="text-error">*</span>
+                      {t("phoneNumber")} <span className="text-error">*</span>
                     </label>
                     <input
                       id="phone"
                       name="phone"
-                      placeholder="+92 300 1234567"
+                      placeholder={t("patientPhonePlaceholder")}
                       value={phone}
                       onChange={(e) => {
                         setPhone(e.target.value);
@@ -849,12 +836,12 @@ function BookingForm() {
                   <div className="flex flex-col gap-1.5 md:col-span-2">
                     <label className="text-xs font-bold text-on-surface flex items-center gap-1" htmlFor="notes">
                       <span className="material-symbols-outlined text-sm text-primary">notes</span>
-                      Symptoms or Additional Medical Notes (Optional)
+                      {t("additionalNotes")}
                     </label>
                     <textarea
                       id="notes"
                       name="notes"
-                      placeholder="Describe your current symptoms or reason for visit..."
+                      placeholder={t("symptomsPlaceholder")}
                       rows={3}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -996,7 +983,6 @@ function BookingForm() {
               <span className="material-symbols-outlined text-primary text-xl select-none">receipt_long</span>
               <h3 className="text-headline-sm font-bold text-on-surface text-sm">Live Booking Pass</h3>
             </div>
-<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
             <span className="text-[10px] font-bold px-2.5 py-0.5 bg-primary/10 text-primary rounded-full">
               LIVE
             </span>
@@ -1042,99 +1028,9 @@ function BookingForm() {
                 ${selectedServiceObj ? selectedServiceObj.price : 150} USD
               </span>
             </div>
-=======
-          )}
-          {errors.time && <p className="text-error text-xs mt-1">{errors.time}</p>}
-        </div>
-      </div>
-
-      {/* Step 3: Patient Details */}
-      <div className="space-y-4 pt-4">
-        <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
-          {t("step3Title")}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1 md:col-span-2">
-            <label className="text-label-sm text-on-surface-variant" htmlFor="name">
-              {t("fullName")} <span className="text-error">*</span>
-            </label>
-            <input
-              id="name"
-              name="name"
-              placeholder="Jane Doe"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
-              }}
-              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
-                errors.name ? "border-error focus:ring-error" : "border-outline-variant"
-              }`}
-              type="text"
-            />
-            {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-label-sm text-on-surface-variant" htmlFor="email">
-              {t("emailAddress")} <span className="text-error">*</span>
-            </label>
-            <input
-              id="email"
-              name="email"
-              placeholder="jane@example.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
-              }}
-              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
-                errors.email ? "border-error focus:ring-error" : "border-outline-variant"
-              }`}
-              type="email"
-            />
-            {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-label-sm text-on-surface-variant" htmlFor="phone">
-              {t("phoneNumber")} <span className="text-error">*</span>
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              placeholder="+92 300 1234567"
-              value={phone}
-              onChange={(e) => {
-                setPhone(e.target.value);
-                if (errors.phone) setErrors((prev) => ({ ...prev, phone: "" }));
-              }}
-              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
-                errors.phone ? "border-error focus:ring-error" : "border-outline-variant"
-              }`}
-              type="tel"
-            />
-            {errors.phone && <p className="text-error text-xs mt-1">{errors.phone}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1 md:col-span-2">
-            <label className="text-label-sm text-on-surface-variant" htmlFor="notes">
-              {t("additionalNotes")}
-            </label>
-            <textarea
-              id="notes"
-              name="notes"
-              placeholder={t("notesPlaceholder")}
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50"
-            />
->>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
           </div>
         </div>
 
-<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
         {/* Guarantees Box */}
         <div className="bg-emerald-50/80 p-4.5 rounded-3xl border border-emerald-200/80 space-y-2 text-xs text-emerald-950">
           <div className="flex items-center gap-2 font-bold text-emerald-900">
@@ -1146,62 +1042,31 @@ function BookingForm() {
             <li>Free cancellation &amp; rescheduling up to 2h</li>
             <li>Instant PDF appointment slip download</li>
           </ul>
-=======
-      {/* Submit Button */}
-      <div className="pt-4">
-        <Button variant="primary" type="submit" isLoading={isLoading} className="w-full py-4 text-base font-bold shadow-md">
-          {t("confirmAppt")}
-        </Button>
+        </div>
       </div>
-    </form>
+    </div>
+    </div>
   );
 }
 
 export default function BookAppointmentPage() {
   const t = useTranslations("BookAppointmentPage");
   return (
-    <div className="overflow-x-hidden py-12 md:py-16 px-4 md:px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-10">
-          <span className="material-symbols-outlined text-primary text-5xl mb-2 select-none">
-            calendar_clock
-          </span>
-          <h1 className="text-display-lg-mobile md:text-display-lg font-bold text-on-surface mb-3">
-            {t("title")}
-          </h1>
-          <p className="text-body-lg text-on-surface-variant max-w-xl mx-auto">
-            {t("subtitle")}
-          </p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/10 shadow-ambient rounded-3xl p-6 md:p-10">
-          <Suspense fallback={<div className="p-8 text-center animate-pulse text-on-surface-variant">Loading booking system...</div>}>
-            <BookingForm />
-          </Suspense>
->>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function BookAppointmentPage() {
-  return (
     <div className="overflow-x-hidden py-10 md:py-14 px-4 md:px-6 bg-surface-container-lowest min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <span className="px-3.5 py-1 bg-primary/10 text-primary font-extrabold text-xs rounded-full inline-block mb-3">
-            SMART APPOINTMENT BOOKING
+            {t("bookingBadge")}
           </span>
           <h1 className="text-display-lg-mobile md:text-display-lg font-bold text-on-surface mb-2">
-            Book Your Consultation
+            {t("title")}
           </h1>
           <p className="text-body-lg text-on-surface-variant max-w-xl mx-auto text-sm">
-            Experience our streamlined digital booking pass to reserve your specialist visit in under a minute.
+            {t("subtitle")}
           </p>
         </div>
 
-        <Suspense fallback={<div className="p-12 text-center animate-pulse text-on-surface-variant font-medium">Loading booking portal...</div>}>
+        <Suspense fallback={<div className="p-12 text-center animate-pulse text-on-surface-variant font-medium">{t("loadingPortal")}</div>}>
           <BookingForm />
         </Suspense>
       </div>

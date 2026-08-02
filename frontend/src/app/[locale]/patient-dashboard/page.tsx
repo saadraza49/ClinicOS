@@ -10,12 +10,6 @@ import {
   updatePatientProfile, 
   getMyAppointments, 
   cancelAppointment, 
-<<<<<<< HEAD
-  PatientFullData, 
-  AppointmentData 
-} from "@/lib/api";
-import Button from "@/components/button";
-=======
   rescheduleAppointment,
   getAvailableSlots,
   PatientFullData, 
@@ -24,13 +18,20 @@ import Button from "@/components/button";
 } from "@/lib/api";
 import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
+import { useLocale } from "next-intl";
 import { downloadAppointmentPDF } from "@/lib/pdf-generator";
 import ReviewModal from "@/components/review-modal";
->>>>>>> origin/business-logic
 
 export default function PatientDashboardPage() {
   const router = useRouter();
+  const locale = useLocale();
   const { user, isLoading: authLoading, logout } = useAuth();
+
+  const placeholderAge = locale === "fr" ? "ex. 28" : locale === "zh" ? "例如 28" : "e.g. 28";
+  const placeholderKinName = locale === "fr" ? "ex. Jean Martin" : locale === "zh" ? "例如 张伟" : "e.g. John Doe";
+  const placeholderKinPhone = locale === "fr" ? "ex. 01 23 45 67 89" : locale === "zh" ? "例如 138 0000 0000" : "e.g. +92 300 0000000";
+  const placeholderHistory = locale === "fr" ? "ex. Hypertension, Asthme, Diabète" : locale === "zh" ? "例如 高血压、哮喘、2型糖尿病" : "e.g. Hypertension, Asthma, Type 2 Diabetes";
+  const placeholderAllergies = locale === "fr" ? "ex. Pénicilline, Latex, Cacahuètes" : locale === "zh" ? "例如 青霉素、乳胶、花生" : "e.g. Penicillin, Latex, Peanuts";
 
   const [activeTab, setActiveTab] = useState<"profile" | "appointments" | "actions">("profile");
 
@@ -58,54 +59,6 @@ export default function PatientDashboardPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [apptSuccessMsg, setApptSuccessMsg] = useState<string | null>(null);
 
-<<<<<<< HEAD
-  // Load Patient Profile & Appointments
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-      return;
-    }
-
-    if (user) {
-      setFullName(user.full_name || "");
-      setPhone(user.phone || "");
-
-      async function loadData() {
-        try {
-          setLoadingProfile(true);
-          setLoadingAppts(true);
-
-          const [fullProfile, apptsList] = await Promise.all([
-            getPatientProfile().catch(() => null),
-            getMyAppointments().catch(() => [])
-          ]);
-
-          if (fullProfile) {
-            setProfileData(fullProfile);
-            if (fullProfile.user.full_name) setFullName(fullProfile.user.full_name);
-            if (fullProfile.user.phone) setPhone(fullProfile.user.phone);
-            if (fullProfile.profile) {
-              if (fullProfile.profile.age !== undefined && fullProfile.profile.age !== null) {
-                setAge(String(fullProfile.profile.age));
-              }
-              if (fullProfile.profile.gender) setGender(fullProfile.profile.gender);
-              if (fullProfile.profile.blood_group) setBloodGroup(fullProfile.profile.blood_group);
-              if (fullProfile.profile.emergency_contact_name) setEmergencyName(fullProfile.profile.emergency_contact_name);
-              if (fullProfile.profile.emergency_contact_phone) setEmergencyPhone(fullProfile.profile.emergency_contact_phone);
-              if (fullProfile.profile.medical_history) setMedicalHistory(fullProfile.profile.medical_history);
-              if (fullProfile.profile.allergies) setAllergies(fullProfile.profile.allergies);
-            }
-          }
-
-          setAppointments(apptsList);
-        } catch (err) {
-          console.error("Error loading patient dashboard data:", err);
-        } finally {
-          setLoadingProfile(false);
-          setLoadingAppts(false);
-        }
-      }
-=======
   // Review Modal State
   const [reviewModalData, setReviewModalData] = useState<{
     isOpen: boolean;
@@ -240,7 +193,6 @@ export default function PatientDashboardPage() {
         router.push("/login");
         return;
       }
->>>>>>> origin/business-logic
       loadData();
     }
   }, [user, authLoading, router]);
@@ -296,8 +248,6 @@ export default function PatientDashboardPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
   const isCancellationBlocked = (appDateStr: string, appTimeStr: string) => {
     try {
       const [year, month, day] = appDateStr.split("-").map(Number);
@@ -321,7 +271,6 @@ export default function PatientDashboardPage() {
     }
   };
 
->>>>>>> origin/business-logic
   if (authLoading || loadingProfile) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center p-8">
@@ -335,11 +284,7 @@ export default function PatientDashboardPage() {
     return null;
   }
 
-<<<<<<< HEAD
-  const confirmedAppts = appointments.filter((a) => a.status === "confirmed" || a.status === "pending").length;
-=======
   const confirmedAppts = appointments.filter((a) => a.status === "confirmed" || a.status === "pending" || a.status === "in_consultation").length;
->>>>>>> origin/business-logic
   const completedAppts = appointments.filter((a) => a.status === "completed").length;
 
   return (
@@ -359,175 +304,197 @@ export default function PatientDashboardPage() {
               {user.full_name ? user.full_name.charAt(0).toUpperCase() : "P"}
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-headline-md md:text-display-md text-on-surface font-extrabold">
-                  {user.full_name}
-                </h1>
-                <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Patient
-                </span>
-              </div>
-              <p className="text-body-md text-on-surface-variant flex items-center gap-3 flex-wrap">
-                <span>📧 {user.email}</span>
-                {user.phone && <span>📞 {user.phone}</span>}
+              <span className="text-xs font-bold uppercase tracking-wider text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+                Patient Portal
+              </span>
+              <h1 className="text-display-sm md:text-display-md font-bold text-on-surface mt-2">
+                Welcome back, {user.full_name}!
+              </h1>
+              <p className="text-body-md text-on-surface-variant">
+                Manage your personal medical details and view upcoming clinical appointments.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end relative z-10 border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
-            <div className="text-center px-4 py-2 bg-surface-container-low rounded-2xl border border-outline-variant/10">
-              <span className="block text-headline-sm font-bold text-primary">{appointments.length}</span>
-              <span className="text-xs text-on-surface-variant font-semibold">Total Visits</span>
-            </div>
-            <div className="text-center px-4 py-2 bg-surface-container-low rounded-2xl border border-outline-variant/10">
-              <span className="block text-headline-sm font-bold text-emerald-600">{confirmedAppts}</span>
-              <span className="text-xs text-on-surface-variant font-semibold">Upcoming</span>
-            </div>
-            <div className="text-center px-4 py-2 bg-surface-container-low rounded-2xl border border-outline-variant/10">
-              <span className="block text-headline-sm font-bold text-blue-600">{completedAppts}</span>
-              <span className="text-xs text-on-surface-variant font-semibold">Completed</span>
-            </div>
+          <div className="flex items-center gap-3 relative z-10 w-full md:w-auto justify-end">
+            <Button
+              variant="outline"
+              onClick={logout}
+              className="text-xs font-bold py-2.5 px-4 text-error border-error/20 hover:bg-error/10"
+            >
+              Sign Out
+            </Button>
+            <Link href="/book-appointment">
+              <Button variant="primary" className="text-xs font-bold py-2.5 px-4 shadow-sm">
+                Book Visit
+              </Button>
+            </Link>
           </div>
         </motion.div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-outline-variant/15 pb-2 overflow-x-auto">
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white rounded-2xl p-5 border border-outline-variant/15 shadow-2xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">calendar_month</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-on-surface-variant">Upcoming Visits</p>
+              <p className="text-headline-md font-bold text-on-surface">{confirmedAppts}</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 border border-outline-variant/15 shadow-2xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">task_alt</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-on-surface-variant">Completed Consultations</p>
+              <p className="text-headline-md font-bold text-on-surface">{completedAppts}</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 border border-outline-variant/15 shadow-2xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">medical_information</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-on-surface-variant">Medical Records</p>
+              <p className="text-headline-md font-bold text-on-surface">Active</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-outline-variant/20 gap-8">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === "profile"
-                ? "bg-[#2c336b] text-white shadow-sm"
-                : "text-on-surface-variant hover:bg-white hover:text-on-surface"
+            className={`pb-3 text-sm font-bold transition-all relative cursor-pointer ${
+              activeTab === "profile" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
-            <span className="material-symbols-outlined text-lg">person</span>
-            My Profile &amp; Medical Info
+            My Profile & Health Info
+            {activeTab === "profile" && (
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
           </button>
+
           <button
             onClick={() => setActiveTab("appointments")}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === "appointments"
-                ? "bg-[#2c336b] text-white shadow-sm"
-                : "text-on-surface-variant hover:bg-white hover:text-on-surface"
+            className={`pb-3 text-sm font-bold transition-all relative cursor-pointer ${
+              activeTab === "appointments" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
-            <span className="material-symbols-outlined text-lg">calendar_month</span>
-            My Appointments ({appointments.length})
+            Appointments & History ({appointments.length})
+            {activeTab === "appointments" && (
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
           </button>
+
           <button
             onClick={() => setActiveTab("actions")}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === "actions"
-                ? "bg-[#2c336b] text-white shadow-sm"
-                : "text-on-surface-variant hover:bg-white hover:text-on-surface"
+            className={`pb-3 text-sm font-bold transition-all relative cursor-pointer ${
+              activeTab === "actions" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
-            <span className="material-symbols-outlined text-lg">add_circle</span>
             Quick Actions
+            {activeTab === "actions" && (
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
           </button>
         </div>
 
-        {/* TAB 1: Profile & Medical Info */}
+        {/* Global Notifications */}
+        {apptSuccessMsg && (
+          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-2xs">
+            <span className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-emerald-600 select-none">check_circle</span>
+              {apptSuccessMsg}
+            </span>
+            <button onClick={() => setApptSuccessMsg(null)} className="text-emerald-700 hover:text-emerald-950">✕</button>
+          </div>
+        )}
+
+        {/* TAB 1: Profile & Medical History Form */}
         {activeTab === "profile" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-outline-variant/15"
+            className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-outline-variant/15 space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-outline-variant/10 pb-4 mb-6">
-              <div>
-                <h2 className="text-headline-sm font-bold text-on-surface">Personal &amp; Medical Profile</h2>
-                <p className="text-body-md text-on-surface-variant">Keep your contact information and health details up to date.</p>
-              </div>
+            <div className="border-b border-surface-container-high pb-4">
+              <h2 className="text-headline-md font-bold text-on-surface flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-2xl">badge</span>
+                Personal & Medical Information
+              </h2>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Keep your profile updated for faster OPD check-in and accurate medical records.
+              </p>
             </div>
 
             {profileSuccess && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm font-semibold flex items-center gap-2">
+              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs font-semibold flex items-center gap-2">
                 <span className="material-symbols-outlined text-emerald-600">check_circle</span>
-                <span>Profile details successfully saved and updated!</span>
+                Profile details saved successfully!
               </div>
             )}
 
             {profileError && (
-              <div className="mb-6 p-4 bg-error/10 border border-error/30 text-error rounded-2xl text-sm font-semibold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-error">error_outline</span>
-                  <span>{profileError}</span>
-                </div>
-                {profileError.includes("expired") || profileError.includes("credentials") ? (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await logout();
-                      router.push("/login");
-                    }}
-                    className="px-4 py-2 bg-[#2c336b] text-white text-xs font-bold rounded-full hover:bg-[#3b4486] transition-all shrink-0 cursor-pointer shadow-sm"
-                  >
-                    Sign Out &amp; Re-login
-                  </button>
-                ) : null}
+              <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-red-500">error</span>
+                {profileError}
               </div>
             )}
 
             <form onSubmit={handleUpdateProfile} className="space-y-6">
-              {/* Personal Information */}
-              <div>
-                <h3 className="text-label-md font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">badge</span>
-                  Personal Details
+              {/* Basic Personal Info */}
+              <div className="space-y-4">
+                <h3 className="text-label-lg font-bold text-on-surface uppercase tracking-wider text-xs border-b border-outline-variant/10 pb-2">
+                  Basic Details
                 </h3>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="fullName">
-                      Full Name
-                    </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Full Name *</label>
                     <input
-                      id="fullName"
                       type="text"
+                      required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="phone">
-                      Phone Number
-                    </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Phone Number *</label>
                     <input
-                      id="phone"
-                      type="text"
+                      type="tel"
+                      required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="age">
-                      Age
-                    </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Age</label>
                     <input
-                      id="age"
                       type="number"
                       min="1"
                       max="120"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      placeholder="e.g. 28"
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      placeholder={placeholderAge}
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="gender">
-                      Gender
-                    </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Gender</label>
                     <select
-                      id="gender"
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium cursor-pointer"
                     >
                       <option value="">Select Gender</option>
                       <option value="Male">Male</option>
@@ -538,99 +505,89 @@ export default function PatientDashboardPage() {
                 </div>
               </div>
 
-              <hr className="border-outline-variant/10" />
-
-              {/* Medical & Emergency Contact */}
-              <div>
-                <h3 className="text-label-md font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">medical_information</span>
-                  Medical &amp; Emergency Details
+              {/* Emergency Contact & Health Indicators */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-label-lg font-bold text-on-surface uppercase tracking-wider text-xs border-b border-outline-variant/10 pb-2">
+                  Emergency Contact &amp; Blood Type
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="bloodGroup">
-                      Blood Group
-                    </label>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Blood Group</label>
                     <select
-                      id="bloodGroup"
                       value={bloodGroup}
                       onChange={(e) => setBloodGroup(e.target.value)}
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium cursor-pointer"
                     >
-                      <option value="">Select Blood Group</option>
+                      <option value="">Select Group</option>
                       <option value="A+">A+</option>
                       <option value="A-">A-</option>
                       <option value="B+">B+</option>
                       <option value="B-">B-</option>
-                      <option value="AB+">AB+</option>
-                      <option value="AB-">AB-</option>
                       <option value="O+">O+</option>
                       <option value="O-">O-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="emergencyName">
-                      Emergency Contact Name
-                    </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Emergency Contact Name</label>
                     <input
-                      id="emergencyName"
                       type="text"
                       value={emergencyName}
                       onChange={(e) => setEmergencyName(e.target.value)}
-                      placeholder="e.g. Jane Doe (Spouse)"
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      placeholder={placeholderKinName}
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="emergencyPhone">
-                      Emergency Contact Phone
-                    </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Emergency Contact Phone</label>
                     <input
-                      id="emergencyPhone"
-                      type="text"
+                      type="tel"
                       value={emergencyPhone}
                       onChange={(e) => setEmergencyPhone(e.target.value)}
-                      placeholder="e.g. +1 555-0192"
-                      className="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+                      placeholder={placeholderKinPhone}
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                     />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="allergies">
-                      Allergies &amp; Sensitivities
-                    </label>
-                    <textarea
-                      id="allergies"
-                      rows={3}
-                      value={allergies}
-                      onChange={(e) => setAllergies(e.target.value)}
-                      placeholder="List any known allergies (e.g. Penicillin, Latex, Peanuts)..."
-                      className="w-full bg-surface border border-outline-variant rounded-xl p-4 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
-                    ></textarea>
-                  </div>
-
-                  <div>
-                    <label className="block text-label-sm text-on-surface-variant mb-1" htmlFor="medicalHistory">
-                      Medical History / Past Conditions
-                    </label>
-                    <textarea
-                      id="medicalHistory"
-                      rows={3}
-                      value={medicalHistory}
-                      onChange={(e) => setMedicalHistory(e.target.value)}
-                      placeholder="List any pre-existing medical conditions, past surgeries, or ongoing care..."
-                      className="w-full bg-surface border border-outline-variant rounded-xl p-4 text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
-                    ></textarea>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end">
-                <Button variant="primary" type="submit" isLoading={updatingProfile} className="px-8 py-3">
+              {/* Medical History & Allergies */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-label-lg font-bold text-on-surface uppercase tracking-wider text-xs border-b border-outline-variant/10 pb-2">
+                  Clinical History &amp; Allergies
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Pre-existing Conditions / Medical History</label>
+                    <textarea
+                      rows={3}
+                      value={medicalHistory}
+                      onChange={(e) => setMedicalHistory(e.target.value)}
+                      placeholder={placeholderHistory}
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl p-3 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium resize-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-on-surface-variant">Known Allergies</label>
+                    <textarea
+                      rows={3}
+                      value={allergies}
+                      onChange={(e) => setAllergies(e.target.value)}
+                      placeholder={placeholderAllergies}
+                      className="bg-surface-container-low border border-outline-variant/40 rounded-xl p-3 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-surface-container-high flex justify-end">
+                <Button variant="primary" type="submit" isLoading={updatingProfile} className="text-xs font-bold py-3 px-6 shadow-md">
                   Save Profile Changes
                 </Button>
               </div>
@@ -638,36 +595,35 @@ export default function PatientDashboardPage() {
           </motion.div>
         )}
 
-        {/* TAB 2: My Appointments */}
+        {/* TAB 2: Appointments & History List */}
         {activeTab === "appointments" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-outline-variant/15 flex justify-between items-center">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-outline-variant/15 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-headline-sm font-bold text-on-surface">My Appointments History</h2>
-                <p className="text-body-md text-on-surface-variant">View and manage your upcoming consultations and past medical visits.</p>
+                <h2 className="text-headline-md font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-2xl">event_available</span>
+                  Your Appointments History
+                </h2>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  View appointment status, download PDF passes, reschedule slots, or leave doctor reviews.
+                </p>
               </div>
+
               <Link href="/book-appointment">
-                <Button variant="primary" className="text-xs py-2.5 px-4">
-                  + Book New Visit
+                <Button variant="primary" className="text-xs font-bold py-2.5 px-4 shadow-sm">
+                  + New Appointment
                 </Button>
               </Link>
             </div>
 
-            {apptSuccessMsg && (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm font-semibold flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600">check_circle</span>
-                <span>{apptSuccessMsg}</span>
-              </div>
-            )}
-
             {loadingAppts ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-outline-variant/15">
-                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                <p className="text-on-surface-variant font-medium">Fetching your appointments...</p>
+              <div className="bg-white rounded-3xl p-12 text-center border border-outline-variant/15 space-y-4">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="text-xs font-semibold text-on-surface-variant">Fetching your clinical appointments...</p>
               </div>
             ) : appointments.length === 0 ? (
               <div className="bg-white rounded-3xl p-12 text-center border border-outline-variant/15 flex flex-col items-center">
@@ -683,13 +639,8 @@ export default function PatientDashboardPage() {
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {appointments.map((appt) => {
-<<<<<<< HEAD
-                  const isUpcoming = appt.status === "confirmed" || appt.status === "pending";
-                  const isCancelled = appt.status === "cancelled";
-=======
                   const isUpcoming = appt.status === "confirmed" || appt.status === "pending" || appt.status === "in_consultation";
                   const cannotCancel = isCancellationBlocked(String(appt.appointment_date), appt.appointment_time);
->>>>>>> origin/business-logic
                   
                   return (
                     <div
@@ -712,14 +663,11 @@ export default function PatientDashboardPage() {
                               Pending Confirmation
                             </span>
                           )}
-<<<<<<< HEAD
-=======
                           {appt.status === "in_consultation" && (
                             <span className="bg-purple-100 text-purple-800 border border-purple-300 px-3 py-0.5 rounded-full text-xs font-bold animate-pulse">
                               In Consultation
                             </span>
                           )}
->>>>>>> origin/business-logic
                           {appt.status === "completed" && (
                             <span className="bg-blue-100 text-blue-800 border border-blue-300 px-3 py-0.5 rounded-full text-xs font-bold">
                               Completed
@@ -730,8 +678,6 @@ export default function PatientDashboardPage() {
                               Cancelled
                             </span>
                           )}
-<<<<<<< HEAD
-=======
                           {appt.status === "no_show" && (
                             <span className="bg-gray-100 text-gray-800 border border-gray-300 px-3 py-0.5 rounded-full text-xs font-bold">
                               No Show
@@ -742,17 +688,12 @@ export default function PatientDashboardPage() {
                               Rescheduled
                             </span>
                           )}
->>>>>>> origin/business-logic
                         </div>
 
                         <div className="text-body-md text-on-surface-variant flex items-center gap-4 flex-wrap">
                           <span className="flex items-center gap-1 font-semibold text-primary">
                             <span className="material-symbols-outlined text-lg">calendar_month</span>
-<<<<<<< HEAD
-                            {appt.appointment_date}
-=======
                             {String(appt.appointment_date)}
->>>>>>> origin/business-logic
                           </span>
                           <span className="flex items-center gap-1 font-semibold text-on-surface">
                             <span className="material-symbols-outlined text-lg">schedule</span>
@@ -771,21 +712,6 @@ export default function PatientDashboardPage() {
                             <strong>Reason:</strong> {appt.reason_for_visit}
                           </p>
                         )}
-<<<<<<< HEAD
-                      </div>
-
-                      <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                        {isUpcoming && (
-                          <Button
-                            variant="outline"
-                            onClick={() => handleCancelAppointment(appt.id)}
-                            isLoading={cancellingId === appt.id}
-                            className="text-xs py-2 px-4 text-error border-error/30 hover:bg-error/10"
-                          >
-                            Cancel Visit
-                          </Button>
-                        )}
-=======
                         {appt.cancellation_reason && (
                           <p className="text-xs text-red-700 bg-red-50 p-2.5 rounded-xl border border-red-200">
                             <strong>Cancellation Reason:</strong> {appt.cancellation_reason}
@@ -864,7 +790,6 @@ export default function PatientDashboardPage() {
                             )
                           )}
                         </div>
->>>>>>> origin/business-logic
                       </div>
                     </div>
                   );
@@ -922,8 +847,6 @@ export default function PatientDashboardPage() {
           </motion.div>
         )}
 
-<<<<<<< HEAD
-=======
       {/* Reschedule Appointment Modal */}
       <AnimatePresence>
         {reschedulingAppt && (
@@ -1061,7 +984,6 @@ export default function PatientDashboardPage() {
         }}
       />
 
->>>>>>> origin/business-logic
       </div>
     </div>
   );
