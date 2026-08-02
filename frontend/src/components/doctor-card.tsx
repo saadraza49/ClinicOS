@@ -1,5 +1,9 @@
-import Link from "next/link";
+"use client";
+
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
+import { getLocalizedSpecialty, getLocalizedQualification } from "@/lib/translations";
 
 export interface DoctorCardProps {
   id?: string;
@@ -27,6 +31,10 @@ export default function DoctorCard({
   review_count = 12,
   working_days = ["Mon", "Wed", "Fri"],
 }: DoctorCardProps) {
+  const locale = useLocale();
+  const t = useTranslations("Common");
+  const displaySpecialty = getLocalizedSpecialty(specialty, locale);
+
   return (
     <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-ambient border border-outline-variant/15 hover:-translate-y-1 hover:shadow-lg hover:border-primary/30 transition-all duration-300 flex flex-col items-center group relative overflow-hidden">
       {/* Top Badges: Fee & Rating */}
@@ -58,16 +66,26 @@ export default function DoctorCard({
       </div>
 
       {/* Specialty Badge */}
+<<<<<<< HEAD
       <div className="bg-secondary/15 text-secondary-900 font-label-sm text-xs px-3 py-0.5 rounded-full mb-2 font-bold tracking-wide">
         {specialty}
+=======
+      <div className="bg-primary/10 text-primary font-label-sm text-label-sm px-3 py-1 rounded-full mb-3 font-semibold">
+        {displaySpecialty}
+>>>>>>> feature_language_module
       </div>
 
       {/* Name and Credentials */}
       <h3 className="text-headline-sm text-on-surface text-center mb-1 font-bold text-lg leading-snug">
         {name}
       </h3>
+<<<<<<< HEAD
       <p className="text-body-md text-on-surface-variant text-center mb-3 text-xs line-clamp-1 font-medium">
         {credentials}
+=======
+      <p className="text-body-md text-on-surface-variant text-center mb-6 text-sm">
+        {getLocalizedQualification(credentials, locale)}
+>>>>>>> feature_language_module
       </p>
 
       {/* Experience & Working Days */}
@@ -91,6 +109,7 @@ export default function DoctorCard({
       </div>
 
       {/* View Profile Button Link */}
+<<<<<<< HEAD
       <div className="w-full grid grid-cols-2 gap-2 mt-auto">
         <Link
           href={`/doctors/${slug}`}
@@ -105,6 +124,14 @@ export default function DoctorCard({
           Book Visit
         </Link>
       </div>
+=======
+      <Link
+        href={`/doctors/${slug}`}
+        className="w-full mt-auto py-2.5 rounded-full border border-outline-variant font-label-md text-label-md text-primary text-center group-hover:bg-primary group-hover:text-on-primary group-hover:border-primary transition-all duration-300 font-medium active:scale-98"
+      >
+        {t("learnMore")}
+      </Link>
+>>>>>>> feature_language_module
     </div>
   );
 }

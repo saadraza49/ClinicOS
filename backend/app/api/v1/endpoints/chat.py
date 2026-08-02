@@ -6,7 +6,6 @@ import urllib.request
 import urllib.error
 import re
 from groq import Groq
-import re
 from app.core.config import settings
 
 router = APIRouter()
@@ -18,21 +17,22 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[ChatMessage]] = None
+    locale: Optional[str] = "en"
 
 class ChatResponse(BaseModel):
     reply: str
     quickReplies: Optional[List[str]] = None
 
 # Static Clinic Data
-CLINIC_NAME = "LuminaHealth Clinic"
+CLINIC_NAME = "WeCare Clinic"
 CLINIC_HOURS = "Monday to Saturday, 9:00 AM – 9:00 PM (Closed on Sundays)"
 EMERGENCY_NUMBER = "+92 300 1234567"
 MAPS_URL = "https://maps.app.goo.gl/MRgu6Fdbd9PhaGmu7"
-ADDRESS = f"31.487555, 73.076189 (LuminaHealth Care Center). Google Maps: {MAPS_URL}"
+ADDRESS = f"31.487555, 73.076189 (WeCare Health Center). Google Maps: {MAPS_URL}"
 FEE_INFO = "General Physician: 1,500 PKR. Specialists: 2,500 PKR."
 
-SYSTEM_PROMPT = f"""You are an AI assistant for {CLINIC_NAME}.
-Your responsibility is to assist users with clinic-related information only.
+BASE_SYSTEM_PROMPT = f"""You are a professional AI healthcare assistant for {CLINIC_NAME}.
+Your responsibility is to assist users with clinic-related information and appointment bookings in an empathetic, highly professional manner.
 
 Doctors Database (10 Doctors):
 1. Dr. Elena Rodriguez (Specialty: Pediatrics, Gender: Female)
@@ -54,14 +54,14 @@ Clinic Information:
 - Consultation Fees: {FEE_INFO}
 
 General Behavior:
-- Keep answers short and friendly. Use simple English.
+- Keep answers concise, clear, and professional.
 - Stay focused on clinic-related topics.
 - If users ask medical questions, provide general educational information only and recommend consulting a licensed doctor.
 - Do not diagnose diseases or prescribe medicines.
 - Never fabricate information.
 
 Appointment Booking Behavior:
-Whenever the user expresses an intention to book an appointment (e.g., "Book appointment", "I need to see a doctor", "Schedule an appointment"), immediately switch into Appointment Booking Mode.
+Whenever the user expresses an intention to book an appointment (e.g., "Book appointment", "I need to see a doctor", "Schedule an appointment", or in any language), immediately switch into Appointment Booking Mode.
 - Collect the following required information one question at a time:
   1. Full Name
   2. Phone Number
@@ -81,26 +81,8 @@ Whenever the user expresses an intention to book an appointment (e.g., "Book app
 After all required information has been collected:
 - Do NOT ask more questions. Do NOT claim the appointment has been booked. Do NOT confirm the booking.
 - Only prepare the appointment details.
-- Return a structured appointment summary exactly like this:
-
-Appointment Summary
-Full Name: [Name]
-Phone Number: [Phone]
-Email: [Email]
-Age: [Age]
-Gender: [Gender]
-Doctor: [Selected Doctor Name, e.g. Dr. Omar Al-Fayed]
-Specialty: [Selected Specialty]
-Reason: [Reason]
-Preferred Date: [Date]
-Preferred Time: [Time]
-Additional Notes: [Notes]
-
-After displaying the summary, exactly say:
-"Your appointment request is ready.
-Please review the information below.
-If everything looks correct, press the Submit Appointment button.
-If you want to change anything, simply tell me which field you'd like to edit."
+- Return a structured appointment summary.
+- After displaying the summary, instruct the user to press the Submit Appointment button to confirm.
 
 Frontend Integration:
 When all required information has been collected and the summary is displayed, include the following JSON exactly at the very end of your response:
@@ -121,109 +103,143 @@ When all required information has been collected and the summary is displayed, i
 }}
 """
 
-def clean_message(msg: str) -> str:
-    # Remove emojis and leading/trailing whitespace
-    cleaned = re.sub(r'[^\w\s\?\.,!\-:]', '', msg)
-    return cleaned.strip().lower()
+QUICK_REPLY_MAP = {
+    "zh": {
+        "Male Doctor": "男医生",
+        "Female Doctor": "女医生",
+        "Any / No Preference": "无偏好 / 任意医生",
+        "Male": "男",
+        "Female": "女",
+        "Prefer not to say": "保密",
+        "Yes, please": "是的，确认",
+        "No, suggest another": "不，更换医生",
+        "Pediatrics": "儿科",
+        "Cardiology": "心血管科",
+        "Dermatology": "皮肤科",
+        "Primary Care": "全科",
+        "Dentistry": "牙科",
+        "Neurology": "神经内科",
+        "General Physician": "全科医生",
+        "Cardiologist": "心血管医生",
+        "Dermatologist": "皮肤科医生",
+        "Pediatrician": "儿科医生",
+        "Dentist": "牙科医生",
+        "Any Available": "任意在诊医生",
+        "Morning (10:00 AM)": "上午 (10:00)",
+        "Afternoon (02:00 PM)": "下午 (14:00)",
+        "Evening (06:00 PM)": "傍晚 (18:00)",
+        "Today": "今天",
+        "Tomorrow": "明天",
+        "Monday": "周一",
+        "Next Available": "最早就诊时段",
+        "Skip Email": "跳过邮箱",
+        "General Consultation": "普通门诊",
+        "Routine Checkup": "常规体检",
+        "Follow-up": "复诊",
+        "Submit Appointment": "提交预约",
+        "Book Appointment": "预约门诊",
+        "Clinic Timings": "门诊时间",
+        "Clinic Services": "诊所服务",
+        "Clinic Location": "诊所位置",
+        "Find a Doctor": "查找医生",
+        "Emergency Contact": "急诊联系"
+    },
+    "fr": {
+        "Male Doctor": "Médecin Homme",
+        "Female Doctor": "Médecin Femme",
+        "Any / No Preference": "Pas de préférence",
+        "Male": "Homme",
+        "Female": "Femme",
+        "Prefer not to say": "Ne pas préciser",
+        "Yes, please": "Oui, s'il vous plaît",
+        "No, suggest another": "Non, un autre médecin",
+        "Pediatrics": "Pédiatrie",
+        "Cardiology": "Cardiologie",
+        "Dermatology": "Dermatologie",
+        "Primary Care": "Soins Primaires",
+        "Dentistry": "Dentisterie",
+        "Neurology": "Neurologie",
+        "General Physician": "Médecin Généraliste",
+        "Cardiologist": "Cardiologue",
+        "Dermatologist": "Dermatologue",
+        "Pediatrician": "Pédiatre",
+        "Dentist": "Dentiste",
+        "Any Available": "Tout médecin disponible",
+        "Morning (10:00 AM)": "Matin (10h00)",
+        "Afternoon (02:00 PM)": "Après-midi (14h00)",
+        "Evening (06:00 PM)": "Soir (18h00)",
+        "Today": "Aujourd'hui",
+        "Tomorrow": "Demain",
+        "Monday": "Lundi",
+        "Next Available": "Premier disponible",
+        "Skip Email": "Passer l'e-mail",
+        "General Consultation": "Consultation Générale",
+        "Routine Checkup": "Bilan de santé",
+        "Follow-up": "Suivi médical",
+        "Submit Appointment": "Soumettre le rendez-vous",
+        "Book Appointment": "Prendre Rendez-vous",
+        "Clinic Timings": "Heures d'Ouverture",
+        "Clinic Services": "Services Cliniques",
+        "Clinic Location": "Emplacement Clinique",
+        "Find a Doctor": "Trouver un Médecin",
+        "Emergency Contact": "Contact d'Urgence"
+    }
+}
 
-def is_booking_in_progress(history: Optional[List[ChatMessage]]) -> bool:
-    if not history:
-        return False
-    # Scan history backwards to see if assistant has asked booking questions or if user initiated
-    for msg in reversed(history):
-        content_lower = msg.content.lower()
-        if msg.role == "user" and "book appointment" in content_lower:
-            return True
-        if msg.role == "assistant" and any(q in content_lower for q in [
-            "full name", "phone number", "email address", "how old", "years old",
-            "gender", "medical specialty", "specialty", "preferred doctor", "doctor",
-            "reason for visit", "symptoms", "preferred date", "preferred time", "additional notes"
-        ]):
-            return True
-    return False
+def localize_quick_replies(quick_replies: List[str], locale: str) -> List[str]:
+    norm_locale = (locale or "en").lower()
+    if norm_locale not in QUICK_REPLY_MAP:
+        return quick_replies
+    lang_map = QUICK_REPLY_MAP[norm_locale]
+    return [lang_map.get(item, item) for item in quick_replies]
 
 @router.post("", response_model=ChatResponse)
 def chat_endpoint(payload: ChatRequest):
     user_msg = payload.message
-    cleaned = clean_message(user_msg)
+    locale = (payload.locale or "en").lower()
 
-    # Only run static rule-based flows if we are NOT in the middle of booking an appointment
-    if not is_booking_in_progress(payload.history):
-        # 1. Rule-based flow: Doctor Flow & Symptom mapping
-        skin_keywords = ["skin problems", "skin problem", "itchy skin", "acne", "rash", "dermatologist", "skin issue", "skin doctor"]
-        if any(keyword in cleaned for keyword in skin_keywords):
-            return ChatResponse(
-                reply="I recommend consulting a Dermatologist.",
-                quickReplies=["Book Appointment", "Clinic Services"]
-            )
+    # Determine language directive
+    if locale == "zh" or any("\u4e00" <= c <= "\u9fff" for c in user_msg):
+        lang_instruction = "\n\nCRITICAL LANGUAGE REQUIREMENT: You MUST converse fluently, professionally, and naturally in Chinese (中文). All questions, responses, and summaries MUST be written in Chinese."
+    elif locale == "fr" or any(w in user_msg.lower() for w in ["bonjour", "salut", "rendez-vous", "médecin", "merci"]):
+        lang_instruction = "\n\nCRITICAL LANGUAGE REQUIREMENT: You MUST converse fluently, professionally, and naturally in French (Français). All questions, responses, and summaries MUST be written in French."
+    else:
+        lang_instruction = "\n\nCRITICAL LANGUAGE REQUIREMENT: Converse in clear, professional English."
 
-        heart_keywords = ["heart pain", "chest pain", "cardiologist", "heart issue", "heart problem", "heart doctor"]
-        if any(keyword in cleaned for keyword in heart_keywords):
-            return ChatResponse(
-                reply="For heart related concerns, I recommend consulting a Cardiologist. If you are experiencing severe chest pain, please call emergency services immediately.",
-                quickReplies=["Book Appointment", "Emergency Contact"]
-            )
-
-        child_keywords = ["child sick", "pediatrician", "baby", "toddler", "child doctor"]
-        if any(keyword in cleaned for keyword in child_keywords):
-            return ChatResponse(
-                reply="For children and infant healthcare, I recommend consulting a Pediatrician.",
-                quickReplies=["Book Appointment", "Clinic Services"]
-            )
-
-        dentist_keywords = ["toothache", "dentist", "dental", "teeth", "tooth pain"]
-        if any(keyword in cleaned for keyword in dentist_keywords):
-            return ChatResponse(
-                reply="For dental concerns and toothaches, I recommend consulting a Dentist.",
-                quickReplies=["Book Appointment", "Clinic Services"]
-            )
-
-        # 4. Quick reply mappings for static information
-        if any(k in cleaned for k in ["clinic timings", "opening hours", "timings", "opening hour"]):
-            return ChatResponse(
-                reply=f"{CLINIC_NAME} is open {CLINIC_HOURS}.",
-                quickReplies=["Book Appointment", "Clinic Location"]
-            )
-
-        if any(k in cleaned for k in ["clinic location", "address", "where is the clinic", "location"]):
-            return ChatResponse(
-                reply=f"We are located at {ADDRESS}. You can visit us during our operating hours.",
-                quickReplies=["Clinic Timings", "Book Appointment"]
-            )
-
-        if any(k in cleaned for k in ["consultation fee", "fees", "price", "cost"]):
-            return ChatResponse(
-                reply=f"Our consultation fees are:\n- {FEE_INFO}",
-                quickReplies=["Book Appointment", "Find a Doctor"]
-            )
-
-        if any(k in cleaned for k in ["emergency contact", "emergency number", "emergency"]):
-            return ChatResponse(
-                reply=f"For medical emergencies, please call our 24/7 emergency line at {EMERGENCY_NUMBER} immediately.",
-                quickReplies=["Clinic Timings", "Book Appointment"]
-            )
-
-        if any(k in cleaned for k in ["clinic services", "services"]):
-            return ChatResponse(
-                reply="We offer a wide range of services including General Medicine, Cardiology, Dermatology, Dentistry, Pediatrics, and Gynecology.",
-                quickReplies=["Find a Doctor", "Book Appointment"]
-            )
+    full_system_prompt = BASE_SYSTEM_PROMPT + lang_instruction
 
     # Directly use the dedicated chatbot API key from environment
     groq_api_key = settings.CHATBOT_GROQ_API_KEY.strip()
     if not groq_api_key or "your_groq_api_key" in groq_api_key:
-        # Fallback to local response if Groq API Key is not set up
-        return ChatResponse(
-            reply=f"Welcome to {CLINIC_NAME}! I can help you book appointments, explain our services, timings, or location. How may I assist you today?",
-            quickReplies=["Book Appointment", "Clinic Timings", "Clinic Location"]
-        )
+        if locale == "zh":
+            return ChatResponse(
+                reply=f"欢迎来到 {CLINIC_NAME}！我可以帮您预约门诊、介绍诊所服务、门诊时间或诊所位置。今天有什么可以为您效劳？",
+                quickReplies=localize_quick_replies(["Book Appointment", "Clinic Timings", "Clinic Location"], locale)
+            )
+        elif locale == "fr":
+            return ChatResponse(
+                reply=f"Bienvenue chez {CLINIC_NAME} ! Je peux vous aider à prendre rendez-vous, vous expliquer nos services, nos horaires ou notre adresse. Comment puis-je vous aider aujourd'hui ?",
+                quickReplies=localize_quick_replies(["Book Appointment", "Clinic Timings", "Clinic Location"], locale)
+            )
+        else:
+            return ChatResponse(
+                reply=f"Welcome to {CLINIC_NAME}! I can help you book appointments, explain our services, timings, or location. How may I assist you today?",
+                quickReplies=["Book Appointment", "Clinic Timings", "Clinic Location"]
+            )
+
+    # Append a strict reminder to force the model to obey the language inside the user message
+    final_user_content = user_msg
+    if locale == "zh":
+        final_user_content += "\n\n[System Reminder: You MUST reply to this message in Chinese (中文). Do not reply in English.]"
+    elif locale == "fr":
+        final_user_content += "\n\n[System Reminder: You MUST reply to this message in French (Français). Do not reply in English.]"
 
     # Build prompt messages including session history
-    api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    api_messages = [{"role": "system", "content": full_system_prompt}]
     if payload.history:
-        for hist in payload.history[-30:]:  # Limit history to last 30 messages to keep context window and history tracking balanced
+        for hist in payload.history[-30:]:
             api_messages.append({"role": hist.role, "content": hist.content})
-    api_messages.append({"role": "user", "content": user_msg})
+    api_messages.append({"role": "user", "content": final_user_content})
 
     try:
         client = Groq(api_key=groq_api_key.strip())
@@ -237,36 +253,36 @@ def chat_endpoint(payload: ChatRequest):
         
         # Smart dynamic 1-click quick replies based on current appointment question context
         reply_lower = reply.lower()
-        if "prefer a male or female" in reply_lower or "doctor's gender" in reply_lower or "male or female doctor" in reply_lower:
+        if "prefer a male or female" in reply_lower or "doctor's gender" in reply_lower or "male or female doctor" in reply_lower or "男医生" in reply or "女医生" in reply:
             quick_replies = ["Male Doctor", "Female Doctor", "Any / No Preference"]
-        elif "your gender" in reply_lower or "patient's gender" in reply_lower or "tell me your gender" in reply_lower:
+        elif "your gender" in reply_lower or "patient's gender" in reply_lower or "tell me your gender" in reply_lower or "性别" in reply:
             quick_replies = ["Male", "Female", "Prefer not to say"]
-        elif "would you like to see dr." in reply_lower or "works for you" in reply_lower or "proceed with" in reply_lower:
+        elif "would you like to see dr." in reply_lower or "works for you" in reply_lower or "proceed with" in reply_lower or "确认" in reply:
             quick_replies = ["Yes, please", "No, suggest another"]
-        elif "specialty" in reply_lower or "department" in reply_lower or "medical specialty" in reply_lower:
+        elif "specialty" in reply_lower or "department" in reply_lower or "medical specialty" in reply_lower or "专科" in reply:
             quick_replies = ["Pediatrics", "Cardiology", "Dermatology", "Primary Care", "Dentistry", "Neurology"]
-        elif "doctor" in reply_lower or "physician" in reply_lower or "specialist" in reply_lower:
+        elif "doctor" in reply_lower or "physician" in reply_lower or "specialist" in reply_lower or "医生" in reply:
             quick_replies = ["General Physician", "Cardiologist", "Dermatologist", "Pediatrician", "Dentist", "Any Available"]
-        elif "time" in reply_lower or "timing" in reply_lower or "slot" in reply_lower or "hour" in reply_lower:
+        elif "time" in reply_lower or "timing" in reply_lower or "slot" in reply_lower or "hour" in reply_lower or "时间" in reply:
             quick_replies = ["Morning (10:00 AM)", "Afternoon (02:00 PM)", "Evening (06:00 PM)"]
-        elif "date" in reply_lower or "day" in reply_lower:
+        elif "date" in reply_lower or "day" in reply_lower or "日期" in reply:
             quick_replies = ["Today", "Tomorrow", "Monday", "Next Available"]
-        elif "email" in reply_lower or "email address" in reply_lower:
+        elif "email" in reply_lower or "email address" in reply_lower or "邮箱" in reply:
             quick_replies = ["Skip Email"]
-        elif "notes" in reply_lower or "symptom" in reply_lower or "reason" in reply_lower or "visit" in reply_lower:
+        elif "notes" in reply_lower or "symptom" in reply_lower or "reason" in reply_lower or "visit" in reply_lower or "症状" in reply:
             quick_replies = ["General Consultation", "Routine Checkup", "Follow-up"]
-        elif "submit" in reply_lower or "ready" in reply_lower or "review" in reply_lower:
+        elif "submit" in reply_lower or "ready" in reply_lower or "review" in reply_lower or "提交" in reply:
             quick_replies = ["Submit Appointment"]
-        elif "appointment" in reply_lower or "book" in reply_lower:
+        elif "appointment" in reply_lower or "book" in reply_lower or "预约" in reply:
             quick_replies = ["Book Appointment", "Clinic Timings"]
         else:
             quick_replies = ["Book Appointment", "Clinic Services", "Clinic Timings"]
 
-        return ChatResponse(reply=reply, quickReplies=quick_replies)
+        localized_replies = localize_quick_replies(quick_replies, locale)
+        return ChatResponse(reply=reply, quickReplies=localized_replies)
 
     except Exception as e:
         print(f"Groq API Error: {e}")
-        # Try a backup model in case llama-3.3 is overloaded
         try:
             chat_completion = client.chat.completions.create(
                 messages=api_messages,
@@ -275,7 +291,8 @@ def chat_endpoint(payload: ChatRequest):
                 max_tokens=1000
             )
             reply = chat_completion.choices[0].message.content
-            return ChatResponse(reply=reply, quickReplies=["Book Appointment", "Clinic Timings"])
+            localized_replies = localize_quick_replies(["Book Appointment", "Clinic Timings"], locale)
+            return ChatResponse(reply=reply, quickReplies=localized_replies)
         except Exception as backup_err:
             print(f"Groq API Backup Error: {backup_err}")
             raise HTTPException(status_code=500, detail=f"Backup error: {str(backup_err)}")

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 interface TrustBarProps {
@@ -6,6 +7,7 @@ interface TrustBarProps {
 }
 
 export default function TrustBar({ className = "", animate = true }: TrustBarProps) {
+  const t = useTranslations("TrustBar");
   const Tag = animate ? motion.div : "div";
 
   const motionProps = animate
@@ -26,19 +28,19 @@ export default function TrustBar({ className = "", animate = true }: TrustBarPro
         <span className="material-symbols-outlined text-2xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
           verified
         </span>
-        <span className="tracking-wider uppercase">ISO Certified</span>
+        <span className="tracking-wider uppercase">{t("iso")}</span>
       </div>
       <div className="flex items-center gap-2 text-on-surface-variant font-semibold text-label-md select-none">
         <span className="material-symbols-outlined text-2xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
           health_and_safety
         </span>
-        <span className="tracking-wider uppercase">National Medical Board</span>
+        <span className="tracking-wider uppercase">{t("board")}</span>
       </div>
       <div className="flex items-center gap-2 text-on-surface-variant font-semibold text-label-md select-none">
         <span className="material-symbols-outlined text-2xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
           star
         </span>
-        <span className="tracking-wider uppercase">Top Tier Care Award</span>
+        <span className="tracking-wider uppercase">{t("award")}</span>
       </div>
     </Tag>
   );

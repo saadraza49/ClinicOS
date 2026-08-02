@@ -6,7 +6,10 @@ import { getDoctors, DoctorData } from "@/lib/api";
 import DoctorCard from "@/components/doctor-card";
 import CTABanner from "@/components/cta-banner";
 
+import { useTranslations } from "next-intl";
+
 export default function DoctorsPage() {
+  const t = useTranslations("DoctorsPage");
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDept, setSelectedDept] = useState<string>("all");
@@ -64,7 +67,7 @@ export default function DoctorsPage() {
             transition={{ duration: 0.6 }}
             className="text-display-lg-mobile md:text-display-lg text-on-surface font-bold"
           >
-            Meet Our Clinical Team
+            {t("title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 15 }}
@@ -72,7 +75,11 @@ export default function DoctorsPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed text-sm"
           >
+<<<<<<< HEAD:frontend/src/app/doctors/page.tsx
             Explore real-time patient ratings, verified feedback, and 7-day OPD availability for our specialists.
+=======
+            {t("subtitle")}
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/page.tsx
           </motion.p>
         </div>
       </section>
@@ -138,6 +145,7 @@ export default function DoctorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<<<<<<< HEAD:frontend/src/app/doctors/page.tsx
             {sortedDoctors.map((doctor, index) => {
               const workingDays = doctor.schedules && doctor.schedules.length > 0
                 ? doctor.schedules.map((s) => s.day_of_week)
@@ -167,6 +175,25 @@ export default function DoctorsPage() {
                 </motion.div>
               );
             })}
+=======
+            {doctorsList.map((doctor, index) => (
+              <motion.div
+                key={doctor.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+              >
+                <DoctorCard
+                  name={doctor.full_name}
+                  specialty={doctor.specialty}
+                  credentials={doctor.qualifications || t("medicalSpecialist", { fallback: "Medical Specialist" })}
+                  image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
+                  slug={doctor.slug}
+                />
+              </motion.div>
+            ))}
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/page.tsx
           </div>
         )}
       </section>

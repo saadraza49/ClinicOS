@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/button";
 import Image from "next/image";
 import { useLocationModal } from "@/context/LocationContext";
+import { useTranslations } from "next-intl";
 
 export default function ContactPage() {
   const { openLocationModal } = useLocationModal();
+  const t = useTranslations("ContactPage");
 
   // Form State
   const [name, setName] = useState("");
@@ -68,7 +70,7 @@ export default function ContactPage() {
           transition={{ duration: 0.6 }}
           className="text-display-lg-mobile md:text-display-lg text-primary mb-4 font-bold"
         >
-          Get in Touch
+          {t("title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 15 }}
@@ -76,7 +78,7 @@ export default function ContactPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
         >
-          We're here to help you on your health journey. Reach out with any questions, concerns, or to schedule a visit.
+          {t("subtitle")}
         </motion.p>
       </section>
 
@@ -144,7 +146,7 @@ export default function ContactPage() {
             className="bg-surface-container-lowest rounded-3xl p-4 sm:p-6 md:p-8 shadow-ambient border border-outline-variant/10"
           >
             <h2 className="text-headline-sm md:text-headline-md text-on-surface mb-6 font-bold">
-              Send a Message
+              {t("sendMessageTitle")}
             </h2>
 
             <AnimatePresence mode="wait">
@@ -161,12 +163,12 @@ export default function ContactPage() {
                       check_circle
                     </span>
                   </div>
-                  <h3 className="text-headline-sm font-bold text-primary">Message Sent Successfully!</h3>
+                  <h3 className="text-headline-sm font-bold text-primary">{t("messageSuccessTitle")}</h3>
                   <p className="text-body-md text-on-surface-variant leading-relaxed">
-                    Thank you for reaching out. A clinic care coordinator will review your request and contact you shortly.
+                    {t("messageSuccessDesc")}
                   </p>
                   <Button variant="outline" onClick={() => setIsSuccess(false)} className="mt-2">
-                    Send another message
+                    {t("sendAnotherMsg")}
                   </Button>
                 </motion.div>
               ) : (
@@ -181,7 +183,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="name">
-                        Full Name <span className="text-error">*</span>
+                        {t("fullName")} <span className="text-error">*</span>
                       </label>
                       <input
                         id="name"
@@ -201,7 +203,7 @@ export default function ContactPage() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="email">
-                        Email Address <span className="text-error">*</span>
+                        {t("emailAddress")} <span className="text-error">*</span>
                       </label>
                       <input
                         id="email"
@@ -223,7 +225,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="phone">
-                        Phone Number <span className="text-error">*</span>
+                        {t("phoneNumber")} <span className="text-error">*</span>
                       </label>
                       <input
                         id="phone"
@@ -243,7 +245,7 @@ export default function ContactPage() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="subject">
-                        Subject
+                        {t("subjectLabel")}
                       </label>
                       <div className="relative">
                         <select
@@ -252,10 +254,10 @@ export default function ContactPage() {
                           onChange={(e) => setSubject(e.target.value)}
                           className="w-full appearance-none rounded-lg border border-outline-variant bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
                         >
-                          <option>General Inquiry</option>
-                          <option>Appointments</option>
-                          <option>Billing</option>
-                          <option>Feedback</option>
+                          <option>{t("subjectGeneral")}</option>
+                          <option>{t("subjectAppointments")}</option>
+                          <option>{t("subjectBilling")}</option>
+                          <option>{t("subjectFeedback")}</option>
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
                           <span className="material-symbols-outlined">expand_more</span>
@@ -266,7 +268,7 @@ export default function ContactPage() {
 
                   <div className="flex flex-col gap-1">
                     <label className="text-label-sm font-semibold text-on-surface-variant" htmlFor="message">
-                      Your Message <span className="text-error">*</span>
+                      {t("yourMessage")} <span className="text-error">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -278,7 +280,7 @@ export default function ContactPage() {
                       className={`rounded-lg border bg-surface-container-lowest text-body-md py-3 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 resize-none ${
                         errors.message ? "border-error focus:ring-error" : "border-outline-variant"
                       }`}
-                      placeholder="How can we help you?"
+                      placeholder={t("messagePlaceholder")}
                       rows={4}
                     />
                     {errors.message && <p className="text-error text-xs mt-1">{errors.message}</p>}
@@ -294,10 +296,10 @@ export default function ContactPage() {
                       {isLoading ? (
                         <>
                           <div className="spinner animate-spin border-3 border-t-white border-white/30 rounded-full w-5 h-5"></div>
-                          <span>Sending...</span>
+                          <span>{t("sendingBtn")}</span>
                         </>
                       ) : (
-                        <span>Send Message</span>
+                        <span>{t("sendMsgBtn")}</span>
                       )}
                     </Button>
                   </div>
@@ -315,7 +317,7 @@ export default function ContactPage() {
             className="bg-surface-container-lowest rounded-3xl p-4 sm:p-6 md:p-8 shadow-ambient flex flex-col h-full border border-outline-variant/10"
           >
             <h2 className="text-headline-sm md:text-headline-md text-on-surface mb-6 font-bold">
-              Clinic Information
+              {t("clinicInfoTitle")}
             </h2>
             
             <div className="space-y-6 mb-8 flex-grow">
@@ -324,7 +326,7 @@ export default function ContactPage() {
                   <span className="material-symbols-outlined text-[24px]">location_on</span>
                 </div>
                 <div>
-                  <p className="text-label-sm font-semibold text-on-surface-variant mb-1">Address</p>
+                  <p className="text-label-sm font-semibold text-on-surface-variant mb-1">{t("addressLabel")}</p>
                   <p className="text-body-md text-on-surface font-medium leading-relaxed">
                     123 Healing Way
                     <br />
@@ -338,11 +340,11 @@ export default function ContactPage() {
                   <span className="material-symbols-outlined text-[24px]">schedule</span>
                 </div>
                 <div className="w-full">
-                  <p className="text-label-sm font-semibold text-on-surface-variant mb-2">Working Hours</p>
+                  <p className="text-label-sm font-semibold text-on-surface-variant mb-2">{t("workingHoursTitle")}</p>
                   <div className="grid grid-cols-2 gap-y-2 text-body-md text-on-surface font-semibold max-w-[280px]">
-                    <span>Mon - Fri</span> <span className="text-right text-primary">8:00 AM - 6:00 PM</span>
-                    <span>Saturday</span> <span className="text-right text-primary">9:00 AM - 2:00 PM</span>
-                    <span>Sunday</span> <span className="text-right text-on-surface-variant font-normal">Closed</span>
+                    <span>{t("monFri")}</span> <span className="text-right text-primary">8:00 AM - 6:00 PM</span>
+                    <span>{t("saturday")}</span> <span className="text-right text-primary">9:00 AM - 2:00 PM</span>
+                    <span>{t("sunday")}</span> <span className="text-right text-on-surface-variant font-normal">{t("closed")}</span>
                   </div>
                 </div>
               </div>
@@ -367,10 +369,10 @@ export default function ContactPage() {
                   <span className="material-symbols-outlined text-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
                     location_on
                   </span>
-                  <span className="text-body-sm font-semibold drop-shadow-sm">Click to open interactive map & directions</span>
+                  <span className="text-body-sm font-semibold drop-shadow-sm">{t("clickForMap")}</span>
                 </div>
                 <span className="bg-primary/90 hover:bg-primary text-on-primary text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-                  Enlarge <span className="material-symbols-outlined text-sm">open_in_full</span>
+                  {t("enlargeBtn")} <span className="material-symbols-outlined text-sm">open_in_full</span>
                 </span>
               </div>
             </div>

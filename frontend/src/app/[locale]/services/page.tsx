@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getServices, getDepartments, ServiceData, DepartmentData } from "@/lib/api";
 import ServiceCard from "@/components/service-card";
 import Button from "@/components/button";
 import FilterPills from "@/components/filter-pills";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedSpecialty } from "@/lib/translations";
 
 const categoryImages: Record<string, string> = {
   pediatrics: "/images/services/immunization-clinic.png",
@@ -26,6 +28,8 @@ function getServiceImage(service: ServiceData): string {
 }
 
 export default function ServicesPage() {
+  const t = useTranslations("ServicesPage");
+  const locale = useLocale();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [servicesList, setServicesList] = useState<ServiceData[]>([]);
   const [departmentsList, setDepartmentsList] = useState<DepartmentData[]>([]);
@@ -50,8 +54,8 @@ export default function ServicesPage() {
   }, []);
 
   const categories = [
-    { id: "all", name: "All Services" },
-    ...departmentsList.map(d => ({ id: d.slug, name: d.name }))
+    { id: "all", name: getLocalizedSpecialty("All Services", locale) },
+    ...departmentsList.map(d => ({ id: d.slug, name: getLocalizedSpecialty(d.name, locale) }))
   ];
 
   const filteredServices = selectedCategory === "all"
@@ -92,7 +96,7 @@ export default function ServicesPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-display-lg-mobile md:text-display-lg text-on-background mb-4 max-w-2xl font-bold"
           >
-            Our Specialized Services
+            {t("title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 15 }}
@@ -100,7 +104,7 @@ export default function ServicesPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-body-lg text-on-surface-variant max-w-3xl mx-auto leading-relaxed"
           >
-            Comprehensive, human-centric healthcare tailored to your unique needs. We blend clinical excellence with a compassionate approach to support every stage of your health journey.
+            {t("subtitle")}
           </motion.p>
         </div>
       </header>
@@ -145,7 +149,7 @@ export default function ServicesPage() {
                   icon={service.icon}
                   price={service.price}
                   durationMinutes={service.duration_minutes}
-                  departmentName={service.department?.name}
+                  departmentName={service.department?.name ? getLocalizedSpecialty(service.department.name, locale) : undefined}
                   index={index}
                 />
               ))}
@@ -168,23 +172,23 @@ export default function ServicesPage() {
 
           <div className="relative z-10 max-w-xl text-center md:text-left">
             <h2 className="text-headline-md text-on-background mb-4 font-bold">
-              Not sure which service you need?
+              {t("notSureTitle")}
             </h2>
             <p className="text-body-lg text-on-surface-variant leading-relaxed">
-              Our care coordinators are available to help you navigate our offerings and find the right specialist for your symptoms.
+              {t("notSureDesc")}
             </p>
           </div>
 
           <div className="relative z-10 flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <Link href="/book-appointment" className="w-full sm:w-auto">
               <Button variant="primary" className="w-full sm:w-auto justify-center">
-                Book a Consultation
+                {t("bookConsultation")}
               </Button>
             </Link>
             <Link href="/contact" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto justify-center bg-surface-container-lowest">
                 <span className="material-symbols-outlined text-primary text-[20px]">chat</span>
-                Message Us
+                {t("messageUs")}
               </Button>
             </Link>
           </div>

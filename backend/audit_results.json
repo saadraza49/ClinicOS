@@ -1,0 +1,24 @@
+{
+  "en": {
+    "reply": "To book an appointment at WeCare Clinic, I'll need to collect some information from you. Let's start with your full name. Could you please tell me your full name?",
+    "quickReplies": [
+      "Book Appointment",
+      "Clinic Timings"
+    ]
+  },
+  "fr": {
+    "reply": "Bienvenue au centre de santé WeCare. Nous sommes ravis de vous aider à prendre rendez-vous avec l'un de nos médecins. Pour commencer, pouvons-nous avoir votre nom complet, s'il vous plaît ?",
+    "quickReplies": [
+      "Prendre Rendez-vous",
+      "Services Cliniques",
+      "Heures d'Ouverture"
+    ]
+  },
+  "zh": {
+    "reply": "您好！欢迎来到WeCare Clinic。您想要预约门诊吗？为了更好地安排您的预约，我们需要一些信息。可以请您告诉我您的姓名吗？",
+    "quickReplies": [
+      "预约门诊",
+      "门诊时间"
+    ]
+  }
+}

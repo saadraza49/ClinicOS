@@ -3,40 +3,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { getServices, ServiceData } from "@/lib/api";
 import PricingTierCard, { PricingFeature } from "@/components/pricing-tier-card";
 import CTABanner from "@/components/cta-banner";
+import { getLocalizedDepartmentName, getLocalizedPlanName, getLocalizedPlanDesc, getLocalizedFeatureText } from "@/lib/translations";
 
-const categories = [
-  {
-    id: "general",
-    title: "General Consultations",
-    description: "Standard checkups, routine health screenings, and preventative care consultations.",
-    range: "1,500 PKR",
-    icon: "stethoscope",
-  },
-  {
-    id: "diagnostics",
-    title: "Diagnostics & Labs",
-    description: "Laboratory blood tests, modern digital x-ray imaging, and ultrasounds.",
-    range: "2,000 PKR - 5,000 PKR",
-    icon: "biotech",
-  },
-  {
-    id: "vaccinations",
-    title: "Vaccinations",
-    description: "Pediatric schedules, travel immunizations, and annual influenza vaccines.",
-    range: "1,000 PKR - 3,500 PKR",
-    icon: "vaccines",
-  },
-  {
-    id: "wellness",
-    title: "Specialist Care",
-    description: "Specialized evaluations with senior clinical consultants.",
-    range: "2,500 PKR",
-    icon: "monitor_heart",
-  },
-];
+
 
 const plans = [
   {
@@ -78,6 +51,8 @@ const plans = [
 ];
 
 export default function FeesPage() {
+  const t = useTranslations("FeesPage");
+  const locale = useLocale();
   const [servicesList, setServicesList] = useState<ServiceData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,6 +74,37 @@ export default function FeesPage() {
     alert(`You selected the ${planName} Plan. Booking consultation is next step!`);
   };
 
+  const categories = [
+    {
+      id: "general",
+      title: t("generalTitle"),
+      description: t("generalDesc"),
+      range: "1,500 PKR",
+      icon: "stethoscope",
+    },
+    {
+      id: "diagnostics",
+      title: t("diagnosticsTitle"),
+      description: t("diagnosticsDesc"),
+      range: "2,000 PKR - 5,000 PKR",
+      icon: "biotech",
+    },
+    {
+      id: "vaccinations",
+      title: t("vaccinationsTitle"),
+      description: t("vaccinationsDesc"),
+      range: "1,000 PKR - 3,500 PKR",
+      icon: "vaccines",
+    },
+    {
+      id: "wellness",
+      title: t("specialistTitle"),
+      description: t("specialistDesc"),
+      range: "2,500 PKR",
+      icon: "monitor_heart",
+    },
+  ];
+
   return (
     <div className="overflow-x-hidden">
       {/* Header Banner */}
@@ -109,7 +115,7 @@ export default function FeesPage() {
           transition={{ duration: 0.6 }}
           className="text-display-lg-mobile md:text-display-lg text-on-surface mb-6 font-bold"
         >
-          Transparent Pricing
+          {t("title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 15 }}
@@ -117,7 +123,7 @@ export default function FeesPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
         >
-          High-quality care with no hidden costs. We believe in providing clear, upfront pricing so you can focus on what matters most—your health.
+          {t("subtitle")}
         </motion.p>
       </section>
 
@@ -133,11 +139,11 @@ export default function FeesPage() {
             info
           </span>
           <p className="text-body-md text-on-surface leading-relaxed">
-            Prices may vary based on consultation complexity —{" "}
+            {t("infoNote")}
             <Link href="/contact" className="text-primary font-bold hover:underline">
-              contact us
+              {t("contactLink")}
             </Link>{" "}
-            for a personalized quote.
+            {t("forQuote")}
           </p>
         </motion.div>
       </div>
@@ -180,7 +186,7 @@ export default function FeesPage() {
           transition={{ duration: 0.6 }}
           className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-ambient border border-outline-variant/10"
         >
-          <h2 className="text-headline-md text-on-surface mb-6 font-bold">Detailed Service Fees</h2>
+          <h2 className="text-headline-md text-on-surface mb-6 font-bold">{t("detailedFeesTitle")}</h2>
           
           {loading ? (
             <div className="space-y-4 animate-pulse py-4">
@@ -193,10 +199,10 @@ export default function FeesPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-outline-variant/30 text-label-sm text-on-surface-variant">
-                    <th className="py-4 px-2">Service Name</th>
-                    <th className="py-4 px-2">Department</th>
-                    <th className="py-4 px-2">Duration</th>
-                    <th className="py-4 px-2 text-right">Standard Fee</th>
+                    <th className="py-4 px-2">{t("serviceNameHeader")}</th>
+                    <th className="py-4 px-2">{t("departmentHeader")}</th>
+                    <th className="py-4 px-2">{t("durationHeader")}</th>
+                    <th className="py-4 px-2 text-right">{t("standardFeeHeader")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -207,10 +213,10 @@ export default function FeesPage() {
                     >
                       <td className="py-4 px-2 font-semibold text-on-surface">{service.name}</td>
                       <td className="py-4 px-2 text-on-surface-variant capitalize text-sm">
-                        {service.department?.name || "General Care"}
+                        {getLocalizedDepartmentName(service.department?.name || "General Care", locale)}
                       </td>
                       <td className="py-4 px-2 text-on-surface-variant text-sm">
-                        {service.duration_minutes} mins
+                        {service.duration_minutes} {t("minsUnit")}
                       </td>
                       <td className="py-4 px-2 text-right font-bold text-primary">
                         {service.price.toLocaleString()} PKR
@@ -228,9 +234,9 @@ export default function FeesPage() {
       <section className="bg-surface-container-low py-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-headline-md text-on-surface mb-3 font-bold">Membership Plans</h2>
+            <h2 className="text-headline-md text-on-surface mb-3 font-bold">{t("membershipPlansTitle")}</h2>
             <p className="text-body-lg text-on-surface-variant max-w-xl mx-auto">
-              Choose a plan that fits your healthcare needs and enjoy premium benefits.
+              {t("membershipPlansSubtitle")}
             </p>
           </div>
 
@@ -245,11 +251,13 @@ export default function FeesPage() {
                 className="h-full"
               >
                 <PricingTierCard
-                  name={plan.name}
+                  name={getLocalizedPlanName(plan.name, locale)}
                   price={plan.price}
-                  description={plan.description}
-                  features={plan.features}
+                  description={getLocalizedPlanDesc(plan.description, plan.name, locale)}
+                  features={plan.features.map((f) => ({ ...f, text: getLocalizedFeatureText(f.text, locale) }))}
                   isPopular={plan.isPopular}
+                  popularText={t("mostPopular")}
+                  buttonText={t("choosePlan")}
                   onChoose={() => handleChoosePlan(plan.name)}
                 />
               </motion.div>

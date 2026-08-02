@@ -9,18 +9,23 @@ import Button from "@/components/button";
 import DateSelector from "@/components/date-selector";
 import SearchableSelect from "@/components/searchable-select";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const doctorQuery = searchParams.get("doctor");
   const serviceQuery = searchParams.get("service");
+<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
   const { user } = useAuth();
 
   const stepperTopRef = useRef<HTMLDivElement>(null);
 
   // Step 1: Service & Doctor, Step 2: Date & Time, Step 3: Patient Info, Step 4: Pass Review & Confirm
   const [currentStep, setCurrentStep] = useState<number>(1);
+=======
+  const t = useTranslations("BookAppointmentPage");
+>>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
 
   // Dynamic Options from DB
   const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
@@ -151,16 +156,23 @@ function BookingForm() {
 
   const validateStep3 = () => {
     const newErrors: Record<string, string> = {};
+<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
     if (!name.trim()) newErrors.name = "Full name is required";
+=======
+    if (!service) newErrors.service = t("selectServiceReq");
+    if (!date) newErrors.date = t("selectDateReq");
+    if (!selectedTime) newErrors.time = t("selectTimeReq");
+    if (!name.trim()) newErrors.name = t("fullNameReq");
+>>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
     if (!email.trim()) {
-      newErrors.email = "Email address is required";
+      newErrors.email = t("emailReq");
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = t("emailInvalid");
     }
     if (!phone.trim()) {
-      newErrors.phone = "Phone number is required";
+      newErrors.phone = t("phoneReq");
     } else if (!/^\+?[0-9\s-()]{7,15}$/.test(phone)) {
-      newErrors.phone = "Please enter a valid phone number";
+      newErrors.phone = t("phoneInvalid");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -315,6 +327,7 @@ function BookingForm() {
               const isActive = currentStep === step.number;
               const isCompleted = currentStep > step.number;
 
+<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
               return (
                 <div key={step.number} className="flex items-center gap-2 min-w-max">
                   <button
@@ -334,6 +347,144 @@ function BookingForm() {
                           : isActive
                           ? "bg-primary text-on-primary ring-2 ring-primary/30 scale-105"
                           : "bg-surface-container-high text-on-surface-variant"
+=======
+      {/* Step 1: Selection */}
+      <div className="space-y-4">
+        <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
+          {t("step1Title")}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Service Dropdown */}
+          <div className="flex flex-col gap-1">
+            <label className="text-label-sm text-on-surface-variant" htmlFor="service">
+              {t("selectService")} <span className="text-error">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="service"
+                name="service"
+                value={service}
+                onChange={(e) => {
+                  setService(e.target.value);
+                  if (errors.service) setErrors((prev) => ({ ...prev, service: "" }));
+                }}
+                className={`w-full appearance-none bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all ${
+                  errors.service ? "border-error focus:ring-error" : "border-outline-variant"
+                }`}
+              >
+                <option value="" disabled>
+                  {t("chooseService")}
+                </option>
+                {servicesList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.price} PKR)
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+                <span className="material-symbols-outlined">expand_more</span>
+              </div>
+            </div>
+            {errors.service && <p className="text-error text-xs mt-1">{errors.service}</p>}
+          </div>
+
+          {/* Doctor Dropdown */}
+          <div className="flex flex-col gap-1">
+            <label className="text-label-sm text-on-surface-variant" htmlFor="doctor">
+              {t("selectDoctor")}
+            </label>
+            <div className="relative">
+              <select
+                id="doctor"
+                name="doctor"
+                value={doctor}
+                onChange={(e) => setDoctor(e.target.value)}
+                className="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
+              >
+                <option value="any">{t("anyDoctor")}</option>
+                {displayDoctorsList.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.full_name} ({d.specialty})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+                <span className="material-symbols-outlined">expand_more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 2: Date & Time */}
+      <div className="space-y-4 pt-4">
+        <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
+          {t("step2Title")}
+        </h2>
+        <div className="flex flex-col gap-1">
+          <label className="text-label-sm text-on-surface-variant" htmlFor="date">
+            {t("preferredDate")} <span className="text-error">*</span>
+          </label>
+          <input
+            id="date"
+            name="date"
+            type="date"
+            min={minDate}
+            value={date}
+            onChange={(e) => {
+              setDate(e.target.value);
+              if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
+            }}
+            className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all ${
+              errors.date ? "border-error focus:ring-error" : "border-outline-variant"
+            }`}
+          />
+          {errors.date && <p className="text-error text-xs mt-1">{errors.date}</p>}
+        </div>
+
+        {/* Time Slots */}
+        <div className="flex flex-col gap-2 pt-2">
+          <label className="text-label-sm text-on-surface-variant flex justify-between items-center">
+            <span>{t("availableSlots")} <span className="text-error">*</span></span>
+            {loadingSlots && <span className="text-xs text-primary font-medium animate-pulse">{t("checkingSchedule")}</span>}
+          </label>
+          {loadingSlots ? (
+            <div className="p-4 bg-surface-container rounded-xl text-center text-sm font-medium text-primary animate-pulse">
+              {t("fetchingSlots")}
+            </div>
+          ) : availableSlots.length === 0 ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-sm font-medium flex items-center gap-2">
+              <span className="material-symbols-outlined text-amber-600 text-lg select-none">event_busy</span>
+              <span>{t("noSlotsAvailable")}</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {availableSlots.map((slot) => (
+                <div key={slot.value} className="relative">
+                  <input
+                    type="radio"
+                    id={`time-${slot.value}`}
+                    name="time"
+                    disabled={slot.disabled}
+                    checked={selectedTime === slot.value}
+                    onChange={() => {
+                      setSelectedTime(slot.value);
+                      if (errors.time) setErrors((prev) => ({ ...prev, time: "" }));
+                    }}
+                    className="sr-only peer"
+                  />
+                  {slot.disabled ? (
+                    <span className="flex items-center justify-center w-full py-2.5 px-2 text-xs border border-outline-variant/30 bg-surface-container-low text-outline-variant/50 rounded-full text-center cursor-not-allowed select-none">
+                      {slot.label} {t("bookedTag")}
+                    </span>
+                  ) : (
+                    <label
+                      htmlFor={`time-${slot.value}`}
+                      className={`flex items-center justify-center w-full py-2.5 px-2 text-xs border rounded-full text-center font-semibold cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 ${
+                        selectedTime === slot.value
+                          ? "bg-primary text-on-primary border-primary shadow-sm scale-102"
+                          : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low hover:border-primary"
+>>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
                       }`}
                     >
                       {isCompleted ? (
@@ -845,6 +996,7 @@ function BookingForm() {
               <span className="material-symbols-outlined text-primary text-xl select-none">receipt_long</span>
               <h3 className="text-headline-sm font-bold text-on-surface text-sm">Live Booking Pass</h3>
             </div>
+<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
             <span className="text-[10px] font-bold px-2.5 py-0.5 bg-primary/10 text-primary rounded-full">
               LIVE
             </span>
@@ -890,9 +1042,99 @@ function BookingForm() {
                 ${selectedServiceObj ? selectedServiceObj.price : 150} USD
               </span>
             </div>
+=======
+          )}
+          {errors.time && <p className="text-error text-xs mt-1">{errors.time}</p>}
+        </div>
+      </div>
+
+      {/* Step 3: Patient Details */}
+      <div className="space-y-4 pt-4">
+        <h2 className="text-headline-md text-on-surface border-b border-surface-container-high pb-2 font-bold">
+          {t("step3Title")}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1 md:col-span-2">
+            <label className="text-label-sm text-on-surface-variant" htmlFor="name">
+              {t("fullName")} <span className="text-error">*</span>
+            </label>
+            <input
+              id="name"
+              name="name"
+              placeholder="Jane Doe"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+              }}
+              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
+                errors.name ? "border-error focus:ring-error" : "border-outline-variant"
+              }`}
+              type="text"
+            />
+            {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-label-sm text-on-surface-variant" htmlFor="email">
+              {t("emailAddress")} <span className="text-error">*</span>
+            </label>
+            <input
+              id="email"
+              name="email"
+              placeholder="jane@example.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+              }}
+              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
+                errors.email ? "border-error focus:ring-error" : "border-outline-variant"
+              }`}
+              type="email"
+            />
+            {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-label-sm text-on-surface-variant" htmlFor="phone">
+              {t("phoneNumber")} <span className="text-error">*</span>
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              placeholder="+92 300 1234567"
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                if (errors.phone) setErrors((prev) => ({ ...prev, phone: "" }));
+              }}
+              className={`w-full bg-surface border rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50 ${
+                errors.phone ? "border-error focus:ring-error" : "border-outline-variant"
+              }`}
+              type="tel"
+            />
+            {errors.phone && <p className="text-error text-xs mt-1">{errors.phone}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1 md:col-span-2">
+            <label className="text-label-sm text-on-surface-variant" htmlFor="notes">
+              {t("additionalNotes")}
+            </label>
+            <textarea
+              id="notes"
+              name="notes"
+              placeholder={t("notesPlaceholder")}
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all placeholder:text-outline/50"
+            />
+>>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
           </div>
         </div>
 
+<<<<<<< HEAD:frontend/src/app/book-appointment/page.tsx
         {/* Guarantees Box */}
         <div className="bg-emerald-50/80 p-4.5 rounded-3xl border border-emerald-200/80 space-y-2 text-xs text-emerald-950">
           <div className="flex items-center gap-2 font-bold text-emerald-900">
@@ -904,6 +1146,39 @@ function BookingForm() {
             <li>Free cancellation &amp; rescheduling up to 2h</li>
             <li>Instant PDF appointment slip download</li>
           </ul>
+=======
+      {/* Submit Button */}
+      <div className="pt-4">
+        <Button variant="primary" type="submit" isLoading={isLoading} className="w-full py-4 text-base font-bold shadow-md">
+          {t("confirmAppt")}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export default function BookAppointmentPage() {
+  const t = useTranslations("BookAppointmentPage");
+  return (
+    <div className="overflow-x-hidden py-12 md:py-16 px-4 md:px-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <span className="material-symbols-outlined text-primary text-5xl mb-2 select-none">
+            calendar_clock
+          </span>
+          <h1 className="text-display-lg-mobile md:text-display-lg font-bold text-on-surface mb-3">
+            {t("title")}
+          </h1>
+          <p className="text-body-lg text-on-surface-variant max-w-xl mx-auto">
+            {t("subtitle")}
+          </p>
+        </div>
+
+        <div className="bg-surface-container-lowest border border-outline-variant/10 shadow-ambient rounded-3xl p-6 md:p-10">
+          <Suspense fallback={<div className="p-8 text-center animate-pulse text-on-surface-variant">Loading booking system...</div>}>
+            <BookingForm />
+          </Suspense>
+>>>>>>> feature_language_module:frontend/src/app/[locale]/book-appointment/page.tsx
         </div>
       </div>
     </div>

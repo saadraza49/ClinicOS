@@ -8,7 +8,18 @@ import ReviewModal from "@/components/review-modal";
 import Button from "@/components/button";
 import Image from "next/image";
 import { motion } from "framer-motion";
+<<<<<<< HEAD:frontend/src/app/doctors/[slug]/page.tsx
 import { useAuth } from "@/context/AuthContext";
+=======
+import { useTranslations, useLocale } from "next-intl";
+import {
+  getLocalizedSpecialty,
+  getLocalizedQualification,
+  getLocalizedDoctorBio,
+  getLocalizedLanguage,
+  getLocalizedDay
+} from "@/lib/translations";
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/[slug]/page.tsx
 
 interface DoctorProfilePageProps {
   params: Promise<{ slug: string }>;
@@ -17,7 +28,12 @@ interface DoctorProfilePageProps {
 export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
+<<<<<<< HEAD:frontend/src/app/doctors/[slug]/page.tsx
   const { user } = useAuth();
+=======
+  const t = useTranslations("DoctorProfilePage");
+  const locale = useLocale();
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/[slug]/page.tsx
 
   const [doctor, setDoctor] = useState<DoctorData | null>(null);
   const [reviews, setReviews] = useState<ReviewData[]>([]);
@@ -71,7 +87,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
           We couldn't find a profile for the requested doctor. They may have relocated or changed specialties.
         </p>
         <Link href="/doctors">
-          <Button variant="primary">Return to Team Directory</Button>
+          <Button variant="primary">{t("returnToDirectory")}</Button>
         </Link>
       </div>
     );
@@ -157,6 +173,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                 <span className="text-label-md text-secondary font-bold uppercase tracking-wider bg-secondary/10 px-3 py-1 rounded-full">
                   {doctor.specialty}
                 </span>
+<<<<<<< HEAD:frontend/src/app/doctors/[slug]/page.tsx
                 {doctor.department && (
                   <span className="text-label-md text-on-surface-variant font-medium bg-surface-container px-3 py-1 rounded-full">
                     {doctor.department.name}
@@ -178,9 +195,57 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                   star
                 </span>
                 <span className="text-headline-sm font-extrabold text-on-surface">{doctor.rating.toFixed(1)}</span>
+=======
+                {getLocalizedSpecialty(doctor.specialty, locale)}
+              </span>
+              <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
+                <span className="material-symbols-outlined text-[18px] text-primary">
+                  workspace_premium
+                </span>
+                {getLocalizedQualification(doctor.qualifications, locale) || t("medicalSpecialist")}
+              </span>
+              <span className="text-on-surface-variant text-body-md flex items-center gap-1 font-medium">
+                <span className="material-symbols-outlined text-[18px] text-primary">
+                  history
+                </span>
+                {t("yearsExperience", { years: doctor.experience_years })}
+              </span>
+            </div>
+
+            {/* Doctor Name */}
+            <h1 className="text-display-lg-mobile md:text-display-lg text-on-surface mb-4 font-bold leading-tight">
+              {doctor.full_name}
+            </h1>
+
+            {/* Bio */}
+            <p className="text-body-lg text-on-surface-variant mb-8 leading-relaxed">
+              {getLocalizedDoctorBio(doctor.full_name, doctor.bio || "", locale) || t("defaultBio")}
+            </p>
+
+            {/* Langs and Availability tags */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10 border-t border-outline-variant/10 pt-6">
+              <div>
+                <h3 className="text-label-md font-bold text-on-surface mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary text-lg">
+                    language
+                  </span>
+                  {t("languagesSpoken")}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {languagesList.map((lang) => (
+                    <span
+                      key={lang}
+                      className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-medium"
+                    >
+                      {getLocalizedLanguage(lang, locale)}
+                    </span>
+                  ))}
+                </div>
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/[slug]/page.tsx
               </div>
               <div className="h-6 w-px bg-outline-variant/30"></div>
               <div>
+<<<<<<< HEAD:frontend/src/app/doctors/[slug]/page.tsx
                 <p className="text-xs font-bold text-on-surface">{doctor.review_count} Verified Reviews</p>
                 <p className="text-[11px] text-emerald-700 font-bold">100% Real-time Patient Feedback</p>
               </div>
@@ -214,6 +279,36 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
                 >
                   <span className="material-symbols-outlined text-base">rate_review</span>
                   Write Review
+=======
+                <h3 className="text-label-md font-bold text-on-surface mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-lg">
+                    calendar_month
+                  </span>
+                  {t("availability")}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {availableDays.map((day) => (
+                    <span
+                      key={day}
+                      className="px-3 py-1 bg-surface-container border border-outline-variant/20 rounded-full text-label-sm text-on-surface-variant font-semibold"
+                    >
+                      {getLocalizedDay(day, locale)}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-label-sm text-on-surface-variant mt-2 pl-7 text-xs">
+                  {scheduleTime}
+                </p>
+              </div>
+            </div>
+
+            {/* Book CTA button */}
+            <div className="mt-8">
+              <Link href={`/book-appointment?doctor=${encodeURIComponent(doctor.full_name)}&service=${encodeURIComponent(doctor.specialty)}`} className="inline-block w-full sm:w-auto">
+                <Button variant="primary" className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                  {t("bookWith", { name: doctor.full_name })}
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/[slug]/page.tsx
                 </Button>
               </div>
             </div>
@@ -244,6 +339,7 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
         </div>
       </section>
 
+<<<<<<< HEAD:frontend/src/app/doctors/[slug]/page.tsx
       {/* Weekly Schedule Matrix */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 pb-12">
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-outline-variant/15 shadow-sm space-y-6">
@@ -366,6 +462,44 @@ export default function DoctorProfilePage({ params }: DoctorProfilePageProps) {
               ))}
             </div>
           )}
+=======
+      {/* Patient Reviews Section */}
+      <section className="bg-surface-container-lowest py-20 border-t border-outline-variant/10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex items-center gap-3 mb-10">
+            <span className="material-symbols-outlined text-primary text-3xl">reviews</span>
+            <h2 className="text-headline-md font-bold text-on-surface">{t("patientReviews")}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+            >
+              <TestimonialCard
+                quote={t("reviewQuote1", { lastName: doctor.full_name.split(" ").slice(-1)[0] })}
+                author={t("verifiedPatient")}
+                role={t("clinicalCarePatient")}
+                rating={5}
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <TestimonialCard
+                quote={t("reviewQuote2")}
+                author="Sarah M."
+                role={t("verifiedPatient")}
+                rating={5}
+              />
+            </motion.div>
+          </div>
+>>>>>>> feature_language_module:frontend/src/app/[locale]/doctors/[slug]/page.tsx
         </div>
       </section>
 

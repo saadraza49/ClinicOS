@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
+import { getLocalizedServiceTitle, getLocalizedServiceDescription } from "@/lib/translations";
 
 interface ServiceCardProps {
   title: string;
@@ -27,6 +29,9 @@ export default function ServiceCard({
   departmentName,
   index = 0,
 }: ServiceCardProps) {
+  const locale = useLocale();
+  const displayTitle = getLocalizedServiceTitle(title, locale);
+  const displayDescription = description ? getLocalizedServiceDescription(description, title, locale) : "";
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -80,11 +85,11 @@ export default function ServiceCard({
         {/* Bottom Label Strip */}
         <div className="bg-[#2c336b] text-white p-5 flex flex-col items-center justify-center text-center flex-grow group-hover:bg-[#353d74] transition-colors duration-300 min-h-[95px]">
           <h3 className="text-white text-lg sm:text-[19px] font-extrabold tracking-wide leading-snug">
-            {title}
+            {displayTitle}
           </h3>
-          {description && (
+          {displayDescription && (
             <p className="text-white/80 text-xs sm:text-sm mt-1.5 font-medium line-clamp-2 max-w-[95%]">
-              {description}
+              {displayDescription}
             </p>
           )}
         </div>

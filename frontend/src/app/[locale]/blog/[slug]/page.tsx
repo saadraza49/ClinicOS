@@ -8,6 +8,8 @@ import Button from "@/components/button";
 import CTABanner from "@/components/cta-banner";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedBlogTitle, getLocalizedBlogExcerpt, getLocalizedBlogCategory, getLocalizedAuthorRole } from "@/lib/translations";
 
 interface BlogDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -49,6 +51,8 @@ const authorBios: Record<string, { role: string; bio: string; photo: string }> =
 export default function BlogDetailPage({ params }: BlogDetailPageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
+  const t = useTranslations("BlogDetailPage");
+  const locale = useLocale();
 
   const post = blogPosts.find((p) => p.slug === slug);
 
@@ -92,19 +96,19 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
         {/* Breadcrumbs */}
         <nav className="text-label-md text-on-surface-variant mb-8 flex items-center gap-1">
           <Link href="/" className="hover:text-primary transition-colors font-semibold">
-            Home
+            {t("homeBreadcrumb")}
           </Link>
           <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 select-none">
             chevron_right
           </span>
           <Link href="/blog" className="hover:text-primary transition-colors font-semibold">
-            Blog
+            {t("blogBreadcrumb")}
           </Link>
           <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 select-none">
             chevron_right
           </span>
           <span className="text-on-surface font-semibold truncate max-w-[200px] md:max-w-none">
-            {post.title}
+            {getLocalizedBlogTitle(post.title, locale)}
           </span>
         </nav>
 
@@ -155,10 +159,10 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
               {/* Header Title Block */}
               <header className="space-y-4 mb-8 text-center md:text-left border-b border-outline-variant/10 pb-6">
                 <span className="inline-block bg-primary/10 text-primary px-3.5 py-1.5 rounded-full text-xs font-semibold border border-primary/20 select-none">
-                  {post.category}
+                  {getLocalizedBlogCategory(post.category, locale)}
                 </span>
                 <h1 className="text-display-lg-mobile md:text-headline-md lg:text-display-lg-mobile text-on-background font-bold leading-tight">
-                  {post.title}
+                  {getLocalizedBlogTitle(post.title, locale)}
                 </h1>
                 
                 {/* Author Metadata */}
@@ -179,7 +183,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                       <span>•</span>
                       <span className="flex items-center gap-[2px]">
                         <span className="material-symbols-outlined text-[14px]">schedule</span>
-                        {post.readTime}
+                        {t("minRead", { mins: post.readTime.replace(/[^0-9]/g, '') })}
                       </span>
                     </p>
                   </div>
@@ -244,7 +248,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                     {post.author}
                   </h3>
                   <p className="text-xs text-primary font-bold tracking-wider uppercase">
-                    {authorInfo.role}
+                    {getLocalizedAuthorRole(authorInfo.role, locale)}
                   </p>
                   <p className="text-body-md text-on-surface-variant text-sm leading-relaxed">
                     {authorInfo.bio}
@@ -263,7 +267,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
         <section className="bg-surface-container-low/30 py-16 border-t border-outline-variant/10 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-headline-md text-on-background mb-8 text-center font-bold">
-              Related Articles
+              {t("relatedArticlesTitle")}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {relatedArticles.map((article) => (
@@ -283,9 +287,9 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
           transition={{ duration: 0.6 }}
         >
           <CTABanner
-            title="Enjoyed this article?"
-            description="Take the next step in your health journey. Book a consultation with one of our specialists today to discuss your personalized wellness plan."
-            buttonText="Book a Consultation"
+            title={t("enjoyedTitle")}
+            description={t("enjoyedDesc")}
+            buttonText={t("bookConsultation")}
             buttonHref="/book-appointment"
           />
         </motion.div>
