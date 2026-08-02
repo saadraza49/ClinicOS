@@ -1,18 +1,10 @@
-import './globals.css';
+import "./globals.css";
 
 export const metadata = {
-  title: 'ClinicOS',
-  description: 'Clinic Management System',
+  title: "WeClinic - AI-Powered Clinic Management System",
+  description: "Intelligent Clinic & Appointment Management System",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head />
-      <body className="bg-gray-100">
-        {children}
-      </body>
-    </html>
-  );
+  return children;
 }
-
