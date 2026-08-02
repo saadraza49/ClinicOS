@@ -15,20 +15,23 @@ export default function TestimonialCard({
     <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-ambient hover:shadow-ambient-hover hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between border border-outline-variant/10">
       <div>
         {/* Rating Stars */}
-        <div className="flex gap-1 mb-4 text-secondary">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <span
-              key={index}
-              className="material-symbols-outlined text-lg"
-              style={{
-                fontVariationSettings: `"${
-                  index < rating ? "FILL' 1" : "FILL' 0"
-                }"`,
-              }}
-            >
-              star
-            </span>
-          ))}
+        <div className="flex gap-1 mb-4">
+          {Array.from({ length: 5 }).map((_, index) => {
+            const isFilled = index < Math.round(rating);
+            return (
+              <span
+                key={index}
+                className={`material-symbols-outlined text-lg select-none ${
+                  isFilled ? "text-amber-500 font-bold" : "text-gray-300"
+                }`}
+                style={{
+                  fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0",
+                }}
+              >
+                star
+              </span>
+            );
+          })}
         </div>
 
         {/* Quote */}

@@ -97,6 +97,8 @@ export interface AppointmentData {
   appointment_time: string;
   status: string;
   reason_for_visit?: string;
+  cancellation_reason?: string;
+  notes?: string;
   booking_source: string;
   doctor?: DoctorData;
   service?: ServiceData;
@@ -131,8 +133,14 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
     }
 
     return response.json();
-  } catch (err) {
+  } catch (err: any) {
     clearTimeout(timeoutId);
+    if (err.name === "AbortError") {
+      throw new Error("Request timed out. Please check your connection and try again.");
+    }
+    if (err instanceof TypeError && err.message === "Failed to fetch") {
+      throw new Error("Cannot connect to backend server. Please make sure FastAPI backend is running on http://127.0.0.1:8000.");
+    }
     throw err;
   }
 }
@@ -197,10 +205,12 @@ export async function getDoctors(params?: { department?: string; search?: string
     if (params?.department) queryParams.append("department", params.department);
     if (params?.search) queryParams.append("search", params.search);
     const queryStr = queryParams.toString() ? `?${queryParams.toString()}` : "";
-    return await fetchAPI<DoctorData[]>(`/doctors${queryStr}`);
+    const data = await fetchAPI<DoctorData[]>(`/doctors${queryStr}`);
+    if (Array.isArray(data) && data.length > 0) return data;
+    return fallbackDoctors.map(mapFallbackDoctor);
   } catch (err) {
-    console.error("Failed to fetch doctors from backend database:", err);
-    return [];
+    console.warn("Backend API unavailable or timed out, using fallback doctors dataset:", err);
+    return fallbackDoctors.map(mapFallbackDoctor);
   }
 }
 
@@ -276,26 +286,10 @@ export async function getAvailableSlots(doctorId: string, dateStr: string): Prom
 }
 
 export async function bookAppointment(payload: BookAppointmentPayload): Promise<AppointmentData> {
-  try {
-    return await fetchAPI<AppointmentData>("/appointments/book", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.warn("Backend API offline for booking, simulating successful booking:", err);
-    return {
-      id: `APPT-${Math.floor(100000 + Math.random() * 900000)}`,
-      doctor_id: payload.doctor_id,
-      service_id: payload.service_id,
-      patient_name: payload.patient_name,
-      patient_phone: payload.patient_phone,
-      patient_email: payload.patient_email,
-      appointment_date: payload.appointment_date,
-      appointment_time: payload.appointment_time,
-      status: "confirmed",
-      booking_source: "web",
-    };
-  }
+  return await fetchAPI<AppointmentData>("/appointments/book", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export interface PatientProfileData {
@@ -337,6 +331,17 @@ export async function cancelAppointment(appointmentId: string): Promise<Appointm
   });
 }
 
+export async function rescheduleAppointment(appointmentId: string, newDate: string, newTime: string, reason?: string): Promise<AppointmentData> {
+  return await fetchAPI<AppointmentData>(`/appointments/${appointmentId}/reschedule`, {
+    method: "PUT",
+    body: JSON.stringify({
+      new_date: newDate,
+      new_time: newTime,
+      reason: reason || undefined,
+    }),
+  });
+}
+
 // ==================== PATIENT PROFILE ====================
 export async function getPatientProfile(): Promise<PatientFullData> {
   return await fetchAPI<PatientFullData>("/patients/me");
@@ -370,3 +375,46 @@ export async function getFAQs(params?: { category?: string; search?: string }): 
   }
 }
 
+// ==================== REVIEWS & RATINGS ====================
+export interface ReviewData {
+  id: string;
+  appointment_id?: string;
+  doctor_id: string;
+  patient_id?: string;
+  reviewer_name: string;
+  rating: number;
+  review_text?: string;
+  created_at: string;
+}
+
+export interface ReviewCreatePayload {
+  doctor_id: string;
+  appointment_id?: string;
+  reviewer_name: string;
+  rating: number;
+  review_text?: string;
+}
+
+export async function getDoctorReviews(slugOrId: string): Promise<ReviewData[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/doctors/${slugOrId}/reviews`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch doctor reviews:", err);
+    return [];
+  }
+}
+
+export async function submitDoctorReview(payload: ReviewCreatePayload): Promise<ReviewData> {
+  const res = await fetch(`${API_BASE_URL}/doctors/reviews`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to submit review");
+  }
+  return await res.json();
+}

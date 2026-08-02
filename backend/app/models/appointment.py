@@ -44,6 +44,8 @@ class Appointment(Base):
     appointment_time = Column(String(50), nullable=False)
     status = Column(String(50), default="pending", nullable=False)
     reason_for_visit = Column(Text, nullable=True)
+    cancellation_reason = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
     booking_source = Column(String(50), default="web", nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

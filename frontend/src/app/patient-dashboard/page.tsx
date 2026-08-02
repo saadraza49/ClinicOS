@@ -10,10 +10,23 @@ import {
   updatePatientProfile, 
   getMyAppointments, 
   cancelAppointment, 
+<<<<<<< HEAD
   PatientFullData, 
   AppointmentData 
 } from "@/lib/api";
 import Button from "@/components/button";
+=======
+  rescheduleAppointment,
+  getAvailableSlots,
+  PatientFullData, 
+  AppointmentData,
+  TimeSlotData
+} from "@/lib/api";
+import Button from "@/components/button";
+import DateSelector from "@/components/date-selector";
+import { downloadAppointmentPDF } from "@/lib/pdf-generator";
+import ReviewModal from "@/components/review-modal";
+>>>>>>> origin/business-logic
 
 export default function PatientDashboardPage() {
   const router = useRouter();
@@ -45,6 +58,7 @@ export default function PatientDashboardPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [apptSuccessMsg, setApptSuccessMsg] = useState<string | null>(null);
 
+<<<<<<< HEAD
   // Load Patient Profile & Appointments
   useEffect(() => {
     if (!authLoading && !user) {
@@ -91,6 +105,142 @@ export default function PatientDashboardPage() {
           setLoadingAppts(false);
         }
       }
+=======
+  // Review Modal State
+  const [reviewModalData, setReviewModalData] = useState<{
+    isOpen: boolean;
+    doctorId: string;
+    doctorName: string;
+    appointmentId?: string;
+  }>({
+    isOpen: false,
+    doctorId: "",
+    doctorName: "",
+  });
+
+  // Reschedule Modal State
+  const [reschedulingAppt, setReschedulingAppt] = useState<AppointmentData | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<string>("");
+  const [rescheduleTime, setRescheduleTime] = useState<string>("");
+  const [rescheduleSlots, setRescheduleSlots] = useState<TimeSlotData[]>([]);
+  const [loadingRescheduleSlots, setLoadingRescheduleSlots] = useState<boolean>(false);
+  const [submittingReschedule, setSubmittingReschedule] = useState<boolean>(false);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [todayMinDate, setTodayMinDate] = useState<string>("");
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setTodayMinDate(today);
+  }, []);
+
+  useEffect(() => {
+    if (!reschedulingAppt || !rescheduleDate) return;
+    const targetDoctorId = reschedulingAppt.doctor_id || "any";
+    async function fetchSlots() {
+      setLoadingRescheduleSlots(true);
+      setRescheduleError(null);
+      try {
+        const slots = await getAvailableSlots(targetDoctorId, rescheduleDate);
+        setRescheduleSlots(slots);
+        if (rescheduleTime && !slots.some((s) => s.value === rescheduleTime && !s.disabled)) {
+          setRescheduleTime("");
+        }
+      } catch (err) {
+        console.error("Error loading reschedule slots:", err);
+      } finally {
+        setLoadingRescheduleSlots(false);
+      }
+    }
+    fetchSlots();
+  }, [reschedulingAppt, rescheduleDate]);
+
+  const handleOpenRescheduleModal = (appt: AppointmentData) => {
+    const today = new Date().toISOString().split("T")[0];
+    const initialDate = String(appt.appointment_date) >= today ? String(appt.appointment_date) : today;
+    setReschedulingAppt(appt);
+    setRescheduleDate(initialDate);
+    setRescheduleTime(appt.appointment_time || "");
+    setRescheduleError(null);
+  };
+
+  const handleConfirmReschedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reschedulingAppt || !rescheduleDate || !rescheduleTime) {
+      setRescheduleError("Please select both a date and an available time slot.");
+      return;
+    }
+
+    setSubmittingReschedule(true);
+    setRescheduleError(null);
+    try {
+      const updated = await rescheduleAppointment(
+        reschedulingAppt.id,
+        rescheduleDate,
+        rescheduleTime
+      );
+
+      setAppointments((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+
+      setApptSuccessMsg(
+        `Appointment successfully rescheduled to ${updated.appointment_date} at ${updated.appointment_time}!`
+      );
+      setReschedulingAppt(null);
+
+      setTimeout(() => {
+        setApptSuccessMsg(null);
+      }, 6000);
+    } catch (err: any) {
+      setRescheduleError(err.message || "Failed to reschedule appointment. Please try another slot.");
+    } finally {
+      setSubmittingReschedule(false);
+    }
+  };
+
+  // Load Patient Profile & Appointments
+  const loadData = async () => {
+    try {
+      setLoadingProfile(true);
+      setLoadingAppts(true);
+      const [fullProfile, apptsList] = await Promise.all([
+        getPatientProfile().catch(() => null),
+        getMyAppointments().catch(() => []),
+      ]);
+
+      if (fullProfile) {
+        setProfileData(fullProfile);
+        if (fullProfile.user.full_name) setFullName(fullProfile.user.full_name);
+        if (fullProfile.user.phone) setPhone(fullProfile.user.phone);
+        if (fullProfile.profile) {
+          if (fullProfile.profile.age !== undefined && fullProfile.profile.age !== null) {
+            setAge(String(fullProfile.profile.age));
+          }
+          if (fullProfile.profile.gender) setGender(fullProfile.profile.gender);
+          if (fullProfile.profile.blood_group) setBloodGroup(fullProfile.profile.blood_group);
+          if (fullProfile.profile.emergency_contact_name) setEmergencyName(fullProfile.profile.emergency_contact_name);
+          if (fullProfile.profile.emergency_contact_phone) setEmergencyPhone(fullProfile.profile.emergency_contact_phone);
+          if (fullProfile.profile.medical_history) setMedicalHistory(fullProfile.profile.medical_history);
+          if (fullProfile.profile.allergies) setAllergies(fullProfile.profile.allergies);
+        }
+      }
+
+      setAppointments(apptsList);
+    } catch (err) {
+      console.error("Error loading patient dashboard data:", err);
+    } finally {
+      setLoadingProfile(false);
+      setLoadingAppts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+>>>>>>> origin/business-logic
       loadData();
     }
   }, [user, authLoading, router]);
@@ -146,6 +296,32 @@ export default function PatientDashboardPage() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  const isCancellationBlocked = (appDateStr: string, appTimeStr: string) => {
+    try {
+      const [year, month, day] = appDateStr.split("-").map(Number);
+      let hours = 9;
+      let minutes = 0;
+      const match = appTimeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3]?.toUpperCase();
+        if (period === "PM" && hours < 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+      }
+      const apptDate = new Date(year, month - 1, day, hours, minutes);
+      const now = new Date();
+      const diffMs = apptDate.getTime() - now.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+      return diffHours <= 2; // Block if 2 hours or less remain
+    } catch {
+      return false;
+    }
+  };
+
+>>>>>>> origin/business-logic
   if (authLoading || loadingProfile) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center p-8">
@@ -159,7 +335,11 @@ export default function PatientDashboardPage() {
     return null;
   }
 
+<<<<<<< HEAD
   const confirmedAppts = appointments.filter((a) => a.status === "confirmed" || a.status === "pending").length;
+=======
+  const confirmedAppts = appointments.filter((a) => a.status === "confirmed" || a.status === "pending" || a.status === "in_consultation").length;
+>>>>>>> origin/business-logic
   const completedAppts = appointments.filter((a) => a.status === "completed").length;
 
   return (
@@ -503,8 +683,13 @@ export default function PatientDashboardPage() {
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {appointments.map((appt) => {
+<<<<<<< HEAD
                   const isUpcoming = appt.status === "confirmed" || appt.status === "pending";
                   const isCancelled = appt.status === "cancelled";
+=======
+                  const isUpcoming = appt.status === "confirmed" || appt.status === "pending" || appt.status === "in_consultation";
+                  const cannotCancel = isCancellationBlocked(String(appt.appointment_date), appt.appointment_time);
+>>>>>>> origin/business-logic
                   
                   return (
                     <div
@@ -527,6 +712,14 @@ export default function PatientDashboardPage() {
                               Pending Confirmation
                             </span>
                           )}
+<<<<<<< HEAD
+=======
+                          {appt.status === "in_consultation" && (
+                            <span className="bg-purple-100 text-purple-800 border border-purple-300 px-3 py-0.5 rounded-full text-xs font-bold animate-pulse">
+                              In Consultation
+                            </span>
+                          )}
+>>>>>>> origin/business-logic
                           {appt.status === "completed" && (
                             <span className="bg-blue-100 text-blue-800 border border-blue-300 px-3 py-0.5 rounded-full text-xs font-bold">
                               Completed
@@ -537,12 +730,29 @@ export default function PatientDashboardPage() {
                               Cancelled
                             </span>
                           )}
+<<<<<<< HEAD
+=======
+                          {appt.status === "no_show" && (
+                            <span className="bg-gray-100 text-gray-800 border border-gray-300 px-3 py-0.5 rounded-full text-xs font-bold">
+                              No Show
+                            </span>
+                          )}
+                          {appt.status === "rescheduled" && (
+                            <span className="bg-orange-100 text-orange-800 border border-orange-300 px-3 py-0.5 rounded-full text-xs font-bold">
+                              Rescheduled
+                            </span>
+                          )}
+>>>>>>> origin/business-logic
                         </div>
 
                         <div className="text-body-md text-on-surface-variant flex items-center gap-4 flex-wrap">
                           <span className="flex items-center gap-1 font-semibold text-primary">
                             <span className="material-symbols-outlined text-lg">calendar_month</span>
+<<<<<<< HEAD
                             {appt.appointment_date}
+=======
+                            {String(appt.appointment_date)}
+>>>>>>> origin/business-logic
                           </span>
                           <span className="flex items-center gap-1 font-semibold text-on-surface">
                             <span className="material-symbols-outlined text-lg">schedule</span>
@@ -561,6 +771,7 @@ export default function PatientDashboardPage() {
                             <strong>Reason:</strong> {appt.reason_for_visit}
                           </p>
                         )}
+<<<<<<< HEAD
                       </div>
 
                       <div className="flex items-center gap-3 w-full md:w-auto justify-end">
@@ -574,6 +785,86 @@ export default function PatientDashboardPage() {
                             Cancel Visit
                           </Button>
                         )}
+=======
+                        {appt.cancellation_reason && (
+                          <p className="text-xs text-red-700 bg-red-50 p-2.5 rounded-xl border border-red-200">
+                            <strong>Cancellation Reason:</strong> {appt.cancellation_reason}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              downloadAppointmentPDF({
+                                id: appt.id,
+                                patient_name: appt.patient_name || user?.full_name || "Patient",
+                                patient_phone: appt.patient_phone || user?.phone || "+92 300 0000000",
+                                patient_email: appt.patient_email || user?.email || undefined,
+                                doctor_name: appt.doctor?.full_name || "Assigned Specialist",
+                                doctor_specialty: appt.doctor?.specialty,
+                                service_name: appt.service?.name || "Medical Consultation",
+                                appointment_date: String(appt.appointment_date),
+                                appointment_time: appt.appointment_time,
+                                consultation_fee: appt.service?.price || appt.doctor?.consultation_fee,
+                                status: appt.status.toUpperCase(),
+                              });
+                            }}
+                            className="text-xs py-2 px-3 text-on-surface-variant border-outline-variant/40 hover:bg-surface-container-high flex items-center gap-1"
+                            title="Download PDF Appointment Slip"
+                          >
+                            <span className="material-symbols-outlined text-base select-none">picture_as_pdf</span>
+                            PDF Slip
+                          </Button>
+
+                          {!isUpcoming && appt.doctor_id && (
+                            <Button
+                              variant="primary"
+                              onClick={() => {
+                                setReviewModalData({
+                                  isOpen: true,
+                                  doctorId: appt.doctor_id,
+                                  doctorName: appt.doctor?.full_name || "Doctor",
+                                  appointmentId: appt.id,
+                                });
+                              }}
+                              className="text-xs py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 border-none shadow-2xs"
+                            >
+                              <span className="material-symbols-outlined text-base select-none">star</span>
+                              Rate Doctor
+                            </Button>
+                          )}
+
+                          {isUpcoming && (
+                            cannotCancel ? (
+                              <span className="text-[11px] py-1.5 px-3 bg-gray-100 text-gray-500 rounded-xl font-medium border border-gray-200">
+                                Locked (&lt;2h)
+                              </span>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => handleOpenRescheduleModal(appt)}
+                                  className="text-xs py-2 px-3 text-primary border border-primary/30 hover:bg-primary/10 flex items-center gap-1"
+                                >
+                                  <span className="material-symbols-outlined text-base select-none">edit_calendar</span>
+                                  Reschedule
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleCancelAppointment(appt.id)}
+                                  isLoading={cancellingId === appt.id}
+                                  className="text-xs py-2 px-3 text-error border-error/30 hover:bg-error/10"
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            )
+                          )}
+                        </div>
+>>>>>>> origin/business-logic
                       </div>
                     </div>
                   );
@@ -631,6 +922,146 @@ export default function PatientDashboardPage() {
           </motion.div>
         )}
 
+<<<<<<< HEAD
+=======
+      {/* Reschedule Appointment Modal */}
+      <AnimatePresence>
+        {reschedulingAppt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-outline-variant/20 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-surface-container-high pb-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-2xl select-none">edit_calendar</span>
+                  <h3 className="text-headline-sm font-bold text-on-surface">Reschedule Appointment</h3>
+                </div>
+                <button
+                  onClick={() => setReschedulingAppt(null)}
+                  className="p-1 text-on-surface-variant hover:text-on-surface rounded-full transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-2xl select-none">close</span>
+                </button>
+              </div>
+
+              {rescheduleError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <span className="material-symbols-outlined text-red-500">error</span>
+                  <span>{rescheduleError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleConfirmReschedule} className="space-y-5">
+                {/* Appointment Summary Card */}
+                <div className="bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/20 text-xs space-y-1.5">
+                  <p className="font-bold text-on-surface text-sm">
+                    {reschedulingAppt.service?.name || "Medical Visit"}
+                  </p>
+                  {reschedulingAppt.doctor && (
+                    <p className="text-on-surface-variant font-medium">
+                      Doctor: <span className="text-primary font-semibold">{reschedulingAppt.doctor.full_name}</span> ({reschedulingAppt.doctor.specialty})
+                    </p>
+                  )}
+                  <p className="text-on-surface-variant">
+                    Current Date: <span className="font-semibold text-on-surface">{String(reschedulingAppt.appointment_date)} at {reschedulingAppt.appointment_time}</span>
+                  </p>
+                </div>
+
+                {/* Date Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface">
+                    Select New Date <span className="text-error">*</span>
+                  </label>
+                  <DateSelector
+                    value={rescheduleDate}
+                    minDate={todayMinDate}
+                    onChange={(newD) => setRescheduleDate(newD)}
+                  />
+                </div>
+
+                {/* Available Time Slots */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface flex justify-between items-center">
+                    <span>Select New Time Slot <span className="text-error">*</span></span>
+                    {loadingRescheduleSlots && (
+                      <span className="text-xs text-primary font-medium animate-pulse">Checking doctor schedule...</span>
+                    )}
+                  </label>
+
+                  {loadingRescheduleSlots ? (
+                    <div className="p-4 bg-surface-container rounded-xl text-center text-xs font-medium text-primary animate-pulse">
+                      Checking available time slots for {rescheduleDate}...
+                    </div>
+                  ) : rescheduleSlots.length === 0 || rescheduleSlots.every((s) => s.disabled) ? (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs font-medium flex items-center gap-2">
+                      <span className="material-symbols-outlined text-amber-600 select-none">event_busy</span>
+                      <span>No available slots on this date. Please pick another day.</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1">
+                      {rescheduleSlots.map((slot) => (
+                        <button
+                          key={slot.value}
+                          type="button"
+                          disabled={slot.disabled}
+                          onClick={() => setRescheduleTime(slot.value)}
+                          className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                            slot.disabled
+                              ? "opacity-40 cursor-not-allowed bg-surface-container-low text-on-surface-variant/50 border-outline-variant/30"
+                              : rescheduleTime === slot.value
+                              ? "bg-primary text-on-primary border-primary shadow-xs scale-102"
+                              : "border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary/5"
+                          }`}
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container-high">
+                  <button
+                    type="button"
+                    onClick={() => setReschedulingAppt(null)}
+                    className="px-4 py-2.5 text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    isLoading={submittingReschedule}
+                    disabled={!rescheduleDate || !rescheduleTime || submittingReschedule}
+                    className="text-xs px-5 py-2.5"
+                  >
+                    Confirm Reschedule
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Real-time Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalData.isOpen}
+        onClose={() => setReviewModalData((prev) => ({ ...prev, isOpen: false }))}
+        doctorId={reviewModalData.doctorId}
+        doctorName={reviewModalData.doctorName}
+        appointmentId={reviewModalData.appointmentId}
+        defaultReviewerName={user?.full_name || ""}
+        onReviewSubmitted={() => {
+          loadData();
+        }}
+      />
+
+>>>>>>> origin/business-logic
       </div>
     </div>
   );

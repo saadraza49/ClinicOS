@@ -22,6 +22,19 @@ class AppointmentCreate(BaseModel):
     appointment_time: str
     reason_for_visit: Optional[str] = None
 
+class AppointmentStatusUpdate(BaseModel):
+    status: str
+    cancellation_reason: Optional[str] = None
+    notes: Optional[str] = None
+
+class AppointmentCancelRequest(BaseModel):
+    reason: Optional[str] = None
+
+class AppointmentRescheduleRequest(BaseModel):
+    new_date: date
+    new_time: str
+    reason: Optional[str] = None
+
 class AppointmentResponse(BaseModel):
     id: str
     patient_id: Optional[str] = None
@@ -37,8 +50,33 @@ class AppointmentResponse(BaseModel):
     appointment_time: str
     status: str
     reason_for_visit: Optional[str] = None
+    cancellation_reason: Optional[str] = None
+    notes: Optional[str] = None
     booking_source: str
     doctor: Optional[DoctorProfileResponse] = None
     service: Optional[ServiceResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+from datetime import datetime
+
+class ReviewCreate(BaseModel):
+    doctor_id: str
+    appointment_id: Optional[str] = None
+    reviewer_name: str
+    rating: int
+    review_text: Optional[str] = None
+
+class ReviewResponse(BaseModel):
+    id: str
+    appointment_id: Optional[str] = None
+    doctor_id: str
+    patient_id: Optional[str] = None
+    reviewer_name: str
+    rating: int
+    review_text: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
