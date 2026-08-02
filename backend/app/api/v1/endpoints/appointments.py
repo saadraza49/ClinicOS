@@ -186,6 +186,14 @@ def create_appointment(
     day_short = payload.appointment_date.strftime("%a")
     day_full = payload.appointment_date.strftime("%A")
 
+    if target_doctor_id and target_doctor_id != "any":
+        doc_by_slug = db.query(DoctorProfile).filter(
+            (DoctorProfile.id == target_doctor_id) |
+            (DoctorProfile.slug == target_doctor_id)
+        ).first()
+        if doc_by_slug:
+            target_doctor_id = doc_by_slug.id
+
     if target_doctor_id == "any" or not target_doctor_id:
         active_schedules = db.query(DoctorSchedule).filter(
             DoctorSchedule.is_active == True,
@@ -248,8 +256,19 @@ def create_appointment(
             detail=f"The slot '{payload.appointment_time}' on {payload.appointment_date} for Dr. {doctor.full_name} is already booked. Please select a different time slot."
         )
 
-    # 5. Determine Patient & Department
-    department_id = payload.department_id or doctor.department_id
+    # 5. Resolve Service, Patient & Department
+    target_service_id = None
+    svc_obj = None
+    if payload.service_id:
+        svc_obj = db.query(Service).filter(
+            (Service.id == payload.service_id) |
+            (Service.slug == payload.service_id) |
+            (Service.name.ilike(payload.service_id))
+        ).first()
+        if svc_obj:
+            target_service_id = svc_obj.id
+
+    department_id = payload.department_id or (svc_obj.department_id if svc_obj else None) or doctor.department_id
     optional_user = get_optional_user(request, db)
     patient_id = optional_user.id if optional_user else None
 
@@ -257,7 +276,7 @@ def create_appointment(
     appointment = Appointment(
         patient_id=patient_id,
         doctor_id=target_doctor_id,
-        service_id=payload.service_id,
+        service_id=target_service_id,
         department_id=department_id,
         patient_name=payload.patient_name,
         patient_phone=payload.patient_phone,
