@@ -31,6 +31,17 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(api_router, prefix="/api/v1")
 
+@app.on_event("startup")
+def startup_event():
+    # Pre-warm embedding model into RAM on server boot to avoid cold-start latency
+    try:
+        from app.services.vector_service import get_embedding_model
+        get_embedding_model()
+        print("Embedding model successfully pre-warmed in memory.")
+    except Exception as err:
+        print(f"Startup model pre-warm notice: {err}")
+
 @app.get("/")
 def root():
     return {"message": "LuminaHealth Clinic API is running"}
+

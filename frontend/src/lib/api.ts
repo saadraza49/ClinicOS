@@ -139,7 +139,7 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
       throw new Error("Request timed out. Please check your connection and try again.");
     }
     if (err instanceof TypeError && err.message === "Failed to fetch") {
-      throw new Error("Cannot connect to backend server. Please make sure FastAPI backend is running on http://127.0.0.1:8000.");
+      throw new Error("Cannot connect to backend server. Please make sure FastAPI backend is running on http://127.0.0.1:8001.");
     }
     throw err;
   }

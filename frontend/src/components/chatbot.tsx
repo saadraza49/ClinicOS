@@ -191,7 +191,7 @@ const DOCTORS_DATABASE = [
   }
 ];
 
-const API_BASE_URL = "http://127.0.0.1:8002/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api/v1";
 
 // 6-Hour session expiration constants
 const SIX_HOURS_SEC = 6 * 60 * 60;
@@ -214,8 +214,8 @@ function getCookie(name: string): string | null {
 export default function Chatbot() {
   const t = useTranslations("Chatbot");
   const locale = useLocale();
-  const { openLocationModal } = useLocationModal();
   const [isOpen, setIsOpen] = useState(false);
+
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -228,10 +228,46 @@ export default function Chatbot() {
   const [isDoctorsPanelOpen, setIsDoctorsPanelOpen] = useState(true);
   const [showMapPanel, setShowMapPanel] = useState(false);
   const [isMapPanelOpen, setIsMapPanelOpen] = useState(false);
+  const [doctorsList, setDoctorsList] = useState<any[]>(DOCTORS_DATABASE);
+
+  useEffect(() => {
+    async function fetchRealDoctors() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/doctors`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((d: any) => ({
+              id: d.id,
+              name: d.full_name,
+              specialty: d.specialty,
+              gender: d.gender || "Unspecified",
+              fee: `${d.consultation_fee} PKR`,
+              rating: `${d.rating || 5.0} (${d.review_count || 0}+ reviews)`,
+              availability: "Available for booking",
+              image: d.photo || (d.gender === "Female" ? "/images/doctors/doctor_female.png" : "/images/doctors/doctor_male.png"),
+              bio: d.bio || `${d.specialty} Specialist`
+            }));
+            setDoctorsList(mapped);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch real-time doctors for chatbot side panel:", err);
+      }
+    }
+    fetchRealDoctors();
+  }, []);
+
+  const specialties = ["All", ...Array.from(new Set(doctorsList.map((d) => d.specialty)))];
+
+  const filteredDoctors = selectedSpecialtyFilter === "All"
+    ? doctorsList
+    : doctorsList.filter((d) => d.specialty.toLowerCase() === selectedSpecialtyFilter.toLowerCase());
 
   const pathname = usePathname();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
   // Check 6-hour expiration on client mount
   useEffect(() => {
@@ -356,16 +392,6 @@ export default function Chatbot() {
       lastUserText.includes("neurologist") ||
       lastUserText.includes("doctor");
 
-    // Automatically expand the panel if we hit a trigger stage
-    const shouldShowDocs = !isBookingCompleted && (hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors);
-
-    if (shouldShowDocs) {
-      setShowDoctorsDirectory(true);
-      setIsDoctorsPanelOpen(true);
-      setIsMapPanelOpen(false); // Close map if doctors directory is opened
-    }
-    
-    // 3. Map Panel Logic
     const isChattingAboutLocation =
       lastUserText.includes("location") ||
       lastUserText.includes("where") ||
@@ -377,13 +403,21 @@ export default function Chatbot() {
       lastBotText.includes("located at") ||
       lastBotText.includes("map");
 
+    // Automatically expand the panel if we hit a trigger stage
+    const shouldShowDocs = !isBookingCompleted && (hasBookingTrigger ? (isDoctorBookingStage || isChattingAboutDoctors) : isChattingAboutDoctors);
     const shouldShowMap = isBookingCompleted || isChattingAboutLocation;
-    
+
+
     if (shouldShowMap) {
       setShowMapPanel(true);
       setIsMapPanelOpen(true);
-      setIsDoctorsPanelOpen(false); // Close doctors directory if map is opened
+      setIsDoctorsPanelOpen(false);
+    } else if (shouldShowDocs) {
+      setShowDoctorsDirectory(true);
+      setIsDoctorsPanelOpen(true);
+      setIsMapPanelOpen(false);
     }
+
 
     // Smart Close Panel commands
     const isCloseCommand =
@@ -478,7 +512,7 @@ export default function Chatbot() {
       };
     }
     return {
-      reply: "⚠️ The AI backend server is currently offline. To use the smart appointment booking system, please start your FastAPI backend server on port 8000.",
+      reply: "⚠️ The AI backend server is currently offline. To use the smart appointment booking system, please start your FastAPI backend server on port 8001.",
       quickReplies: []
     };
   };
@@ -640,29 +674,11 @@ export default function Chatbot() {
     }
   };
 
-  const specialties = ["All", "Pediatrics", "Cardiology", "Dermatology", "Primary Care", "Dentistry", "Neurology"];
-  const filteredDoctors = DOCTORS_DATABASE.filter(doc =>
-    selectedSpecialtyFilter === "All" || doc.specialty === selectedSpecialtyFilter
-  );
-
   return (
-    <>
-      {/* Background Dim & Blur Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-slate-900/15 backdrop-blur-[2px] z-[60]"
-            onClick={() => setIsOpen(false)}
-            aria-hidden="true"
-          />
-        )}
-      </AnimatePresence>
 
+    <>
       {/* Expandable Chat Panel */}
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -833,32 +849,45 @@ export default function Chatbot() {
                     </span>
                   </div>
 
-                  {/* Middle: Doctors toggle button when booking or doctor conversation is active */}
-                  {showDoctorsDirectory && (
-                    <button
-                      onClick={() => setIsDoctorsPanelOpen(!isDoctorsPanelOpen)}
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isDoctorsPanelOpen
-                        ? "bg-[#2c336b] text-white shadow-xs"
-                        : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
-                        }`}
-                      title="Toggle Doctors Directory"
-                    >
-                      <span className="material-symbols-outlined text-lg">groups</span>
-                    </button>
-                  )}
+                  {/* Middle: Doctors & Map Toggle Icons */}
+                  <button
+                    onClick={() => {
+                      if (isDoctorsPanelOpen) {
+                        setIsDoctorsPanelOpen(false);
+                      } else {
+                        setShowDoctorsDirectory(true);
+                        setIsDoctorsPanelOpen(true);
+                        setIsMapPanelOpen(false);
+                      }
+                    }}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isDoctorsPanelOpen
+                      ? "bg-[#2c336b] text-white shadow-xs"
+                      : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
+                      }`}
+                    title="Toggle Doctors Directory"
+                  >
+                    <span className="material-symbols-outlined text-lg">groups</span>
+                  </button>
 
-                  {showMapPanel && (
-                    <button
-                      onClick={() => setIsMapPanelOpen(!isMapPanelOpen)}
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isMapPanelOpen
-                        ? "bg-[#2c336b] text-white shadow-xs"
-                        : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
-                        }`}
-                      title="Toggle Map"
-                    >
-                      <span className="material-symbols-outlined text-lg">map</span>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      if (isMapPanelOpen) {
+                        setIsMapPanelOpen(false);
+                      } else {
+                        setShowMapPanel(true);
+                        setIsMapPanelOpen(true);
+                        setIsDoctorsPanelOpen(false);
+                      }
+                    }}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${isMapPanelOpen
+                      ? "bg-[#2c336b] text-white shadow-xs"
+                      : "bg-[#2c336b]/5 text-[#2c336b] hover:bg-[#2c336b]/10"
+                      }`}
+                    title="Toggle Clinic Map"
+                  >
+                    <span className="material-symbols-outlined text-lg">location_on</span>
+                  </button>
+
                 </div>
 
                 {/* Middle-Bottom: Vertically rotated text */}
@@ -979,16 +1008,9 @@ export default function Chatbot() {
                             {msg.text}
                           </div>
 
-                          {msg.sender === "bot" && (msg.text.toLowerCase().includes("location") || msg.text.toLowerCase().includes("address") || msg.text.includes("maps.app.goo.gl")) && (
-                            <button
-                              onClick={openLocationModal}
-                              type="button"
-                              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2c336b] text-white font-bold text-xs shadow-sm hover:bg-[#3d468e] transition-all self-start"
-                            >
-                              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>
-                              <span>Open Interactive Map Modal</span>
-                            </button>
-                          )}
+
+
+
 
                           {msg.isReviewAction && (
                             <div className="mt-3.5 p-4 bg-gradient-to-br from-white to-[#f3faff] border border-[#2c336b]/10 rounded-2xl shadow-sm space-y-3">
