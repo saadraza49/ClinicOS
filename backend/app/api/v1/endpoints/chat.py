@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 import json
@@ -7,6 +8,8 @@ import urllib.error
 import re
 from groq import Groq
 from app.core.config import settings
+from app.db.session import get_db
+from app.services.vector_service import similarity_search
 
 router = APIRouter()
 
@@ -23,42 +26,25 @@ class ChatResponse(BaseModel):
     reply: str
     quickReplies: Optional[List[str]] = None
 
-# Static Clinic Data
+# Static Baseline Info
 CLINIC_NAME = "WeCare Clinic"
-CLINIC_HOURS = "Monday to Saturday, 9:00 AM – 9:00 PM (Closed on Sundays)"
-EMERGENCY_NUMBER = "+92 300 1234567"
-MAPS_URL = "https://maps.app.goo.gl/MRgu6Fdbd9PhaGmu7"
-ADDRESS = f"31.487555, 73.076189 (WeCare Health Center). Google Maps: {MAPS_URL}"
-FEE_INFO = "General Physician: 1,500 PKR. Specialists: 2,500 PKR."
 
-BASE_SYSTEM_PROMPT = f"""You are a professional AI healthcare assistant for {CLINIC_NAME}.
-Your responsibility is to assist users with clinic-related information and appointment bookings in an empathetic, highly professional manner.
+BASE_PROMPT_HEADER = """You are a warm, friendly, and empathetic AI Assistant for WeCare Clinic.
+Your goal is to converse smoothly, warmly, and concisely (keep responses to around 2 lines max) while helping patients with clinic inquiries and appointment bookings.
 
-Doctors Database (10 Doctors):
-1. Dr. Elena Rodriguez (Specialty: Pediatrics, Gender: Female)
-2. Dr. Robert Miller (Specialty: Pediatrics, Gender: Male)
-3. Dr. Marcus Vance (Specialty: Cardiology, Gender: Male)
-4. Dr. Sarah Jenkins (Specialty: Cardiology, Gender: Female)
-5. Dr. Omar Al-Fayed (Specialty: Dermatology, Gender: Male)
-6. Dr. Sophia Carter (Specialty: Dermatology, Gender: Female)
-7. Dr. James Wilson (Specialty: Primary Care, Gender: Male)
-8. Dr. Fatima Ali (Specialty: Primary Care, Gender: Female)
-9. Dr. Bilal Ahmed (Specialty: Dentistry, Gender: Male)
-10. Dr. Priya Patel (Specialty: Neurology, Gender: Female)
+Retrieved Context from PostgreSQL Database (pgvector Match):
+"""
 
-Clinic Information:
-- Name: {CLINIC_NAME}
-- Opening Hours: {CLINIC_HOURS}
-- Emergency Contact Number: {EMERGENCY_NUMBER}
-- Address: {ADDRESS}
-- Consultation Fees: {FEE_INFO}
-
-General Behavior:
-- Keep answers concise, clear, and professional.
-- Stay focused on clinic-related topics.
-- If users ask medical questions, provide general educational information only and recommend consulting a licensed doctor.
+BASE_PROMPT_FOOTER = """
+General Behavior & Persona:
+- Warm & Friendly Tone: Greet patients warmly, use smooth conversational tone, and keep responses concise (approx 2 lines max).
+- STRICT DOMAIN BOUNDARY (Clinic Info Only): You MUST ONLY answer questions related to WeCare Clinic (doctors, services, fees, timings, appointments, location, clinic FAQs). If a user asks off-topic questions (e.g. math like "2+2", coding, politics, general history, or trivia), politely refuse: "I'm WeCare Clinic's assistant! I can only help you with clinic services, doctors, consultation fees, and appointment bookings. How can I assist with your health today?"
+- Time Slot & Schedule Accuracy: Perform strict logical time comparison. If a requested time (e.g. 2:30 PM - 4:00 PM) falls inside a doctor's working hours (e.g. 11:00 AM - 5:00 PM), that doctor IS available. NEVER state a doctor is unavailable if their working hours cover the requested window.
+- If users ask medical questions, provide general educational information only in 1-2 lines and recommend consulting a licensed doctor.
 - Do not diagnose diseases or prescribe medicines.
 - Never fabricate information.
+
+
 
 Appointment Booking Behavior:
 Whenever the user expresses an intention to book an appointment (e.g., "Book appointment", "I need to see a doctor", "Schedule an appointment", or in any language), immediately switch into Appointment Booking Mode.
@@ -69,8 +55,8 @@ Whenever the user expresses an intention to book an appointment (e.g., "Book app
   4. Age
   5. Gender (Patient's gender: Male/Female)
   6. Medical Specialty (e.g. Pediatrics, Cardiology, Dermatology, Primary Care, Dentistry, Neurology)
-  7. Doctor Gender Preference (ONLY ask this question if the selected Specialty has BOTH Male and Female doctors in the Doctors Database. If the specialty has only one doctor or only one gender available, SKIP this question entirely!)
-  8. Preferred Doctor (Suggest the doctor(s) matching the selected Specialty and Gender Preference. If the gender question was skipped, suggest the only doctor available for that specialty by name and ask if that works. Make sure the doctor's proper name like "Dr. Elena Rodriguez" is recorded.)
+  7. Doctor Gender Preference (ONLY ask this question if the selected Specialty has BOTH Male and Female doctors available. If the specialty has only one doctor or only one gender available, SKIP this question entirely!)
+  8. Preferred Doctor (Suggest the doctor(s) matching the selected Specialty and Gender Preference. If the gender question was skipped, suggest the doctor available for that specialty by name and ask if that works. Make sure the doctor's proper name like "Dr. Elena Rodriguez" is recorded.)
   9. Reason for Visit / Symptoms
   10. Preferred Date
   11. Preferred Time
@@ -86,10 +72,10 @@ After all required information has been collected:
 
 Frontend Integration:
 When all required information has been collected and the summary is displayed, include the following JSON exactly at the very end of your response:
-{{
+{
 "action": "SHOW_APPOINTMENT_REVIEW",
 "completed": true,
-"details": {{
+"details": {
   "name": "[Collected Full Name]",
   "phone": "[Collected Phone]",
   "age": "[Collected Age]",
@@ -99,8 +85,8 @@ When all required information has been collected and the summary is displayed, i
   "symptoms": "[Collected Reason/Symptoms]",
   "date": "[Collected Date]",
   "time": "[Collected Time]"
-}}
-}}
+}
+}
 """
 
 QUICK_REPLY_MAP = {
@@ -194,9 +180,19 @@ def localize_quick_replies(quick_replies: List[str], locale: str) -> List[str]:
     return [lang_map.get(item, item) for item in quick_replies]
 
 @router.post("", response_model=ChatResponse)
-def chat_endpoint(payload: ChatRequest):
+def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
     user_msg = payload.message
     locale = (payload.locale or "en").lower()
+
+    # Dynamic Vector Database Retrieval (pgvector match)
+    try:
+        matched_chunks = similarity_search(db, user_msg, limit=5)
+        context_str = "\n".join([f"- {c}" for c in matched_chunks]) if matched_chunks else "No specific vector results found."
+    except Exception as search_err:
+        print(f"Vector Retrieval Error: {search_err}")
+        context_str = "Vector retrieval temporarily unavailable."
+
+    full_base_prompt = BASE_PROMPT_HEADER + context_str + "\n" + BASE_PROMPT_FOOTER
 
     # Determine language directive
     if locale == "zh" or any("\u4e00" <= c <= "\u9fff" for c in user_msg):
@@ -206,7 +202,8 @@ def chat_endpoint(payload: ChatRequest):
     else:
         lang_instruction = "\n\nCRITICAL LANGUAGE REQUIREMENT: Converse in clear, professional English."
 
-    full_system_prompt = BASE_SYSTEM_PROMPT + lang_instruction
+    full_system_prompt = full_base_prompt + lang_instruction
+
 
     # Directly use the dedicated chatbot API key from environment
     groq_api_key = settings.CHATBOT_GROQ_API_KEY.strip()
