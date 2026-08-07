@@ -8,6 +8,7 @@ from app.models.appointment import AppointmentReview, Appointment, generate_uuid
 from app.schemas.doctor import DoctorProfileResponse, DoctorDetailResponse
 from app.schemas.appointment import ReviewCreate, ReviewResponse
 from app.models.user import User
+from app.api.v1.endpoints.patients import get_or_create_patient_profile
 from app.core.security import decode_access_token
 
 router = APIRouter()
@@ -15,11 +16,23 @@ router = APIRouter()
 def get_optional_user(request: Request, db: Session) -> Optional[User]:
     token = request.cookies.get("access_token")
     if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1]
+    if not token:
         return None
     payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
+    if not payload:
         return None
-    return db.query(User).filter(User.id == payload["sub"]).first()
+    user_id = payload.get("sub")
+    user = None
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        user_email = payload.get("email")
+        if user_email:
+            user = db.query(User).filter(User.email == user_email.lower()).first()
+    return user
 
 def get_realtime_rating_map(db: Session):
     """Returns a dict mapping doctor_id -> (avg_rating, total_reviews) in 1 fast query"""
@@ -111,7 +124,8 @@ def submit_doctor_review(
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5 stars")
 
     optional_user = get_optional_user(request, db)
-    patient_id = optional_user.id if optional_user else None
+    patient_profile = get_or_create_patient_profile(optional_user.id, db) if optional_user else None
+    patient_id = patient_profile.id if patient_profile else None
 
     appt_id = payload.appointment_id
     if not appt_id:

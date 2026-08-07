@@ -129,7 +129,15 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({ detail: "Network request failed" }));
-      throw new Error(errorBody.detail || `Request failed with status ${response.status}`);
+      let detailMsg = `Request failed with status ${response.status}`;
+      if (typeof errorBody.detail === "string") {
+        detailMsg = errorBody.detail;
+      } else if (Array.isArray(errorBody.detail)) {
+        detailMsg = errorBody.detail.map((e: any) => e.msg || JSON.stringify(e)).join(", ");
+      } else if (errorBody.detail) {
+        detailMsg = typeof errorBody.detail === "object" ? JSON.stringify(errorBody.detail) : String(errorBody.detail);
+      }
+      throw new Error(detailMsg);
     }
 
     return response.json();

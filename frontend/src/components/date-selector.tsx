@@ -125,13 +125,9 @@ export default function DateSelector({ value, minDate, onChange, error }: DateSe
           title="Click to open calendar picker"
         >
           <div className="flex items-center justify-center gap-2">
-            {isToday ? (
+            {isToday && (
               <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-primary/15 text-primary rounded-full">
                 Today
-              </span>
-            ) : (
-              <span className="px-2.5 py-0.5 text-xs font-semibold bg-surface-container-high text-on-surface-variant rounded-full">
-                {dayNameShort}
               </span>
             )}
             <span className="text-body-lg font-bold text-on-surface">

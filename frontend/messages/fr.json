@@ -228,8 +228,16 @@
     "openDirections": "Ouvrir l'itinéraire dans Google Maps"
   },
   "BookAppointmentPage": {
+    "bookingBadge": "Réservation En Ligne Intelligente",
     "title": "Prendre un Rendez-vous",
     "subtitle": "Planifiez une consultation avec notre équipe clinique expérimentée en moins d'une minute.",
+    "loadingPortal": "Chargement du portail de rendez-vous...",
+    "searchServicePlaceholder": "Rechercher ou sélectionner un service médical...",
+    "searchDoctorPlaceholder": "Rechercher ou sélectionner un médecin (optionnel)...",
+    "patientNamePlaceholder": "ex: Jean Dupont",
+    "patientEmailPlaceholder": "jean.dupont@example.com",
+    "patientPhonePlaceholder": "+33 6 12 34 56 78",
+    "symptomsPlaceholder": "Symptômes, antécédents médicaux ou demandes particulières...",
     "step1Title": "1. Détails de la Visite",
     "selectService": "Sélectionner le Service",
     "selectServiceReq": "Veuillez sélectionner un service",
