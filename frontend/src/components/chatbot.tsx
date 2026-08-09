@@ -14,18 +14,58 @@ interface Message {
   isReviewAction?: boolean;
   appointmentDetails?: Record<string, string>;
   isBookingSuccessMsg?: boolean;
+  isBookingCardForm?: boolean;
+  isCancelled?: boolean;
+  isEditingForm?: boolean;
+  isSubmitted?: boolean;
 }
 
-const DEFAULT_QUICK_REPLIES = [
-  "📅 Book Appointment",
-  "👨‍⚕️ Find a Doctor",
-  "🩺 Clinic Services",
-  "⏰ Clinic Timings",
-  "📍 Clinic Location",
-  "💳 Consultation Fee",
-  "📞 Emergency Contact",
-  "💬 Ask Anything"
+
+
+const COUNTRY_CODES = [
+  { code: "+92", iso: "PK", name: "Pakistan", label: "Pakistan (+92)" },
+  { code: "+1", iso: "US", name: "United States / Canada", label: "USA / Canada (+1)" },
+  { code: "+44", iso: "GB", name: "United Kingdom", label: "UK (+44)" },
+  { code: "+971", iso: "AE", name: "United Arab Emirates", label: "UAE (+971)" },
+  { code: "+966", iso: "SA", name: "Saudi Arabia", label: "Saudi Arabia (+966)" },
+  { code: "+974", iso: "QA", name: "Qatar", label: "Qatar (+974)" },
+  { code: "+91", iso: "IN", name: "India", label: "India (+91)" },
+  { code: "+49", iso: "DE", name: "Germany", label: "Germany (+49)" },
+  { code: "+33", iso: "FR", name: "France", label: "France (+33)" },
+  { code: "+61", iso: "AU", name: "Australia", label: "Australia (+61)" },
+  { code: "+81", iso: "JP", name: "Japan", label: "Japan (+81)" },
+  { code: "+86", iso: "CN", name: "China", label: "China (+86)" },
+  { code: "+90", iso: "TR", name: "Turkey", label: "Turkey (+90)" },
+  { code: "+60", iso: "MY", name: "Malaysia", label: "Malaysia (+60)" },
+  { code: "+62", iso: "ID", name: "Indonesia", label: "Indonesia (+62)" },
+  { code: "+20", iso: "EG", name: "Egypt", label: "Egypt (+20)" },
+  { code: "+880", iso: "BD", name: "Bangladesh", label: "Bangladesh (+880)" },
+  { code: "+968", iso: "OM", name: "Oman", label: "Oman (+968)" },
+  { code: "+965", iso: "KW", name: "Kuwait", label: "Kuwait (+965)" },
+  { code: "+973", iso: "BH", name: "Bahrain", label: "Bahrain (+973)" }
 ];
+
+export const isPhoneNumberValidForCountry = (rawInput: string, countryCode: string): boolean => {
+  const digitsOnly = rawInput.replace(/\D/g, '');
+  if (!digitsOnly) return false;
+
+  if (countryCode === "+92") return digitsOnly.length === 10 || (digitsOnly.length === 11 && digitsOnly.startsWith("0"));
+  if (countryCode === "+1") return digitsOnly.length === 10;
+  if (countryCode === "+44") return digitsOnly.length === 10;
+  if (countryCode === "+971" || countryCode === "+966") return digitsOnly.length === 9;
+  if (countryCode === "+974") return digitsOnly.length === 8;
+  if (countryCode === "+91") return digitsOnly.length === 10;
+  if (countryCode === "+49") return digitsOnly.length >= 10 && digitsOnly.length <= 11;
+  if (countryCode === "+33" || countryCode === "+61") return digitsOnly.length === 9;
+
+  return digitsOnly.length >= 7 && digitsOnly.length <= 12;
+};
+
+
+
+
+const DEFAULT_QUICK_REPLIES: string[] = [];
+
 
 const WELCOME_CARDS = [
   {
@@ -218,9 +258,46 @@ export default function Chatbot() {
 
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+92");
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState("");
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [quickReplies, setQuickReplies] = useState<string[]>(DEFAULT_QUICK_REPLIES);
+
+  const lastBotMsg = messages.filter(m => m.sender === "bot").slice(-1)[0];
+  const lastBotTextLower = lastBotMsg ? lastBotMsg.text.toLowerCase() : "";
+  const isAskingPhone = lastBotMsg ? (
+    (
+      lastBotTextLower.includes("enter your phone") ||
+      lastBotTextLower.includes("provide your phone") ||
+      lastBotTextLower.includes("enter your contact phone number") ||
+      lastBotTextLower.includes("contact phone number to finalize") ||
+      lastBotTextLower.includes("what is your phone") ||
+      lastBotTextLower.includes("please enter your mobile") ||
+      lastBotTextLower.includes("enter phone number") ||
+      lastBotTextLower.includes("provide phone number")
+    ) &&
+    !lastBotTextLower.includes("tell me your age") &&
+    !lastBotTextLower.includes("need your age") &&
+    !lastBotTextLower.includes("your age") &&
+    !lastBotTextLower.includes("• age") &&
+    !lastBotTextLower.includes("• gender") &&
+    !lastBotTextLower.includes("• full name") &&
+    !lastBotTextLower.includes("• reason")
+  ) : false;
+
+
+
+
+
+  const filteredCountries = COUNTRY_CODES.filter(c =>
+    c.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
+    c.code.includes(countrySearchQuery) ||
+    c.iso.toLowerCase().includes(countrySearchQuery.toLowerCase())
+  );
+
+
 
   const [isBookingFlowActive, setIsBookingFlowActive] = useState(false);
   const [showDoctorsDirectory, setShowDoctorsDirectory] = useState(false);
@@ -260,9 +337,30 @@ export default function Chatbot() {
 
   const specialties = ["All", ...Array.from(new Set(doctorsList.map((d) => d.specialty)))];
 
-  const filteredDoctors = selectedSpecialtyFilter === "All"
+  const lastUserMsgText = messages.filter(m => m.sender === "user").slice(-1)[0]?.text.toLowerCase() || "";
+  const lastBotMsgText = messages.filter(m => m.sender === "bot").slice(-1)[0]?.text.toLowerCase() || "";
+
+  const filteredDoctors = (selectedSpecialtyFilter === "All"
     ? doctorsList
-    : doctorsList.filter((d) => d.specialty.toLowerCase() === selectedSpecialtyFilter.toLowerCase());
+    : doctorsList.filter((d) => d.specialty.toLowerCase() === selectedSpecialtyFilter.toLowerCase())
+  ).slice().sort((a, b) => {
+    const specA = a.specialty.toLowerCase();
+    const specB = b.specialty.toLowerCase();
+    const nameA = a.name.toLowerCase().replace("dr. ", "");
+    const nameB = b.name.toLowerCase().replace("dr. ", "");
+    
+    const isARelevant = lastUserMsgText.includes(specA) || lastBotMsgText.includes(specA) || lastUserMsgText.includes(nameA) || lastBotMsgText.includes(nameA);
+    const isBRelevant = lastUserMsgText.includes(specB) || lastBotMsgText.includes(specB) || lastUserMsgText.includes(nameB) || lastBotMsgText.includes(nameB);
+    
+    if (isARelevant && !isBRelevant) return -1;
+    if (!isARelevant && isBRelevant) return 1;
+
+    const rA = parseFloat(a.rating.split(" ")[0]) || 0;
+    const rB = parseFloat(b.rating.split(" ")[0]) || 0;
+    return rB - rA;
+  });
+
+
 
   const pathname = usePathname();
   const router = useRouter();
@@ -377,7 +475,22 @@ export default function Chatbot() {
       lastBotText.includes("doctor by name") ||
       lastBotText.includes("specialty") ||
       lastBotText.includes("specialist") ||
-      lastBotText.includes("department");
+      lastBotText.includes("department") ||
+      lastBotText.includes("dr.") ||
+      lastBotText.includes("recommend") ||
+      lastBotText.includes("date and time") ||
+      lastBotText.includes("choose a time") ||
+      lastBotText.includes("select a date") ||
+      lastUserText.includes("headache") ||
+      lastUserText.includes("fever") ||
+      lastUserText.includes("pain") ||
+      lastUserText.includes("cough") ||
+      lastUserText.includes("symptom") ||
+      lastUserText.includes("reason") ||
+      lastUserText.includes("visit") ||
+      lastUserText.includes("checkup") ||
+      lastUserText.includes("consultation");
+
 
     const isChattingAboutDoctors =
       lastUserText.includes("find a doctor") ||
@@ -541,10 +654,54 @@ export default function Chatbot() {
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
 
+    if (text.toLowerCase().includes("yes, cancel")) {
+      const userMessage: Message = {
+        id: Math.random().toString(),
+        sender: "user",
+        text: text,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      const cancelMessage: Message = {
+        id: Math.random().toString(),
+        sender: "bot",
+        text: "Your appointment booking has been cancelled. How else can I help you today?",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      setMessages((prev) => [...prev, userMessage, cancelMessage]);
+      setQuickReplies([]);
+      setInputValue("");
+      return;
+    }
+
+    if (text.toLowerCase().includes("no, continue")) {
+      const userMessage: Message = {
+        id: Math.random().toString(),
+        sender: "user",
+        text: text,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      const continueMessage: Message = {
+        id: Math.random().toString(),
+        sender: "bot",
+        text: "Great! Please enter your contact phone number to finalize your appointment:",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      setMessages((prev) => [...prev, userMessage, continueMessage]);
+      setQuickReplies([]);
+      setInputValue("");
+      return;
+    }
+
+    let textToSend = text.trim();
+    if (isAskingPhone && /^\d[\d\s-]{5,}$/.test(textToSend) && !textToSend.startsWith("+")) {
+      textToSend = `${selectedCountryCode} ${textToSend}`;
+    }
+
+
     const userMessage: Message = {
       id: Math.random().toString(),
       sender: "user",
-      text: text,
+      text: textToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     };
 
@@ -561,7 +718,7 @@ export default function Chatbot() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: text,
+          message: textToSend,
           history: messages.map((m) => ({
             role: m.sender === "user" ? "user" : "assistant",
             content: m.text
@@ -570,6 +727,7 @@ export default function Chatbot() {
         })
       });
 
+
       if (res.ok) {
         const data = await res.json();
 
@@ -577,74 +735,69 @@ export default function Chatbot() {
         let isReviewAction = false;
         let appointmentDetails: Record<string, string> | undefined = undefined;
 
-        // Find the index of the review action trigger in the response text
-        const triggerIndex = replyText.indexOf('"SHOW_APPOINTMENT_REVIEW"');
-        if (triggerIndex !== -1) {
-          // Look backwards to find the opening brace '{' of the JSON block
-          let jsonStartIndex = -1;
-          for (let i = triggerIndex; i >= 0; i--) {
-            if (replyText[i] === '{') {
-              jsonStartIndex = i;
-              break;
+        // Robust JSON block extraction (supports SHOW_APPOINTMENT_REVIEW or any appointment JSON block)
+        let jsonStartIndex = replyText.indexOf('{');
+        if (jsonStartIndex !== -1) {
+          let braceCount = 0;
+          let jsonEndIndex = -1;
+          let inString = false;
+          let escape = false;
+
+          for (let i = jsonStartIndex; i < replyText.length; i++) {
+            const char = replyText[i];
+            if (escape) {
+              escape = false;
+              continue;
             }
-          }
-
-          if (jsonStartIndex !== -1) {
-            // Count matching braces from jsonStartIndex to extract full JSON block
-            let braceCount = 0;
-            let jsonEndIndex = -1;
-            let inString = false;
-            let escape = false;
-
-            for (let i = jsonStartIndex; i < replyText.length; i++) {
-              const char = replyText[i];
-              if (escape) {
-                escape = false;
-                continue;
-              }
-              if (char === '\\') {
-                escape = true;
-                continue;
-              }
-              if (char === '"') {
-                inString = !inString;
-                continue;
-              }
-              if (!inString) {
-                if (char === '{') braceCount++;
-                else if (char === '}') {
-                  braceCount--;
-                  if (braceCount === 0) {
-                    jsonEndIndex = i;
-                    break;
-                  }
+            if (char === '\\') {
+              escape = true;
+              continue;
+            }
+            if (char === '"') {
+              inString = !inString;
+              continue;
+            }
+            if (!inString) {
+              if (char === '{') braceCount++;
+              else if (char === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                  jsonEndIndex = i;
+                  break;
                 }
               }
             }
+          }
 
-            if (jsonEndIndex !== -1) {
-              const jsonString = replyText.substring(jsonStartIndex, jsonEndIndex + 1);
-              isReviewAction = true;
-              try {
-                const parsed = JSON.parse(jsonString);
+          if (jsonEndIndex !== -1) {
+            const jsonString = replyText.substring(jsonStartIndex, jsonEndIndex + 1);
+            try {
+              const parsed = JSON.parse(jsonString);
+              if (parsed && (parsed.action === "SHOW_APPOINTMENT_REVIEW" || parsed.name || parsed.doctor || parsed.phone || parsed.symptoms || parsed.date)) {
+                isReviewAction = true;
                 appointmentDetails = extractAppointmentDetails(replyText, parsed);
-              } catch (e) {
-                console.error("Failed to parse JSON string:", jsonString, e);
-                appointmentDetails = extractAppointmentDetails(replyText);
+                replyText = replyText.replace(jsonString, '');
               }
-              // Remove the JSON string from the bot's reply text
-              replyText = replyText.replace(jsonString, '');
-
-              // Clean up any empty markdown code blocks left behind
-              replyText = replyText
-                .replace(/```json\s*```/gi, '')
-                .replace(/```\s*```/gi, '')
-                .replace(/```json/gi, '')
-                .replace(/```/gi, '')
-                .trim();
+            } catch (e) {
+              console.error("Failed to parse JSON string:", jsonString, e);
             }
+            replyText = replyText
+              .replace(/```json\s*```/gi, '')
+              .replace(/```\s*```/gi, '')
+              .replace(/```json/gi, '')
+              .replace(/```/gi, '')
+              .trim();
           }
         }
+
+
+        const isBookingCardForm = !isReviewAction && (
+          text.toLowerCase().includes("book") ||
+          text.toLowerCase().includes("appointment") ||
+          replyText.toLowerCase().includes("book appointment") ||
+          replyText.toLowerCase().includes("appointment details") ||
+          replyText.toLowerCase().includes("preferred doctor")
+        );
 
         const botMessage: Message = {
           id: Math.random().toString(),
@@ -652,10 +805,14 @@ export default function Chatbot() {
           text: replyText,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isReviewAction,
-          appointmentDetails
+          appointmentDetails,
+          isBookingCardForm
         };
         setMessages((prev) => [...prev, botMessage]);
-        setQuickReplies(data.quickReplies || DEFAULT_QUICK_REPLIES);
+        setQuickReplies(data.quickReplies || []);
+
+
+
       } else {
         throw new Error("API error");
       }
@@ -703,9 +860,9 @@ export default function Chatbot() {
                     <div>
                       <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[#2c336b] text-lg font-bold">medical_services</span>
-                        Doctors Directory
+                        Doctors Directory ({filteredDoctors.length}/{doctorsList.length})
                       </h3>
-                      <p className="text-[10px] text-slate-500 font-bold mt-0.5">Click a doctor card to select them</p>
+                      <p className="text-[10px] text-slate-500 font-bold mt-0.5">Click any doctor card to select them</p>
                     </div>
                     <button
                       onClick={() => setIsDoctorsPanelOpen(false)}
@@ -721,16 +878,17 @@ export default function Chatbot() {
                     {specialties.map(spec => (
                       <button
                         key={spec}
-                        onClick={() => setSelectedSpecialtyFilter(spec)}
+                        onClick={() => setSelectedSpecialtyFilter(prev => prev === spec ? "All" : spec)}
                         className={`px-3 py-1.5 rounded-none text-[10px] font-extrabold border transition-all cursor-pointer ${selectedSpecialtyFilter === spec
                           ? "bg-[#2c336b] text-white border-[#2c336b] shadow-xs"
                           : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-800"
                           }`}
                       >
-                        {spec}
+                        {spec} {spec === "All" ? `(${doctorsList.length})` : ""}
                       </button>
                     ))}
                   </div>
+
 
                   {/* Scrollable list */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3.5 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
@@ -1012,6 +1170,8 @@ export default function Chatbot() {
 
 
 
+
+
                           {msg.isReviewAction && (
                             <div className="mt-3.5 p-4 bg-gradient-to-br from-white to-[#f3faff] border border-[#2c336b]/10 rounded-2xl shadow-sm space-y-3">
                               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -1019,43 +1179,223 @@ export default function Chatbot() {
                                   <span className="material-symbols-outlined text-[#2c336b] text-base">assignment_turned_in</span>
                                   <h5 className="text-[11px] font-extrabold text-[#2c336b] uppercase tracking-wider">Mini Appointment Form</h5>
                                 </div>
-                                <span className="text-[9px] font-bold bg-[#2c336b]/10 text-[#2c336b] px-2.5 py-0.5 rounded-full uppercase tracking-wider">Filled</span>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMessages((prev) =>
+                                        prev.map((m) =>
+                                          m.id === msg.id ? { ...m, isEditingForm: !m.isEditingForm } : m
+                                        )
+                                      );
+                                    }}
+                                    className="px-2 py-0.5 rounded-full bg-slate-100 hover:bg-[#2c336b] text-slate-600 hover:text-white border border-slate-200/80 hover:border-[#2c336b] text-[9px] font-black flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                                    title={msg.isEditingForm ? "Cancel editing" : "Edit appointment details"}
+                                  >
+                                    <span className="material-symbols-outlined text-[11px]">{msg.isEditingForm ? "close" : "edit"}</span>
+                                    <span>{msg.isEditingForm ? "Cancel" : "Edit"}</span>
+                                  </button>
+                                  <span className="text-[9px] font-bold bg-[#2c336b]/10 text-[#2c336b] px-2 py-0.5 rounded-full uppercase tracking-wider">Filled</span>
+                                </div>
+
                               </div>
 
-                              {/* Form Field Summary Cards */}
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-                                  <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Patient Name</span>
-                                  <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">{msg.appointmentDetails?.name || "Provided"}</p>
+                              {msg.isEditingForm ? (
+                                <div className="space-y-2.5 text-xs pt-1">
+                                  <div>
+                                    <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Patient Name</label>
+                                    <input
+                                      type="text"
+                                      value={msg.appointmentDetails?.name || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setMessages((prev) =>
+                                          prev.map((m) =>
+                                            m.id === msg.id
+                                              ? { ...m, appointmentDetails: { ...m.appointmentDetails, name: val } }
+                                              : m
+                                          )
+                                        );
+                                      }}
+                                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                      placeholder="Full Name"
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Phone</label>
+                                      <input
+                                        type="text"
+                                        value={msg.appointmentDetails?.phone || ""}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setMessages((prev) =>
+                                            prev.map((m) =>
+                                              m.id === msg.id
+                                                ? { ...m, appointmentDetails: { ...m.appointmentDetails, phone: val } }
+                                                : m
+                                            )
+                                          );
+                                        }}
+                                        className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                        placeholder="Phone Number"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Age</label>
+                                      <input
+                                        type="text"
+                                        value={msg.appointmentDetails?.age || ""}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setMessages((prev) =>
+                                            prev.map((m) =>
+                                              m.id === msg.id
+                                                ? { ...m, appointmentDetails: { ...m.appointmentDetails, age: val } }
+                                                : m
+                                            )
+                                          );
+                                        }}
+                                        className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                        placeholder="Age"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Doctor / Specialty</label>
+                                    <input
+                                      type="text"
+                                      value={msg.appointmentDetails?.doctor || msg.appointmentDetails?.specialty || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setMessages((prev) =>
+                                          prev.map((m) =>
+                                            m.id === msg.id
+                                              ? { ...m, appointmentDetails: { ...m.appointmentDetails, doctor: val } }
+                                              : m
+                                          )
+                                        );
+                                      }}
+                                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                      placeholder="Doctor Name"
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Date</label>
+                                      <input
+                                        type="text"
+                                        value={msg.appointmentDetails?.date || ""}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setMessages((prev) =>
+                                            prev.map((m) =>
+                                              m.id === msg.id
+                                                ? { ...m, appointmentDetails: { ...m.appointmentDetails, date: val } }
+                                                : m
+                                            )
+                                          );
+                                        }}
+                                        className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                        placeholder="Date"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Time</label>
+                                      <input
+                                        type="text"
+                                        value={msg.appointmentDetails?.time || ""}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setMessages((prev) =>
+                                            prev.map((m) =>
+                                              m.id === msg.id
+                                                ? { ...m, appointmentDetails: { ...m.appointmentDetails, time: val } }
+                                                : m
+                                            )
+                                          );
+                                        }}
+                                        className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                        placeholder="Time"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-[9px] text-[#2c336b]/80 font-extrabold uppercase block mb-1">Reason / Symptoms</label>
+                                    <input
+                                      type="text"
+                                      value={msg.appointmentDetails?.symptoms || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setMessages((prev) =>
+                                          prev.map((m) =>
+                                            m.id === msg.id
+                                              ? { ...m, appointmentDetails: { ...m.appointmentDetails, symptoms: val } }
+                                              : m
+                                          )
+                                        );
+                                      }}
+                                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#2c336b] text-slate-800 shadow-2xs"
+                                      placeholder="Reason / Symptoms"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMessages((prev) =>
+                                        prev.map((m) =>
+                                          m.id === msg.id ? { ...m, isEditingForm: false } : m
+                                        )
+                                      );
+                                    }}
+                                    className="w-full mt-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+                                  >
+                                    <span className="material-symbols-outlined text-base">check_circle</span>
+                                    Save Changes
+                                  </button>
                                 </div>
-                                <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-                                  <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Phone</span>
-                                  <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">{msg.appointmentDetails?.phone || "Provided"}</p>
-                                </div>
-                                <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-                                  <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Doctor / Specialty</span>
-                                  <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">{msg.appointmentDetails?.doctor || msg.appointmentDetails?.specialty || "Specialist"}</p>
-                                </div>
-                                <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-                                  <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Date & Time</span>
-                                  <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">
-                                    {msg.appointmentDetails?.date || "Selected"} {msg.appointmentDetails?.time ? `(${msg.appointmentDetails?.time})` : ""}
-                                  </p>
-                                </div>
-                                {(msg.appointmentDetails?.symptoms || msg.appointmentDetails?.age) && (
-                                  <div className="col-span-2 bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-                                    <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Age / Reason</span>
+                              ) : (
+                                /* Form Field Summary Cards */
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                                    <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Patient Name</span>
+                                    <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">{msg.appointmentDetails?.name || "Provided"}</p>
+                                  </div>
+                                  <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                                    <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Phone</span>
+                                    <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">{msg.appointmentDetails?.phone || "Provided"}</p>
+                                  </div>
+                                  <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                                    <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Doctor / Specialty</span>
+                                    <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">{msg.appointmentDetails?.doctor || msg.appointmentDetails?.specialty || "Specialist"}</p>
+                                  </div>
+                                  <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                                    <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Date & Time</span>
                                     <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">
-                                      {msg.appointmentDetails?.age ? `Age: ${msg.appointmentDetails.age} • ` : ""}{msg.appointmentDetails?.symptoms || "Consultation"}
+                                      {msg.appointmentDetails?.date || "Selected"} {msg.appointmentDetails?.time ? `(${msg.appointmentDetails?.time})` : ""}
                                     </p>
                                   </div>
-                                )}
-                              </div>
+                                  {(msg.appointmentDetails?.symptoms || msg.appointmentDetails?.age) && (
+                                    <div className="col-span-2 bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                                      <span className="text-[9px] text-[#2c336b]/60 font-bold block uppercase tracking-wider">Age / Reason</span>
+                                      <p className="font-extrabold text-slate-800 text-[11px] truncate mt-0.5">
+                                        {msg.appointmentDetails?.age ? `Age: ${msg.appointmentDetails.age} • ` : ""}{msg.appointmentDetails?.symptoms || "Consultation"}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
 
                               {/* Form Action Buttons: Submit & Decline */}
                               <div className="flex gap-2 pt-1.5 border-t border-slate-100 mt-1">
                                 <button
                                   onClick={() => {
+                                    setMessages((prev) =>
+                                      prev.map((m) =>
+                                        m.id === msg.id ? { ...m, isReviewAction: false, isSubmitted: true } : m
+                                      )
+                                    );
                                     setMessages((prev) => [
                                       ...prev,
                                       {
@@ -1072,7 +1412,7 @@ export default function Chatbot() {
                                         isBookingSuccessMsg: true
                                       }
                                     ]);
-                                    setQuickReplies(["Back to Menu", "Clinic Services"]);
+                                    setQuickReplies([]);
                                     setIsLoading(false);
 
                                     // Build query params for redirection
@@ -1103,8 +1443,28 @@ export default function Chatbot() {
                                   Submit
                                 </button>
                                 <button
-                                  onClick={() => handleSendMessage("I want to decline and change my appointment details.")}
-                                  className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-[#2c336b] border border-slate-200 font-extrabold text-xs transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer"
+                                  onClick={() => {
+                                    setMessages((prev) =>
+                                      prev.map((m) =>
+                                        m.id === msg.id ? { ...m, isReviewAction: false, isCancelled: true } : m
+                                      )
+                                    );
+                                    const userMsg: Message = {
+                                      id: Math.random().toString(),
+                                      sender: "user",
+                                      text: "❌ Appointment Booking Declined",
+                                      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                    };
+                                    const botMsg: Message = {
+                                      id: Math.random().toString(),
+                                      sender: "bot",
+                                      text: "Your appointment process has been cancelled and reset. How else can I assist you today?",
+                                      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                    };
+                                    setMessages((prev) => [...prev, userMsg, botMsg]);
+                                    setQuickReplies([]);
+                                  }}
+                                  className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-rose-600 border border-slate-200 font-extrabold text-xs transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer"
                                 >
                                   <span className="material-symbols-outlined text-base">cancel</span>
                                   Decline
@@ -1112,6 +1472,22 @@ export default function Chatbot() {
                               </div>
                             </div>
                           )}
+
+                          {msg.isSubmitted && (
+                            <div className="mt-2.5 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 text-emerald-800 text-xs font-extrabold shadow-2xs">
+                              <span className="material-symbols-outlined text-base text-emerald-600">check_circle</span>
+                              <span>✅ Appointment Form Submitted & Confirmed!</span>
+                            </div>
+                          )}
+
+                          {msg.isCancelled && (
+                            <div className="mt-2.5 px-3 py-2 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center gap-1.5 text-rose-700 text-xs font-bold shadow-2xs">
+                              <span className="material-symbols-outlined text-base text-rose-600">cancel</span>
+                              <span>Appointment Booking Cancelled</span>
+                            </div>
+                          )}
+
+
 
                           <span className={`text-[9px] text-slate-400 font-semibold px-1 mt-1 ${msg.sender === "user" ? "text-right" : "text-left"
                             }`}>
@@ -1167,26 +1543,113 @@ export default function Chatbot() {
                   className="p-4 bg-white border-t border-slate-100 flex gap-2 shrink-0"
                 >
                   <div className="relative flex-1 flex items-center bg-slate-50 border border-slate-200/60 rounded-2xl focus-within:border-[#2c336b] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2c336b]/5 transition-all pr-1.5">
+
+                    {isAskingPhone && (
+                      <div className="relative shrink-0 border-r border-slate-200/80">
+                        <button
+                          type="button"
+                          onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                          className="px-3 py-3.5 flex items-center gap-1.5 bg-slate-100/90 text-slate-800 font-extrabold text-xs cursor-pointer hover:bg-slate-200/70 transition-colors select-none"
+                        >
+                          <span className="material-symbols-outlined text-sm text-[#2c336b] font-bold">call</span>
+                          <span>{selectedCountryCode}</span>
+                          <span className="material-symbols-outlined text-xs text-slate-500">arrow_drop_down</span>
+                        </button>
+
+                        {isCountryDropdownOpen && (
+                          <div className="absolute bottom-full left-0 mb-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-[120] p-2.5 flex flex-col gap-2">
+                            <div className="relative flex items-center">
+                              <span className="material-symbols-outlined absolute left-2.5 text-slate-400 text-sm">search</span>
+                              <input
+                                type="text"
+                                value={countrySearchQuery}
+                                onChange={(e) => setCountrySearchQuery(e.target.value)}
+                                placeholder="Search country or code (+92)..."
+                                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#2c336b] text-slate-800 font-medium"
+                                autoFocus
+                              />
+                            </div>
+                            <div className="max-h-48 overflow-y-auto space-y-0.5 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200">
+                              {filteredCountries.map((c) => (
+                                <button
+                                  key={c.code + c.iso}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedCountryCode(c.code);
+                                    setIsCountryDropdownOpen(false);
+                                    setCountrySearchQuery("");
+                                  }}
+                                  className={`w-full text-left px-2.5 py-1.5 text-xs rounded-lg flex items-center justify-between hover:bg-slate-100 transition-colors cursor-pointer ${selectedCountryCode === c.code ? "bg-[#2c336b]/10 text-[#2c336b] font-bold" : "text-slate-700 font-medium"}`}
+                                >
+                                  <span>{c.name}</span>
+                                  <span className="font-mono text-[11px] text-slate-500 font-bold">{c.code}</span>
+                                </button>
+                              ))}
+                              {filteredCountries.length === 0 && countrySearchQuery.trim() && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const custom = countrySearchQuery.startsWith("+") ? countrySearchQuery : `+${countrySearchQuery}`;
+                                    setSelectedCountryCode(custom);
+                                    setIsCountryDropdownOpen(false);
+                                    setCountrySearchQuery("");
+                                  }}
+                                  className="w-full text-left px-2.5 py-2 text-xs rounded-lg bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-colors cursor-pointer"
+                                >
+                                  Use code "{countrySearchQuery.startsWith("+") ? countrySearchQuery : `+${countrySearchQuery}`}"
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+
                     <input
-                      type="text"
+                      type={isAskingPhone ? "tel" : "text"}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder={t("inputPlaceholder")}
+                      placeholder={isAskingPhone ? "e.g. 309 7812684" : t("inputPlaceholder")}
                       className="flex-1 px-4 py-3 bg-transparent border-none outline-none text-xs sm:text-[13px] text-slate-800 font-semibold placeholder-slate-400"
                     />
+
+                    {isAskingPhone && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const botMsg: Message = {
+                            id: Math.random().toString(),
+                            sender: "bot",
+                            text: "Are you sure you want to cancel your appointment booking?",
+                            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          };
+                          setMessages((prev) => [...prev, botMsg]);
+                          setQuickReplies(["Yes, Cancel Booking", "No, Continue Booking"]);
+                        }}
+                        className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs mr-1 active:scale-95"
+                        title="Cancel Appointment Booking"
+                      >
+                        <span className="material-symbols-outlined text-base font-extrabold">close</span>
+                      </button>
+                    )}
+
                     <button
                       type="submit"
-                      disabled={!inputValue.trim() || isLoading}
+                      disabled={isAskingPhone ? (!isPhoneNumberValidForCountry(inputValue, selectedCountryCode) || isLoading) : (!inputValue.trim() || isLoading)}
                       aria-label="Send message"
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${inputValue.trim() && !isLoading
-                        ? "bg-[#2c336b] text-white hover:bg-[#3d468e] active:scale-95 shadow-sm"
-                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        }`}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                        (isAskingPhone ? isPhoneNumberValidForCountry(inputValue, selectedCountryCode) : inputValue.trim()) && !isLoading
+                          ? "bg-[#2c336b] text-white hover:bg-[#3d468e] active:scale-95 shadow-sm"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed opacity-60"
+                      }`}
                     >
                       <span className="material-symbols-outlined text-lg">send</span>
                     </button>
+
                   </div>
                 </form>
+
               </div>
             </div>
           </motion.div>

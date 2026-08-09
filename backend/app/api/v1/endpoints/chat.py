@@ -29,55 +29,92 @@ class ChatResponse(BaseModel):
 # Static Baseline Info
 CLINIC_NAME = "WeCare Clinic"
 
+def get_db_doctors_context(db: Session) -> str:
+    """Fetch real-time doctor profiles and their working schedules directly from PostgreSQL DB."""
+    try:
+        from app.models.doctor import DoctorProfile, DoctorSchedule
+        doctors = db.query(DoctorProfile).all()
+        if not doctors:
+            return "No specific doctor profiles retrieved."
+        
+        lines = []
+        for d in doctors:
+            scheds = db.query(DoctorSchedule).filter(
+                DoctorSchedule.doctor_id == d.id,
+                DoctorSchedule.is_active == True
+            ).all()
+            if scheds:
+                sched_str = ", ".join([f"{s.day_of_week} ({s.start_time} - {s.end_time})" for s in scheds])
+            else:
+                sched_str = "Mon - Sat (09:00 AM - 05:00 PM)"
+            
+            lines.append(
+                f"- Doctor Name: {d.full_name} | Specialty: {d.specialty} | Gender: {d.gender or 'Unspecified'} | Fee: {d.consultation_fee} PKR | Schedule: {sched_str} | Bio: {d.bio or ''}"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        print(f"Error fetching DB doctors context for chatbot: {e}")
+        return "Real-time doctor database currently initializing."
+
 BASE_PROMPT_HEADER = """You are a warm, friendly, and empathetic AI Assistant for WeCare Clinic.
 Your goal is to converse smoothly, warmly, and concisely (keep responses to around 2 lines max) while helping patients with clinic inquiries and appointment bookings.
 
-Retrieved Context from PostgreSQL Database (pgvector Match):
+Retrieved Context from PostgreSQL Database (pgvector Match & Real-Time Doctors Directory):
 """
 
 BASE_PROMPT_FOOTER = """
-General Behavior & Persona:
+General Persona & Absolute Ban Rules:
 - Warm & Friendly Tone: Greet patients warmly, use smooth conversational tone, and keep responses concise (approx 2 lines max).
 - STRICT DOMAIN BOUNDARY (Clinic Info Only): You MUST ONLY answer questions related to WeCare Clinic (doctors, services, fees, timings, appointments, location, clinic FAQs). If a user asks off-topic questions (e.g. math like "2+2", coding, politics, general history, or trivia), politely refuse: "I'm WeCare Clinic's assistant! I can only help you with clinic services, doctors, consultation fees, and appointment bookings. How can I assist with your health today?"
-- Time Slot & Schedule Accuracy: Perform strict logical time comparison. If a requested time (e.g. 2:30 PM - 4:00 PM) falls inside a doctor's working hours (e.g. 11:00 AM - 5:00 PM), that doctor IS available. NEVER state a doctor is unavailable if their working hours cover the requested window.
-- If users ask medical questions, provide general educational information only in 1-2 lines and recommend consulting a licensed doctor.
-- Do not diagnose diseases or prescribe medicines.
-- Never fabricate information.
+- Time Slot & Schedule Accuracy: Perform strict logical time comparison against the doctor's actual database working hours.
+- If users ask medical questions, provide general educational information only in 1-2 lines and recommend consulting a licensed doctor. Do not diagnose diseases or prescribe medicines.
+
+ABSOLUTE BAN & NO-META-TEXT RULES (CRITICAL):
+1. NEVER output confusing meta-text or redundant notes such as "(you already provided this as...)", "(you provided this as...)", or "(And I'll remind you that I still need your phone number...)".
+2. NEVER list a field as "missing" if the user has already provided it!
+3. NEVER fabricate or invent fake doctor names (e.g., NEVER say Dr. Rachel Lee or any non-existent doctor). ONLY recommend doctors from the Real-Time Doctors Database context above!
+4. Keep responses direct, natural, and concise (1-2 lines max).
 
 
 
-Appointment Booking Behavior:
-Whenever the user expresses an intention to book an appointment (e.g., "Book appointment", "I need to see a doctor", "Schedule an appointment", or in any language), immediately switch into Appointment Booking Mode.
-- Collect the following required information one question at a time:
-  1. Full Name
-  2. Phone Number
-  3. Email Address (optional - ask user if they want to share or skip)
-  4. Age
-  5. Gender (Patient's gender: Male/Female)
-  6. Medical Specialty (e.g. Pediatrics, Cardiology, Dermatology, Primary Care, Dentistry, Neurology)
-  7. Doctor Gender Preference (ONLY ask this question if the selected Specialty has BOTH Male and Female doctors available. If the specialty has only one doctor or only one gender available, SKIP this question entirely!)
-  8. Preferred Doctor (Suggest the doctor(s) matching the selected Specialty and Gender Preference. If the gender question was skipped, suggest the doctor available for that specialty by name and ask if that works. Make sure the doctor's proper name like "Dr. Elena Rodriguez" is recorded.)
-  9. Reason for Visit / Symptoms
-  10. Preferred Date
-  11. Preferred Time
-- Ask only ONE question at a time and wait for the user's answer before asking the next question.
-- Validate obvious mistakes (e.g., invalid phone numbers).
-- Remember every answer during the conversation. Never ask for information already collected.
 
-After all required information has been collected:
-- Do NOT ask more questions. Do NOT claim the appointment has been booked. Do NOT confirm the booking.
-- Only prepare the appointment details.
-- Return a structured appointment summary.
-- After displaying the summary, instruct the user to press the Submit Appointment button to confirm.
+Appointment Booking Behavior & Sequential Pipeline:
+Whenever the user expresses an intention to book an appointment (e.g., "Book appointment", "I need to see a doctor", "Schedule an appointment", or in any language), execute the strict sequential booking pipeline:
 
-Frontend Integration:
-When all required information has been collected and the summary is displayed, include the following JSON exactly at the very end of your response:
+Phase 1: Basic Patient Info (Name, Age, Gender)
+- Ask the user to provide their Full Name, Age, and Gender.
+- GENDER OPTIONS RULE: If Gender is not provided, ask for Gender. Quick reply options (Male / Female / Other) will be displayed until Gender is provided.
+- CRITICAL PHONE BAN IN PHASE 1: Do NOT ask for phone number at this stage! Phone number is strictly collected at the very end.
+
+Phase 2: Reason for Visit & Doctor Recommendation from Database
+- When the user provides their Reason for Visit or symptoms (e.g., skin issues, chest pain, child fever, teeth problems, routine checkup):
+- Match their symptoms to the correct medical specialty and suggest the BEST matching doctor directly from the Real-Time Doctors Database list above!
+- Example: "For skin conditions, Dr. Omar Al-Fayed (Dermatology Specialist) is our top doctor. Would you like to schedule with Dr. Omar Al-Fayed?"
+
+Phase 3: Doctor Selection & Available Days
+- Once a doctor is selected or recommended, look up that doctor's working schedule days from the Real-Time Doctors Database.
+- Ask the user to choose their preferred day from that doctor's available days (e.g. Monday, Wednesday, Friday).
+
+Phase 4: Day Selection & Time Slots
+- When the user selects a day, present the available time slots within that doctor's working hours for that day (e.g. 09:00 AM, 11:00 AM, 02:00 PM, 04:00 PM).
+
+Phase 5: Check Missing Details & Phone Number Collection (LAST & FINAL STEP)
+- Check if Full Name, Age, or Gender are missing. If any of these are missing, ask for them now before phone number.
+- ONCE AND ONLY ONCE Name, Age, Gender, Reason for Visit, Doctor, Date, and Time Slot are ALL 100% collected:
+  Ask specifically: "Please enter your contact phone number to finalize your appointment:"
+- CRITICAL STOPPING RULE: When asking for the phone number, YOU MUST STOP IMMEDIATELY! DO NOT output the SHOW_APPOINTMENT_REVIEW JSON in the same response! Wait for the user to type their phone number!
+
+Phase 6: Structured Appointment Summary Form (JSON Render)
+- You are FORBIDDEN from outputting the SHOW_APPOINTMENT_REVIEW JSON unless the user has EXPLICITLY typed their 10+ digit phone number in the conversation history!
+- Once the user types their phone number, output a warm conversational summary AND append the SHOW_APPOINTMENT_REVIEW JSON:
+
+Frontend Integration (ONLY IF 10+ DIGIT PHONE NUMBER IS PROVIDED):
 {
 "action": "SHOW_APPOINTMENT_REVIEW",
 "completed": true,
 "details": {
   "name": "[Collected Full Name]",
-  "phone": "[Collected Phone]",
+  "phone": "[MUST BE THE ACTUAL 10+ DIGIT NUMBER]",
   "age": "[Collected Age]",
   "gender": "[Collected Gender]",
   "doctor": "[Selected Doctor Name, e.g. Dr. Omar Al-Fayed]",
@@ -179,6 +216,41 @@ def localize_quick_replies(quick_replies: List[str], locale: str) -> List[str]:
     lang_map = QUICK_REPLY_MAP[norm_locale]
     return [lang_map.get(item, item) for item in quick_replies]
 
+def get_quick_replies_for_response(reply: str, locale: str) -> List[str]:
+    reply_lower = reply.lower()
+    
+    is_asking_for_patient_gender = (
+        ("• gender" in reply_lower or "select gender" in reply_lower or "provide your gender" in reply_lower or "what is your gender" in reply_lower or "your gender" in reply_lower or reply_lower.strip() == "gender")
+        and "already" not in reply_lower
+        and "confirm" not in reply_lower
+        and "noted" not in reply_lower
+        and "mentioned" not in reply_lower
+        and "gender as" not in reply_lower
+        and "doctor" not in reply_lower
+    )
+
+    if "prefer a male or female" in reply_lower or "doctor's gender" in reply_lower or "male or female doctor" in reply_lower or "男医生" in reply or "女医生" in reply:
+        quick_replies = ["Male Doctor", "Female Doctor", "Any / No Preference"]
+    elif is_asking_for_patient_gender:
+        quick_replies = ["Male", "Female", "Other"]
+    elif "would you like to see dr." in reply_lower or "works for you" in reply_lower or "proceed with" in reply_lower or "确认" in reply:
+        quick_replies = ["Yes, please", "No, suggest another"]
+    elif "which day" in reply_lower or "preferred day" in reply_lower or "available days" in reply_lower or "choose a day" in reply_lower or "preferred date" in reply_lower or "appointment date" in reply_lower:
+        quick_replies = ["Today", "Tomorrow", "Monday", "Wednesday", "Friday"]
+    elif "preferred time" in reply_lower or "which time" in reply_lower or "time slot" in reply_lower or "what time" in reply_lower or "available slots" in reply_lower:
+        quick_replies = ["09:00 AM", "11:00 AM", "02:00 PM", "04:30 PM"]
+    elif "which specialty" in reply_lower or "medical specialty" in reply_lower or "select a specialty" in reply_lower:
+        quick_replies = ["Pediatrics", "Cardiology", "Dermatology", "Primary Care", "Dentistry", "Neurology"]
+    elif "preferred doctor" in reply_lower or "which doctor" in reply_lower or "choose a doctor" in reply_lower:
+        quick_replies = ["Dr. Omar Al-Fayed", "Dr. Elena Rodriguez", "Dr. Marcus Vance", "Dr. James Wilson", "Any Available"]
+    elif "submit appointment" in reply_lower or "press the submit" in reply_lower:
+        quick_replies = ["Submit Appointment"]
+    else:
+        quick_replies = []
+
+    return localize_quick_replies(quick_replies, locale)
+
+
 @router.post("", response_model=ChatResponse)
 def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
     user_msg = payload.message
@@ -192,7 +264,11 @@ def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
         print(f"Vector Retrieval Error: {search_err}")
         context_str = "Vector retrieval temporarily unavailable."
 
-    full_base_prompt = BASE_PROMPT_HEADER + context_str + "\n" + BASE_PROMPT_FOOTER
+    # Dynamic Real-Time Doctors & Schedules Context from DB
+    db_doctors_info = get_db_doctors_context(db)
+    full_context_str = context_str + "\n\nReal-Time Doctors Database Context:\n" + db_doctors_info
+
+    full_base_prompt = BASE_PROMPT_HEADER + full_context_str + "\n" + BASE_PROMPT_FOOTER
 
     # Determine language directive
     if locale == "zh" or any("\u4e00" <= c <= "\u9fff" for c in user_msg):
@@ -247,36 +323,8 @@ def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
             max_tokens=1000
         )
         reply = chat_completion.choices[0].message.content
-        
-        # Smart dynamic 1-click quick replies based on current appointment question context
-        reply_lower = reply.lower()
-        if "prefer a male or female" in reply_lower or "doctor's gender" in reply_lower or "male or female doctor" in reply_lower or "男医生" in reply or "女医生" in reply:
-            quick_replies = ["Male Doctor", "Female Doctor", "Any / No Preference"]
-        elif "your gender" in reply_lower or "patient's gender" in reply_lower or "tell me your gender" in reply_lower or "性别" in reply:
-            quick_replies = ["Male", "Female", "Prefer not to say"]
-        elif "would you like to see dr." in reply_lower or "works for you" in reply_lower or "proceed with" in reply_lower or "确认" in reply:
-            quick_replies = ["Yes, please", "No, suggest another"]
-        elif "specialty" in reply_lower or "department" in reply_lower or "medical specialty" in reply_lower or "专科" in reply:
-            quick_replies = ["Pediatrics", "Cardiology", "Dermatology", "Primary Care", "Dentistry", "Neurology"]
-        elif "doctor" in reply_lower or "physician" in reply_lower or "specialist" in reply_lower or "医生" in reply:
-            quick_replies = ["General Physician", "Cardiologist", "Dermatologist", "Pediatrician", "Dentist", "Any Available"]
-        elif "time" in reply_lower or "timing" in reply_lower or "slot" in reply_lower or "hour" in reply_lower or "时间" in reply:
-            quick_replies = ["Morning (10:00 AM)", "Afternoon (02:00 PM)", "Evening (06:00 PM)"]
-        elif "date" in reply_lower or "day" in reply_lower or "日期" in reply:
-            quick_replies = ["Today", "Tomorrow", "Monday", "Next Available"]
-        elif "email" in reply_lower or "email address" in reply_lower or "邮箱" in reply:
-            quick_replies = ["Skip Email"]
-        elif "notes" in reply_lower or "symptom" in reply_lower or "reason" in reply_lower or "visit" in reply_lower or "症状" in reply:
-            quick_replies = ["General Consultation", "Routine Checkup", "Follow-up"]
-        elif "submit" in reply_lower or "ready" in reply_lower or "review" in reply_lower or "提交" in reply:
-            quick_replies = ["Submit Appointment"]
-        elif "appointment" in reply_lower or "book" in reply_lower or "预约" in reply:
-            quick_replies = ["Book Appointment", "Clinic Timings"]
-        else:
-            quick_replies = ["Book Appointment", "Clinic Services", "Clinic Timings"]
 
-        localized_replies = localize_quick_replies(quick_replies, locale)
-        return ChatResponse(reply=reply, quickReplies=localized_replies)
+        return ChatResponse(reply=reply, quickReplies=get_quick_replies_for_response(reply, locale))
 
     except Exception as e:
         print(f"Groq API Error: {e}")
@@ -288,11 +336,14 @@ def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
                 max_tokens=1000
             )
             reply = chat_completion.choices[0].message.content
-            localized_replies = localize_quick_replies(["Book Appointment", "Clinic Timings"], locale)
-            return ChatResponse(reply=reply, quickReplies=localized_replies)
+            return ChatResponse(reply=reply, quickReplies=get_quick_replies_for_response(reply, locale))
+
         except Exception as backup_err:
             print(f"Groq API Backup Error: {backup_err}")
-            raise HTTPException(status_code=500, detail=f"Backup error: {str(backup_err)}")
+            return ChatResponse(
+                reply="I'm sorry, I'm having trouble processing your request right now. Please try again or call our clinic directly.",
+                quickReplies=[]
+            )
     except Exception as e:
         print(f"Chatbot General Error: {e}")
         raise HTTPException(status_code=500, detail=f"General error: {str(e)}")
