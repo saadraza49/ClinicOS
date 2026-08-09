@@ -1,0 +1,172 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { getFAQs, FAQData } from "@/lib/api";
+import Accordion from "@/components/accordion";
+import CTABanner from "@/components/cta-banner";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedFAQCategory, getLocalizedFAQQuestion, getLocalizedFAQAnswer } from "@/lib/translations";
+
+export default function FAQsPage() {
+  const t = useTranslations("FAQsPage");
+  const locale = useLocale();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [faqsList, setFaqsList] = useState<FAQData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFaqs() {
+      try {
+        const data = await getFAQs();
+        setFaqsList(data);
+      } catch (err) {
+        console.error("Failed to fetch FAQs from DB:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadFaqs();
+  }, []);
+
+  const filteredFaqs = faqsList.filter(
+    (faq) =>
+      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Group FAQs by category dynamically
+  const categoriesMap: Record<string, FAQData[]> = {};
+  filteredFaqs.forEach((faq) => {
+    const catKey = faq.category || "General";
+    if (!categoriesMap[catKey]) {
+      categoriesMap[catKey] = [];
+    }
+    categoriesMap[catKey].push(faq);
+  });
+
+  const categoryKeys = Object.keys(categoriesMap);
+  const hasResults = filteredFaqs.length > 0;
+
+  return (
+    <div className="overflow-x-hidden">
+      {/* Hero Section */}
+      <section className="px-4 md:px-6 py-16 max-w-7xl mx-auto text-center">
+        <motion.h1
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-display-lg-mobile md:text-display-lg text-on-background mb-4 font-bold"
+        >
+          {t("title")}
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed"
+        >
+          {t("subtitle")}
+        </motion.p>
+
+        {/* Search Bar */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-xl mx-auto relative group"
+        >
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors select-none">
+            search
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 rounded-full border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface-container-lowest shadow-sm outline-none text-body-md text-on-background placeholder:text-outline transition-all"
+            placeholder={t("searchPlaceholder")}
+          />
+        </motion.div>
+      </section>
+
+      {/* FAQs list section */}
+      <section className="px-4 md:px-6 pb-20 max-w-3xl mx-auto min-h-[400px]">
+        {loading ? (
+          <div className="space-y-6 animate-pulse py-8">
+            <div className="h-6 bg-surface-container w-1/4 rounded mb-4"></div>
+            <div className="h-16 bg-surface-container rounded-2xl w-full"></div>
+            <div className="h-16 bg-surface-container rounded-2xl w-full"></div>
+            <div className="h-16 bg-surface-container rounded-2xl w-full"></div>
+          </div>
+        ) : hasResults ? (
+          categoryKeys.map((catName) => {
+            const categoryFaqs = categoriesMap[catName];
+            return (
+              <div key={catName} className="mb-10">
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="text-headline-md text-primary mb-6 border-b border-outline-variant/20 pb-2 font-bold capitalize"
+                >
+                  {getLocalizedFAQCategory(catName, locale)}
+                </motion.h2>
+
+                <div className="flex flex-col gap-4">
+                  {categoryFaqs.map((faq, index) => (
+                    <motion.div
+                      key={faq.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: index * 0.05 }}
+                    >
+                      <Accordion
+                        variant="card"
+                        title={getLocalizedFAQQuestion(faq.question, locale)}
+                        content={getLocalizedFAQAnswer(faq.answer, faq.question, locale)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <span className="material-symbols-outlined text-outline-variant text-5xl mb-4 select-none">
+              search_off
+            </span>
+            <h3 className="text-headline-sm text-on-background font-bold mb-2">{t("noResultsTitle")}</h3>
+            <p className="text-body-md text-on-surface-variant max-w-md mx-auto">
+              {t("noResultsDesc")}
+            </p>
+          </motion.div>
+        )}
+      </section>
+
+      {/* Still Have Questions CTA */}
+      <section className="px-4 md:px-6 pb-20 max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <CTABanner
+            variant="secondary"
+            title={t("stillHaveQuestionsTitle")}
+            description={t("stillHaveQuestionsDesc")}
+            buttonText={t("contactUsBtn")}
+            buttonHref="/contact"
+          />
+        </motion.div>
+      </section>
+    </div>
+  );
+}

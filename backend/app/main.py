@@ -14,11 +14,14 @@ origins = [
     settings.FRONTEND_URL,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,6 +31,17 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(api_router, prefix="/api/v1")
 
+@app.on_event("startup")
+def startup_event():
+    # Pre-warm embedding model into RAM on server boot to avoid cold-start latency
+    try:
+        from app.services.vector_service import get_embedding_model
+        get_embedding_model()
+        print("Embedding model successfully pre-warmed in memory.")
+    except Exception as err:
+        print(f"Startup model pre-warm notice: {err}")
+
 @app.get("/")
 def root():
     return {"message": "LuminaHealth Clinic API is running"}
+

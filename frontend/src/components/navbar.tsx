@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { MapPin, ChevronDown, Globe, Menu, X, Calendar, User, LogOut } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { MapPin, Calendar, User, LogOut, ChevronDown, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { useLocationModal } from "@/context/LocationContext";
 
 export default function Navbar() {
+  const t = useTranslations("Navbar");
+  const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
-  const [selectedLang, setSelectedLang] = useState<{ code: string; label: string; flag: string }>({
-    code: "EN",
-    label: "English",
-    flag: "🇺🇸",
-  });
+  const { openLocationModal } = useLocationModal();
+  
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -60,19 +61,21 @@ export default function Navbar() {
   }, [isMobileMenuOpen, isLogoutModalOpen]);
 
   const languages = [
-    { code: "EN", label: "English", flag: "🇺🇸" },
-    { code: "ES", label: "Español", flag: "🇪🇸" },
-    { code: "FR", label: "Français", flag: "🇫🇷" },
+    { locale: "en", code: "EN", label: "English", flag: "🇺🇸" },
+    { locale: "fr", code: "FR", label: "Français", flag: "🇫🇷" },
+    { locale: "zh", code: "ZH", label: "中文", flag: "🇨🇳" },
   ];
 
+  const currentLang = languages.find((l) => l.locale === locale) || languages[0];
+
   const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Services", href: "/services" },
-    { name: "Doctors", href: "/doctors" },
-    { name: "Fees", href: "/fees" },
-    { name: "FAQs", href: "/faqs" },
-    { name: "Blog", href: "/blog" },
-    { name: "Contact", href: "/contact" },
+    { name: t("home"), href: "/" },
+    { name: t("services"), href: "/services" },
+    { name: t("doctors"), href: "/doctors" },
+    { name: t("fees"), href: "/fees" },
+    { name: t("faqs"), href: "/faqs" },
+    { name: t("blog"), href: "/blog" },
+    { name: t("contact"), href: "/contact" },
   ];
 
   if (
@@ -111,17 +114,16 @@ export default function Navbar() {
           <div className="hidden md:block w-px h-5 bg-gray-200"></div>
 
           {/* Our Location Map Button */}
-          <a
-            href="https://maps.google.com/?q=123+Healing+Way,+Wellness+District,+CA+90210"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={openLocationModal}
+            type="button"
             className={`hidden md:flex items-center gap-1.5 rounded-full bg-[#f3faff] text-[#2c336b] border border-[#2c336b]/10 hover:border-[#2c336b]/30 hover:bg-[#2c336b]/10 transition-all duration-300 shadow-sm group ${
               isScrolled ? "px-3 py-1 text-[11px]" : "px-3.5 py-1.5 text-[11px] lg:text-[11px] xl:px-4 xl:py-2 xl:text-xs"
             }`}
           >
             <MapPin className="w-3.5 h-3.5 text-[#2c336b] group-hover:translate-y-[-2px] transition-transform duration-300" />
-            <span className="font-bold tracking-wide">Our Location</span>
-          </a>
+            <span className="font-bold tracking-wide">{t("ourLocation")}</span>
+          </button>
         </div>
 
         {/* Navigation Links - Desktop */}
@@ -162,7 +164,7 @@ export default function Navbar() {
               }`}
             >
               <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#2c336b]" />
-              <span>{selectedLang.code}</span>
+              <span>{currentLang.code}</span>
               <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform duration-300 hidden sm:block ${isLangOpen ? "rotate-180" : ""}`} />
             </button>
 
@@ -176,13 +178,13 @@ export default function Navbar() {
                   className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-200/80 py-1 z-50"
                 >
                   {languages.map((lang) => {
-                    const isSelected = selectedLang.code === lang.code;
+                    const isSelected = locale === lang.locale;
                     return (
                       <button
-                        key={lang.code}
+                        key={lang.locale}
                         onClick={() => {
-                          setSelectedLang(lang);
                           setIsLangOpen(false);
+                          router.replace(pathname, { locale: lang.locale });
                         }}
                         className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center transition cursor-pointer rounded-lg ${
                           isSelected 
@@ -205,10 +207,14 @@ export default function Navbar() {
           {/* Login / User Account Action (Desktop & Mobile) */}
           {user ? (
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2c336b]/10 text-[#2c336b] text-xs font-bold border border-[#2c336b]/20">
+              <Link
+                href="/patient-dashboard"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2c336b]/10 text-[#2c336b] hover:bg-[#2c336b]/20 text-xs font-bold border border-[#2c336b]/20 transition-all cursor-pointer"
+                title="View Patient Profile Dashboard"
+              >
                 <User className="w-3.5 h-3.5 text-[#2c336b]" />
                 <span className="max-w-[120px] truncate">{user.full_name}</span>
-              </div>
+              </Link>
               <button
                 onClick={() => setIsLogoutModalOpen(true)}
                 className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
@@ -227,7 +233,7 @@ export default function Navbar() {
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
-                <span>Login / Register</span>
+                <span>{t("loginRegister")}</span>
               </Link>
 
               {/* Login / Register Button (Mobile/Tablet Icon) */}
@@ -236,7 +242,7 @@ export default function Navbar() {
                 className={`flex lg:hidden items-center justify-center rounded-full bg-gray-100/80 text-gray-700 hover:text-[#2c336b] hover:bg-gray-200/50 transition-all ${
                   isScrolled ? "w-6.5 h-6.5 sm:w-7.5 sm:h-7.5" : "w-7.5 h-7.5 sm:w-8.5 sm:h-8.5"
                 }`}
-                aria-label="Login / Register"
+                aria-label={t("loginRegister")}
               >
                 <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2c336b]" />
               </Link>
@@ -251,7 +257,7 @@ export default function Navbar() {
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
-            <span>Book Appointment</span>
+            <span>{t("bookAppointment")}</span>
           </Link>
 
           {/* Mobile Menu Button with Animated Icon Morph */}
@@ -377,16 +383,17 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                <a
-                  href="https://maps.google.com/?q=123+Healing+Way,+Wellness+District,+CA+90210"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openLocationModal();
+                  }}
                   className="flex md:hidden items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100 transition-all font-semibold text-xs"
                 >
                   <MapPin className="w-3.5 h-3.5 text-[#2c336b]" />
                   Our Location
-                </a>
+                </button>
 
                 <Link
                   href="/book-appointment"

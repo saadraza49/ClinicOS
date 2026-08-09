@@ -1,10 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
+import { useLocationModal } from "@/context/LocationContext";
 
 export default function Footer() {
+  const t = useTranslations("Footer");
   const pathname = usePathname();
+  const { openLocationModal } = useLocationModal();
   if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
@@ -19,10 +23,10 @@ export default function Footer() {
             <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
               favorite
             </span>
-            LuminaHealth
+            WeCare
           </Link>
           <p className="text-body-md text-on-surface-variant text-sm mb-6 max-w-xs">
-            Compassionate, modern care for you and your family. Your health is our priority.
+            {t("aboutText")}
           </p>
           <div className="flex gap-4">
             <a
@@ -44,26 +48,26 @@ export default function Footer() {
 
         {/* Quick Links */}
         <div className="md:col-span-1">
-          <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">Quick Links</h4>
+          <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">{t("quickLinks")}</h4>
           <ul className="space-y-3">
             <li>
               <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/services">
-                Our Services
+                {t("ourServices")}
               </Link>
             </li>
             <li>
               <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/doctors">
-                Meet the Team
+                {t("meetTeam")}
               </Link>
             </li>
             <li>
               <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/privacy-policy">
-                Privacy Policy
+                {t("privacyPolicy")}
               </Link>
             </li>
             <li>
               <Link className="text-body-md text-on-surface-variant hover:text-primary transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm" href="/terms-and-conditions">
-                Terms of Service
+                {t("termsOfService")}
               </Link>
             </li>
           </ul>
@@ -71,15 +75,21 @@ export default function Footer() {
 
         {/* Contact Info */}
         <div className="md:col-span-1">
-          <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">Contact</h4>
+          <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">{t("contactHeader")}</h4>
           <ul className="space-y-3 text-sm text-on-surface-variant">
             <li className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-[20px] text-primary">location_on</span>
-              <span>
-                123 Healing Way
+              <span className="material-symbols-outlined text-[20px] text-primary mt-0.5">location_on</span>
+              <button
+                onClick={openLocationModal}
+                type="button"
+                className="text-left hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
+              >
+                <span>{t("clinicName")}</span>
                 <br />
-                Wellness City, HC 90210
-              </span>
+                <span className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5">
+                  {t("viewMap")} <span className="material-symbols-outlined text-xs">open_in_new</span>
+                </span>
+              </button>
             </li>
             <li className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px] text-primary">call</span>
@@ -92,23 +102,23 @@ export default function Footer() {
 
         {/* Hours */}
         <div className="md:col-span-1">
-          <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">Hours</h4>
+          <h4 className="text-label-md font-bold text-on-background mb-4 uppercase tracking-wider">{t("hoursHeader")}</h4>
           <ul className="space-y-2 text-on-surface-variant text-sm">
             <li className="flex justify-between border-b border-outline-variant/20 pb-2">
-              <span>Mon - Fri</span> <span>8:00 AM - 6:00 PM</span>
+              <span>{t("monFri")}</span> <span>{t("monFriHours")}</span>
             </li>
             <li className="flex justify-between border-b border-outline-variant/20 pb-2 pt-2">
-              <span>Saturday</span> <span>9:00 AM - 2:00 PM</span>
+              <span>{t("saturday")}</span> <span>{t("satHours")}</span>
             </li>
             <li className="flex justify-between pt-2">
-              <span>Sunday</span> <span>Closed</span>
+              <span>{t("sunday")}</span> <span>{t("closed")}</span>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-outline-variant/20 py-6 text-center">
         <p className="text-body-md text-on-surface-variant text-sm">
-          © {new Date().getFullYear()} LuminaHealth Clinic. All rights reserved.
+          © {new Date().getFullYear()} {t("clinicName")}. {t("rights")}
         </p>
       </div>
     </footer>

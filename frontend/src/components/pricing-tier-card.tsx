@@ -13,6 +13,7 @@ interface PricingTierCardProps {
   description: string;
   features: PricingFeature[];
   isPopular?: boolean;
+  popularText?: string;
   buttonText?: string;
   onChoose?: () => void;
 }
@@ -24,6 +25,7 @@ export default function PricingTierCard({
   description,
   features,
   isPopular = false,
+  popularText = "Most Popular",
   buttonText = "Choose Plan",
   onChoose,
 }: PricingTierCardProps) {
@@ -34,7 +36,7 @@ export default function PricingTierCard({
     >
       {isPopular && (
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary text-on-secondary px-4 py-1 rounded-full text-label-sm font-semibold tracking-wider whitespace-nowrap shadow-sm select-none">
-          Most Popular
+          {popularText}
         </div>
       )}
 

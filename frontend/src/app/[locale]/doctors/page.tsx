@@ -1,0 +1,193 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { getDoctors, DoctorData } from "@/lib/api";
+import DoctorCard from "@/components/doctor-card";
+import CTABanner from "@/components/cta-banner";
+
+import { useTranslations, useLocale } from "next-intl";
+import { getLocalizedSpecialty } from "@/lib/translations";
+
+export default function DoctorsPage() {
+  const t = useTranslations("DoctorsPage");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
+  const [doctorsList, setDoctorsList] = useState<DoctorData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDept, setSelectedDept] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("rating");
+
+  useEffect(() => {
+    async function loadDoctors() {
+      try {
+        const data = await getDoctors();
+        setDoctorsList(data);
+      } catch (err) {
+        console.error("Failed to fetch doctors from DB:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDoctors();
+  }, []);
+
+  const filteredDoctors = doctorsList.filter((doc) => {
+    if (selectedDept === "all") return true;
+    const deptSlug = doc.department?.slug || doc.specialty.toLowerCase().replace(/\s+/g, "-");
+    return deptSlug.includes(selectedDept) || doc.specialty.toLowerCase().includes(selectedDept);
+  });
+
+  const sortedDoctors = [...filteredDoctors].sort((a, b) => {
+    if (sortBy === "rating") return b.rating - a.rating;
+    if (sortBy === "experience") return b.experience_years - a.experience_years;
+    if (sortBy === "fee") return a.consultation_fee - b.consultation_fee;
+    return 0;
+  });
+
+  const deptFilters = [
+    { id: "all", label: getLocalizedSpecialty("All Specialists", locale) },
+    { id: "pediatrics", label: getLocalizedSpecialty("Pediatrics", locale) },
+    { id: "cardiology", label: getLocalizedSpecialty("Cardiology", locale) },
+    { id: "dermatology", label: getLocalizedSpecialty("Dermatology", locale) },
+    { id: "primary-care", label: getLocalizedSpecialty("Primary Care", locale) },
+    { id: "dentistry", label: getLocalizedSpecialty("Dentistry", locale) },
+    { id: "neurology", label: getLocalizedSpecialty("Neurology", locale) },
+  ];
+
+  return (
+    <div className="overflow-x-hidden bg-background min-h-screen">
+      {/* Header Banner */}
+      <section className="bg-surface-container-lowest py-16 px-4 md:px-6 relative overflow-hidden border-b border-outline-variant/10">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-secondary/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto text-center relative z-10 space-y-4">
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-display-lg-mobile md:text-display-lg text-on-surface font-bold"
+          >
+            {t("title")}
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed text-sm"
+          >
+            {t("subtitle")}
+          </motion.p>
+        </div>
+      </section>
+
+      {/* Filter & Sort Bar */}
+      <section className="max-w-7xl mx-auto px-4 md:px-6 pt-10">
+        <div className="bg-white p-4 md:p-6 rounded-3xl border border-outline-variant/15 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Department Chips */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 w-full md:w-auto no-scrollbar">
+            {deptFilters.map((dept) => (
+              <button
+                key={dept.id}
+                type="button"
+                onClick={() => setSelectedDept(dept.id)}
+                className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all select-none whitespace-nowrap cursor-pointer ${
+                  selectedDept === dept.id
+                    ? "bg-primary text-on-primary shadow-xs"
+                    : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
+                }`}
+              >
+                {dept.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort Selector */}
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            <span className="text-xs font-bold text-on-surface-variant whitespace-nowrap">{tCommon("sortBy")}</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-surface-container-low border border-outline-variant/40 rounded-xl px-3 py-2 text-xs font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            >
+              <option value="rating">{tCommon("highestRated")}</option>
+              <option value="experience">{tCommon("mostExperienced")}</option>
+              <option value="fee">{tCommon("lowestFee")}</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Team Grid */}
+      <section className="px-4 md:px-6 py-10 max-w-7xl mx-auto">
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-surface-container-lowest rounded-2xl p-6 h-80 animate-pulse flex flex-col items-center">
+                <div className="w-32 h-32 rounded-full bg-surface-container mb-4"></div>
+                <div className="w-24 h-6 bg-surface-container rounded-full mb-3"></div>
+                <div className="w-36 h-5 bg-surface-container rounded mb-2"></div>
+                <div className="w-28 h-4 bg-surface-container rounded mb-6"></div>
+                <div className="w-full h-10 bg-surface-container rounded-full mt-auto"></div>
+              </div>
+            ))}
+          </div>
+        ) : sortedDoctors.length === 0 ? (
+          <div className="bg-surface-container-lowest rounded-3xl p-12 text-center border border-outline-variant/10 flex flex-col items-center">
+            <span className="material-symbols-outlined text-primary text-5xl mb-3 select-none">stethoscope</span>
+            <h3 className="text-headline-sm font-bold text-on-surface mb-2">No Doctors Found</h3>
+            <p className="text-body-md text-on-surface-variant max-w-md">
+              No specialists match the selected department filter. Try selecting "All Specialists".
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {sortedDoctors.map((doctor, index) => {
+              const workingDays = doctor.schedules && doctor.schedules.length > 0
+                ? doctor.schedules.map((s) => s.day_of_week)
+                : ["Mon", "Wed", "Fri"];
+
+              return (
+                <motion.div
+                  key={doctor.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                >
+                  <DoctorCard
+                    id={doctor.id}
+                    name={doctor.full_name}
+                    specialty={doctor.specialty}
+                    credentials={doctor.qualifications || t("medicalSpecialist", { fallback: "Medical Specialist" })}
+                    image={doctor.photo || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400"}
+                    slug={doctor.slug}
+                    experience_years={doctor.experience_years}
+                    consultation_fee={doctor.consultation_fee}
+                    rating={doctor.rating}
+                    review_count={doctor.review_count}
+                    working_days={workingDays}
+                  />
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Booking CTA Banner */}
+      <section className="px-4 md:px-6 pb-20 max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+          <CTABanner />
+        </motion.div>
+      </section>
+    </div>
+  );
+}
