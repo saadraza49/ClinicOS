@@ -228,8 +228,16 @@
     "openDirections": "Open Directions in Google Maps"
   },
   "BookAppointmentPage": {
+    "bookingBadge": "Smart Online Reservation",
     "title": "Book an Appointment",
     "subtitle": "Schedule a consultation with our experienced clinical team in under a minute.",
+    "loadingPortal": "Loading appointment portal...",
+    "searchServicePlaceholder": "Search or select a medical service...",
+    "searchDoctorPlaceholder": "Search or select a doctor (optional)...",
+    "patientNamePlaceholder": "e.g., John Doe",
+    "patientEmailPlaceholder": "john.doe@example.com",
+    "patientPhonePlaceholder": "+92 300 1234567",
+    "symptomsPlaceholder": "Any symptoms, medical history, or specific requests...",
     "step1Title": "1. Visit Details",
     "selectService": "Select Service",
     "selectServiceReq": "Please select a service",

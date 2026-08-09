@@ -3,6 +3,7 @@ from app.db.session import engine, SessionLocal
 from app.db.base import Base
 from app.models.appointment import Service, Appointment, AppointmentReview
 from app.models.doctor import Department, DoctorProfile
+from app.models.patient import PatientProfile
 from app.models.user import User
 
 def seed_module3():
@@ -17,6 +18,8 @@ def seed_module3():
         dr_elena = db.query(DoctorProfile).filter(DoctorProfile.slug == "elena-rodriguez").first()
         dr_marcus = db.query(DoctorProfile).filter(DoctorProfile.slug == "marcus-vance").first()
         patient_user = db.query(User).filter(User.email == "john.doe@example.com").first()
+        patient_profile = db.query(PatientProfile).filter(PatientProfile.user_id == patient_user.id).first() if patient_user else None
+        patient_profile_id = patient_profile.id if patient_profile else None
 
         # Seed Services
         services_data = [
@@ -60,7 +63,7 @@ def seed_module3():
             appt = db.query(Appointment).filter(Appointment.patient_name == "John Doe", Appointment.doctor_id == dr_elena.id).first()
             if not appt:
                 appt = Appointment(
-                    patient_id=patient_user.id if patient_user else None,
+                    patient_id=patient_profile_id,
                     doctor_id=dr_elena.id,
                     service_id=services_map["pediatric-checkup"].id if "pediatric-checkup" in services_map else None,
                     department_id=peds_dept.id if peds_dept else None,
@@ -86,7 +89,7 @@ def seed_module3():
                     rev = AppointmentReview(
                         appointment_id=appt.id,
                         doctor_id=dr_elena.id,
-                        patient_id=patient_user.id if patient_user else None,
+                        patient_id=patient_profile_id,
                         reviewer_name="John Doe",
                         rating=5,
                         review_text="Dr. Elena was remarkably kind and thorough during our appointment!",

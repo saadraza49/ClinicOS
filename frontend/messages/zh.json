@@ -230,8 +230,16 @@
     "openDirections": "在 Google 地图中打开导航"
   },
   "BookAppointmentPage": {
+    "bookingBadge": "智能在线挂号预约",
     "title": "预约挂号",
     "subtitle": "只需不到一分钟即可与我们经验丰富的医疗团队预约门诊。",
+    "loadingPortal": "正在加载预约挂号系统...",
+    "searchServicePlaceholder": "搜索或选择诊疗服务项目...",
+    "searchDoctorPlaceholder": "搜索或选择看诊医生（可选）...",
+    "patientNamePlaceholder": "例如：张三",
+    "patientEmailPlaceholder": "zhangsan@example.com",
+    "patientPhonePlaceholder": "138 0000 0000",
+    "symptomsPlaceholder": "请填写您的症状描述、过往病史或特殊要求...",
     "step1Title": "1. 门诊详情",
     "selectService": "选择诊疗服务",
     "selectServiceReq": "请选择一项服务",

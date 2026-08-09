@@ -7,6 +7,7 @@ from app.core.security import decode_access_token
 from app.models.appointment import Appointment, Service
 from app.models.doctor import DoctorProfile, DoctorSchedule
 from app.models.user import User
+from app.api.v1.endpoints.patients import get_or_create_patient_profile
 from app.schemas.appointment import TimeSlotResponse, AppointmentCreate, AppointmentResponse, AppointmentStatusUpdate, AppointmentCancelRequest, AppointmentRescheduleRequest
 
 router = APIRouter()
@@ -23,11 +24,23 @@ def parse_time_str(time_str: str) -> datetime:
 def get_optional_user(request: Request, db: Session) -> Optional[User]:
     token = request.cookies.get("access_token")
     if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1]
+    if not token:
         return None
     payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
+    if not payload:
         return None
-    return db.query(User).filter(User.id == payload["sub"]).first()
+    user_id = payload.get("sub")
+    user = None
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        user_email = payload.get("email")
+        if user_email:
+            user = db.query(User).filter(User.email == user_email.lower()).first()
+    return user
 
 def get_appointment_datetime(app_date: date, app_time_str: str) -> datetime:
     parsed_t = parse_time_str(app_time_str)
@@ -270,7 +283,15 @@ def create_appointment(
 
     department_id = payload.department_id or (svc_obj.department_id if svc_obj else None) or doctor.department_id
     optional_user = get_optional_user(request, db)
-    patient_id = optional_user.id if optional_user else None
+    patient_profile = get_or_create_patient_profile(optional_user.id, db) if optional_user else None
+    patient_id = patient_profile.id if patient_profile else None
+
+    # Fallback to matching registered patient_email if optional_user wasn't attached
+    if not patient_id and payload.patient_email:
+        email_user = db.query(User).filter(User.email == payload.patient_email.strip().lower()).first()
+        if email_user:
+            email_profile = get_or_create_patient_profile(email_user.id, db)
+            patient_id = email_profile.id
 
     # 6. Create Appointment
     appointment = Appointment(
@@ -300,8 +321,9 @@ def get_my_appointments(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    profile = get_or_create_patient_profile(current_user.id, db)
     appointments = db.query(Appointment).filter(
-        (Appointment.patient_id == current_user.id) | (Appointment.patient_email == current_user.email)
+        (Appointment.patient_id == profile.id) | (Appointment.patient_email == current_user.email)
     ).order_by(Appointment.appointment_date.desc()).all()
     return appointments
 
@@ -317,7 +339,8 @@ def cancel_appointment(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
 
     # Authorization Check
-    if appointment.patient_id and appointment.patient_id != current_user.id:
+    profile = get_or_create_patient_profile(current_user.id, db)
+    if appointment.patient_id and appointment.patient_id != profile.id:
         if appointment.patient_email != current_user.email:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to cancel this appointment")
 
@@ -401,7 +424,8 @@ def reschedule_appointment(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
 
     # Authorization Check
-    if appointment.patient_id and appointment.patient_id != current_user.id:
+    profile = get_or_create_patient_profile(current_user.id, db)
+    if appointment.patient_id and appointment.patient_id != profile.id:
         if appointment.patient_email != current_user.email:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to reschedule this appointment")
 

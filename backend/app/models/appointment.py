@@ -31,7 +31,7 @@ class Appointment(Base):
     __tablename__ = "appointments"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    patient_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    patient_id = Column(String(36), ForeignKey("patient_profiles.id", ondelete="SET NULL"), nullable=True)
     doctor_id = Column(String(36), ForeignKey("doctors_profile.id", ondelete="CASCADE"), nullable=False)
     service_id = Column(String(36), ForeignKey("services.id", ondelete="SET NULL"), nullable=True)
     department_id = Column(String(36), ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
@@ -51,7 +51,7 @@ class Appointment(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
-    patient = relationship("User", backref="appointments")
+    patient = relationship("PatientProfile", backref="appointments")
     doctor = relationship("DoctorProfile", backref="appointments")
     service = relationship("Service", backref="appointments")
     department = relationship("Department", backref="appointments")
@@ -63,7 +63,7 @@ class AppointmentReview(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     appointment_id = Column(String(36), ForeignKey("appointments.id", ondelete="CASCADE"), nullable=False)
     doctor_id = Column(String(36), ForeignKey("doctors_profile.id", ondelete="CASCADE"), nullable=False)
-    patient_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    patient_id = Column(String(36), ForeignKey("patient_profiles.id", ondelete="SET NULL"), nullable=True)
     reviewer_name = Column(String(255), nullable=False)
     rating = Column(Integer, nullable=False)
     review_text = Column(Text, nullable=True)
@@ -73,3 +73,4 @@ class AppointmentReview(Base):
     # Relationships
     appointment = relationship("Appointment", backref="review")
     doctor = relationship("DoctorProfile", backref="reviews")
+    patient = relationship("PatientProfile", backref="reviews")

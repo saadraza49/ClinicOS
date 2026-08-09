@@ -231,7 +231,7 @@ const DOCTORS_DATABASE = [
   }
 ];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
 // 6-Hour session expiration constants
 const SIX_HOURS_SEC = 6 * 60 * 60;
@@ -625,7 +625,7 @@ export default function Chatbot() {
       };
     }
     return {
-      reply: "⚠️ The AI backend server is currently offline. To use the smart appointment booking system, please start your FastAPI backend server on port 8001.",
+      reply: "⚠️ The AI backend server is currently offline. To use the smart appointment booking system, please start your FastAPI backend server on port 8000.",
       quickReplies: []
     };
   };

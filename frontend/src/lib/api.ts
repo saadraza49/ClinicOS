@@ -2,7 +2,7 @@ import { doctors as fallbackDoctors } from "@/data/doctors";
 import { services as fallbackServices } from "@/data/services";
 import { faqs as fallbackFaqs } from "@/data/faqs";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
 export interface DepartmentData {
   id: string;
@@ -129,7 +129,15 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({ detail: "Network request failed" }));
-      throw new Error(errorBody.detail || `Request failed with status ${response.status}`);
+      let detailMsg = `Request failed with status ${response.status}`;
+      if (typeof errorBody.detail === "string") {
+        detailMsg = errorBody.detail;
+      } else if (Array.isArray(errorBody.detail)) {
+        detailMsg = errorBody.detail.map((e: any) => e.msg || JSON.stringify(e)).join(", ");
+      } else if (errorBody.detail) {
+        detailMsg = typeof errorBody.detail === "object" ? JSON.stringify(errorBody.detail) : String(errorBody.detail);
+      }
+      throw new Error(detailMsg);
     }
 
     return response.json();
@@ -139,7 +147,7 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
       throw new Error("Request timed out. Please check your connection and try again.");
     }
     if (err instanceof TypeError && err.message === "Failed to fetch") {
-      throw new Error("Cannot connect to backend server. Please make sure FastAPI backend is running on http://127.0.0.1:8001.");
+      throw new Error("Cannot connect to backend server. Please make sure FastAPI backend is running on http://127.0.0.1:8000.");
     }
     throw err;
   }
